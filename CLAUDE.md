@@ -1,0 +1,279 @@
+# Thiro.pedido — contexto do projeto
+
+Este arquivo é lido automaticamente pelo Claude Code quando você abre uma sessão nesta pasta.
+Ele resume tudo que já foi decidido e feito até agora numa conversa anterior (no Cowork), para
+que a continuação aqui não perca contexto.
+
+## O que é o projeto
+
+Sistema de comandas para hamburgueria, rodando na internet, acessível de qualquer dispositivo
+(celular, tablet, computador) com os mesmos dados sincronizados em tempo real. Não é só para uma
+hamburgueria: é pensado como uma **plataforma multi-restaurante** — outros restaurantes (negócios
+de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
+
+## Decisões já fechadas (não precisam ser discutidas de novo)
+
+- Nome do sistema: **Thiro.pedido**
+- Identidade visual: cores **azul e vermelho** (já aplicadas no tema CSS)
+- Modelo de atendimento: mesas no salão + balcão/retirada + delivery
+- Dentro do atendimento em mesa: a **mesa é só um número digitado pelo garçom** na hora de abrir a
+  comanda (não é um cadastro fixo, não tem tela de administração, "some" quando a comanda fecha).
+  Já a **comanda física** (a ficha/cartão numerado que o garçom entrega ao cliente) É um cadastro
+  fixo feito pela gestão (ex: fichas 1 a 30), reaproveitado assim que a comanda anterior fecha —
+  uma mesma ficha não pode estar em duas comandas abertas ao mesmo tempo
+- Perfis de usuário: garçom/atendente, cozinha, caixa, gestão/dono, e um "super admin" (dono da
+  plataforma) que cadastra novos restaurantes
+- Cadastro de novos restaurantes na plataforma: manual, feito só pelo super admin (sem cadastro
+  público self-service)
+- Dentro de cada restaurante, a área de administração exige uma **segunda senha (PIN)**, além do
+  login normal, cadastrada pelo próprio gestor
+- Porte da hamburgueria do dono: médio, ~10-25 mesas; pode abrir mais unidades no futuro, mas o
+  banco de dados já foi desenhado pensando nisso
+- Estoque de insumos com baixa automática por venda: **implementado na Fase 7**
+- **Todos os pagamentos são feitos na mesa, não existe uma pessoa fixa no caixa.** O garçom fecha a
+  conta pelo próprio celular, direto na mesa — liga/desliga a taxa de serviço (10%) vendo o total
+  mudar na hora, e escolhe a forma de pagamento depois de cobrar na maquininha
+  **InfinityPay** (sem integração automática/TEF — o sistema só registra qual forma foi usada)
+- **Impressão física (Epson TM-T20X) fica pra depois, de propósito** — a plataforma é
+  multi-restaurante e cada um teria uma impressora diferente pra configurar, não vale a pena
+  complicar isso agora. No lugar, existe uma **notinha virtual** na tela (bonita, estilo cupom):
+  o garçom fecha a conta na mesa pelo celular e mostra essa tela pro cliente, ou lê os itens em
+  voz alta. Se um restaurante específico precisar de impressão física no futuro, isso é um
+  trabalho novo a ser retomado (já existe experiência prévia com QZ Tray, documentada no
+  histórico deste arquivo, caso sirva de ponto de partida)
+- Stack técnica: **React (Vite)** no frontend, **Supabase** (Postgres + Auth + Realtime + Row
+  Level Security) como backend, hospedagem em **Vercel ou Netlify**
+
+## Projeto Supabase já criado
+
+- Nome do projeto no Supabase: "Thiro.pedidos"
+- Project ref: `gawkilcguovapcuevnsy`
+- Project URL: `https://gawkilcguovapcuevnsy.supabase.co`
+- O `.env` deste projeto já está preenchido com a URL e a chave publishable (anon)
+
+## Status atual (o que já foi feito)
+
+- [x] Estrutura do projeto React + Vite criada, com tema azul/vermelho
+- [x] Schema SQL da Fase 1 (`supabase/sql/001_fase1_fundacao.sql`) já foi rodado com sucesso no
+      Supabase: tabelas `restaurants` e `profiles`, RLS de isolamento entre restaurantes, funções
+      auxiliares (`my_role`, `my_restaurant_id`, `is_super_admin`), e as funções de PIN
+      (`set_admin_pin`, `verify_admin_pin`)
+- [x] Tabelas antigas de uma tentativa anterior (abandonada) de projeto que estavam no mesmo
+      projeto Supabase (`companies`, `branches`, `roles`, `permissions`, `profile_roles`,
+      `role_permissions`, `profiles` antigo) foram removidas antes de rodar o schema novo
+- [x] "Enable email provider" está ligado no Supabase (Authentication > Providers > Email) — sem
+      isso, ninguém consegue logar
+- [x] Usuário de super admin criado: nome "Thiago", `auth.users.id` = `22f21f8b-29fe-4b57-ab01-9857abceb9af`,
+      já vinculado em `public.profiles` com `role = 'super_admin'`
+- [x] Projeto movido para `C:\Users\thiag\Downloads\thiro-pedido` (pasta própria, separada do
+      site institucional), `npm install` rodado sem erros
+- [x] Edge Function `create-user` publicada com sucesso via `npx supabase functions deploy
+      create-user` (confirmado pelo Supabase: "Deployed Functions")
+- [x] Login testado localmente com sucesso com o usuário de super admin. Havia um bug no
+      `src/pages/Login.jsx` (faltava redirecionar após login bem-sucedido, ficava travado na
+      tela de login mesmo com credenciais corretas) — corrigido adicionando `navigate("/")`
+      após `signIn` sem erro
+- [x] Fluxo completo da Fase 1 testado e validado: super admin criou o restaurante "restaurante
+      teste" pelo painel (`/superadmin`) → deslogou → logou como gestão desse restaurante → entrou
+      na área de administração → criou o PIN (segunda senha) com sucesso → tela "Área de
+      administração desbloqueada" confirmada
+- [x] Bug encontrado e corrigido durante o teste: `gen_salt()`/`crypt()` (funções do pgcrypto)
+      ficam no schema `extensions` no Supabase, não em `public`. As funções `set_admin_pin` e
+      `verify_admin_pin` davam erro `function gen_salt(unknown) does not exist` porque seu
+      `search_path` só incluía `public`. Corrigido em `supabase/sql/001_fase1_fundacao.sql` (agora
+      já nasce certo pra quem rodar do zero) e aplicado no banco já existente via
+      `supabase/sql/002_fix_pgcrypto_search_path.sql` (rodado com sucesso no SQL Editor)
+- [x] **Fase 2 (Cardápio) implementada e testada de ponta a ponta.** Tabelas `categorias` e
+      `produtos` (`supabase/sql/003_fase2_cardapio.sql`, rodado com sucesso), isoladas por
+      restaurante com o mesmo padrão de RLS da Fase 1 (gestão do próprio restaurante faz CRUD,
+      qualquer papel do restaurante pode ler — os outros papéis vão precisar disso pra montar
+      comandas nas próximas fases). Tela em `src/pages/gestao/CardapioAdmin.jsx`, acessível pelo
+      hub em "Área de administração" → "Gerenciar cardápio" (`src/pages/gestao/
+      AdministracaoHome.jsx` virou um hub de seções). Testado ao vivo: criar categoria, criar
+      produto, editar produto, ativar/desativar — tudo funcionando
+- [x] **Fase 3 (mesas e comandas — fluxo do garçom) implementada e testada de ponta a ponta,**
+      depois de duas rodadas de ajuste com o usuário sobre como o modelo real funciona (ver
+      decisão "mesa digitada vs. comanda física fixa" acima). Migrações
+      `supabase/sql/004_fase3_mesas_comandas.sql` (tabelas `comandas` e `comanda_itens`; a
+      tabela `mesas` criada aqui foi removida na migração seguinte) e
+      `supabase/sql/005_comandas_fisicas.sql` (tabela `comandas_fisicas`, coluna
+      `comandas.comanda_fisica_id` com índice único parcial garantindo que uma ficha não seja
+      usada em duas comandas abertas ao mesmo tempo, coluna `comandas.mesa_numero` digitada
+      pelo garçom, remoção da tabela `mesas`), ambas rodadas com sucesso. Telas: gestão cadastra
+      as fichas de comanda física em "Área de administração" → "Comandas físicas"
+      (`src/pages/gestao/ComandasFisicasAdmin.jsx`); garçom abre comanda em `/garcom`
+      digitando o número da mesa e escolhendo uma ficha livre (`src/pages/garcom/GarcomHome.jsx`),
+      lança itens do cardápio numa tela por comanda com ajuste de quantidade e total ao vivo
+      (`src/pages/garcom/ComandaGarcom.jsx`, rota `/garcom/comanda/:comandaId`). Testado ao vivo:
+      cadastrar comandas físicas, abrir comanda com mesa+ficha, ficha some da lista de livres
+      enquanto em uso, adicionar item (incrementa em vez de duplicar linha ao clicar de novo no
+      produto), aumentar/diminuir quantidade pelos botões +/- — tudo funcionando
+- [x] **Tela de "Usuários" adicionada** (não estava nas fases originais, mas era um pré-requisito
+      pra Fase 4: sem ela só dava pra testar o garçom usando o próprio login de gestão). Gestão
+      cria logins de garçom/cozinha/caixa/gestão em "Área de administração" → "Usuários"
+      (`src/pages/gestao/UsuariosAdmin.jsx`, rota `/gestao/administracao/usuarios`), reusando a
+      Edge Function `create-user` já publicada na Fase 1 (não precisou de SQL novo — as políticas
+      de RLS de `profiles` da Fase 1 já permitiam gestão listar/atualizar usuários do próprio
+      restaurante). Também dá pra desativar/reativar usuários (botão de desativar a própria conta
+      fica bloqueado, pra gestão não se trancar fora sem querer). Testado ao vivo: criar login de
+      garçom, desativar, reativar — tudo funcionando. **Importante:** essa senha de login é
+      diferente da senha de administração (PIN) — o garçom nunca precisa do PIN pra lançar pedidos
+- [x] **Fase 4 (cozinha em tempo real / KDS) implementada e testada de ponta a ponta**, com
+      Supabase Realtime de verdade (não é polling). Migração
+      `supabase/sql/006_fase4_cozinha_realtime.sql`: cozinha entrou no grupo que pode atualizar
+      `comanda_itens` (antes só garçom/gestão podiam avançar status), e a tabela `comanda_itens`
+      foi adicionada à publicação `supabase_realtime`. Tela em `src/pages/cozinha/CozinhaHome.jsx`
+      mostra os itens pendentes/em preparo (ordenados por horário do pedido), com botão pra avançar
+      pendente → preparo → pronto; assina mudanças via `supabase.channel(...).on("postgres_changes"
+      , ...)` e recarrega sozinha, sem precisar de F5. A tela do garçom
+      (`src/pages/garcom/ComandaGarcom.jsx`) também passou a mostrar o status de cada item ao vivo
+      (mesma assinatura Realtime, filtrada por comanda) e trava os botões +/- depois que a cozinha
+      começa o preparo (evita editar item que já está sendo feito); quando o item fica "pronto",
+      aparece um botão "Marcar entregue" pro garçom fechar o ciclo (status vira "entregue"). Testado
+      ao vivo com duas abas abertas ao mesmo tempo (cozinha + garçom): pedido lançado aparece na
+      cozinha sem reload, avanço de status na cozinha aparece no garçom sem reload, ciclo completo
+      pendente → preparo → pronto → entregue confirmado
+- [x] **Observação por item + itens iguais não se misturam** (ajuste pedido pelo usuário logo após
+      a Fase 4). A coluna `comanda_itens.observacao` já existia desde a Fase 3 mas não tinha campo
+      nenhum na interface. Adicionado um campo "Observação" acima do cardápio em
+      `src/pages/garcom/ComandaGarcom.jsx`: o garçom escreve ali (ex: "sem salada") antes de clicar
+      no produto, e essa observação vai só pro próximo item clicado (o campo limpa sozinho depois).
+      Duas unidades do mesmo produto só somam na mesma linha (contador de quantidade) se **nenhuma
+      das duas tiver observação** — assim que uma tem observação diferente, vira linha própria, pra
+      não se perder no meio de um pedido maior. A observação aparece em destaque (caixa vermelha)
+      tanto na tela do garçom quanto — o pedido principal do ajuste — na tela da cozinha
+      (`src/pages/cozinha/CozinhaHome.jsx`). **Nota técnica:** a primeira tentativa usou
+      `window.prompt()` pra pedir a observação, mas foi trocada por um campo de texto normal porque
+      `prompt()` não funciona em todo navegador/contexto (não é só um detalhe do ambiente de teste
+      — evitar usar `window.prompt`/`window.alert` neste projeto daqui pra frente). Não precisou de
+      SQL novo. Testado ao vivo: item com observação vira linha separada, item sem observação some
+      normal na linha existente, observação aparece destacada na cozinha
+- [x] **Fase 5 (Caixa — fechamento de conta, pagamento) implementada e testada de ponta a ponta.**
+      Migração `supabase/sql/007_fase5_caixa.sql`: novo tipo `forma_pagamento` (dinheiro/débito/
+      crédito/pix) e colunas `comandas.forma_pagamento`/`comandas.valor_total`; caixa entrou no
+      grupo que pode atualizar `comandas` (fechar); e — importante — depois que uma comanda é
+      fechada (`status = 'fechada'`), ninguém mais consegue inserir/editar/excluir os itens dela
+      (política de RLS de `comanda_itens` agora exige `comandas.status = 'aberta'`), pra não mexer
+      numa conta já paga. Telas: `src/pages/caixa/CaixaHome.jsx` lista comandas abertas;
+      `src/pages/caixa/FechamentoCaixa.jsx` (rota `/caixa/comanda/:comandaId`) mostra os itens,
+      deixa o caixa ligar/desligar a taxa de serviço (10%, decisão já fechada — o cálculo soma na
+      hora), escolher a forma de pagamento (só registra, a cobrança em si é na maquininha
+      InfinityPay, fora do sistema — outra decisão já fechada) e fechar a comanda; depois de
+      fechada, a mesma tela vira um recibo somente leitura (subtotal, taxa, forma de pagamento,
+      total, horário do fechamento). Testado ao vivo: cálculo do subtotal/total com e sem taxa,
+      validação obrigando escolher forma de pagamento antes de fechar, fechamento com sucesso,
+      recibo exibido corretamente, comanda física liberada de volta pro pool assim que fecha
+- [x] **Fase 6 (Balcão/retirada e delivery) implementada e testada de ponta a ponta**, depois de
+      confirmar com o usuário como cada tipo funciona (balcão: só nome do cliente, sem ficha
+      numerada; delivery: nome, telefone, endereço e taxa de entrega). Migração
+      `supabase/sql/008_fase6_balcao_delivery.sql`: novo tipo `tipo_atendimento` ('mesa'/'balcao'/
+      'delivery') e coluna `comandas.tipo`; `mesa_numero` deixou de ser obrigatório (só mesa usa);
+      colunas novas `cliente_nome`/`cliente_telefone`/`endereco_entrega`/`taxa_entrega`; constraint
+      `comandas_dados_por_tipo` garante que cada tipo tem os campos certos preenchidos (não dá pra
+      salvar uma comanda "mesa" sem mesa_numero, nem uma "delivery" sem endereço, etc.). A migração
+      também limpou a comanda de teste órfã (mesa sem comanda física) que tinha ficado de um teste
+      anterior à Fase 3 ter fechado o modelo. `src/pages/garcom/GarcomHome.jsx` ganhou um seletor de
+      tipo de atendimento com campos condicionais; `ComandaGarcom.jsx`, `CozinhaHome.jsx`,
+      `CaixaHome.jsx` e `FechamentoCaixa.jsx` mostram o cabeçalho certo pra cada tipo (mesa+ficha,
+      ou nome do cliente); o fechamento no caixa soma a taxa de entrega ao total (fora da taxa de
+      serviço de 10%, que incide só sobre os itens). **Bug real encontrado e corrigido durante o
+      teste** (não é só da Fase 6): fechar uma comanda no caixa nunca atualizava o status dos itens
+      dela — itens que ficaram "pendente"/"em preparo" continuavam aparecendo pra sempre na fila da
+      cozinha mesmo depois da comanda fechada e paga. Corrigido em `CozinhaHome.jsx` trocando o
+      `comandas(...)` do select por `comandas!inner(...)` e filtrando `.eq("comandas.status",
+      "aberta")`. Testado ao vivo: abrir comanda de balcão e de delivery, lançar item, ver aparecer
+      certo na cozinha, fechar no caixa com taxa de entrega somada corretamente ao total, e
+      confirmar que a comanda fechada não fica mais "presa" na fila da cozinha
+- [x] **Fase 7 (Estoque de insumos) implementada e testada de ponta a ponta**, depois de confirmar
+      com o usuário o modelo (por insumo com receita por produto, baixa no momento em que o garçom
+      lança o pedido — não quando a cozinha prepara). Migração
+      `supabase/sql/009_fase7_estoque.sql`: tabelas `insumos` (nome, unidade **livre** — aceita
+      "un", "kg", "g", "L" etc., `quantidade_estoque` e `estoque_minimo` como `numeric(10,3)`,
+      então aceita casas decimais) e `produto_insumos` (a receita: quanto de cada insumo um
+      produto consome por unidade vendida). A baixa é automática via **trigger no banco**
+      (`aplicar_baixa_estoque`, `security definer`) disparado em qualquer INSERT/UPDATE
+      (quantidade ou status)/DELETE em `comanda_itens` — cobre lançar item, aumentar/diminuir
+      quantidade, excluir item e **cancelar item** (tratado como quantidade efetiva zero). Telas:
+      `src/pages/gestao/InsumosAdmin.jsx` (CRUD de insumos + ajuste manual de estoque, com aviso
+      visual quando abaixo do mínimo ou negativo) e `src/pages/gestao/ReceitasAdmin.jsx` +
+      `ReceitaProdutoEditor.jsx` (monta a receita de cada produto). **Limitação conhecida e
+      aceita:** a baixa sempre usa a receita *atual* do produto, não uma foto de como a receita
+      estava no momento do pedido — então cancelar um item lançado antes de a receita existir (ou
+      antes dela mudar) pode "devolver" estoque que nunca foi baixado. Isso não trava nada, só
+      pode deixar o número levemente errado num caso raro de editar a receita com pedidos antigos
+      ainda em aberto; não valia a pena adicionar a complexidade de guardar snapshot da receita por
+      pedido pra um caso tão raro.
+- [x] **Botão "Cancelar item" adicionado à comanda do garçom** (pedido do usuário, motivado por
+      "tem como tirar um produto se for necessário"): antes só dava pra remover item enquanto
+      "pendente"; agora dá pra cancelar em pendente/preparo/pronto (não depois de entregue), o que
+      também devolve os insumos via o mesmo trigger de estoque.
+- [x] **Todos os `window.confirm()` do projeto foram substituídos por um componente próprio**
+      (`src/components/ConfirmButton.jsx`, dois cliques dentro da própria tela: "Excluir" →
+      "Confirmar" + "Voltar"). Motivo: descobrimos durante o teste da Fase 7 que o navegador deste
+      ambiente **não suporta diálogos nativos do JS** (`confirm`/`prompt` — o `prompt()` já tinha
+      dado erro "not supported" lá na Fase 3; o `confirm()` falha silenciosamente, sem erro nenhum,
+      só nunca aparece e a ação nunca é confirmada) — isso travava toda ação destrutiva do sistema
+      (excluir categoria/produto/comanda física/insumo, cancelar item) tanto pra mim quanto pro
+      usuário. **Regra geral pra daqui pra frente: nunca usar `window.confirm`/`window.prompt`
+      neste projeto — sempre usar `ConfirmButton` ou um campo de formulário normal.**
+- [x] **Fase 9 (Relatórios) implementada e testada de ponta a ponta**, com gráficos (a pedido do
+      usuário — usei o skill de dataviz interno pra escolher forma/cor: barras em vez de
+      pizza/rosca porque comparar comprimento é mais fácil que comparar ângulo, e a paleta
+      categórica usada — azul/laranja/água/amarelo — é a ordem padrão validada do skill pra
+      contraste e daltonismo, não cores escolhidas de olho). Não precisou de tabela nova nem
+      migração — é tudo consulta em cima de `comandas` (`status = 'fechada'`) e `comanda_itens`
+      (excluindo `cancelado`), agregado no próprio navegador (volume de dados de uma hamburgueria
+      não justifica view/RPC no banco). Tela em `src/pages/gestao/RelatoriosAdmin.jsx`, rota
+      `/gestao/administracao/relatorios`: filtro de período com atalhos (Hoje/7 dias/30 dias/Este
+      mês) + datas customizadas; cards de resumo (faturamento, comandas fechadas, ticket médio);
+      gráfico de barras verticais de faturamento por dia (`src/components/charts/VerticalBars.jsx`);
+      gráficos de barras horizontais por forma de pagamento, por tipo de atendimento e ranking de
+      produtos mais vendidos (`src/components/charts/BarList.jsx`, reutilizável). Testado ao vivo
+      com dados reais de comandas fechadas nos testes anteriores — todos os totais (faturamento,
+      por forma de pagamento, por tipo, ticket médio) conferidos batendo com a soma manual, e o
+      atalho "Últimos 7 dias" preenchendo os dias vazios corretamente no gráfico
+- [x] **Fase 8 (Impressão física) implementada com QZ Tray, testada até onde dava sem impressora
+      real — e depois desfeita a pedido do usuário.** Antes de mexer, o usuário esclareceu que não
+      existe uma pessoa fixa no caixa — todo pagamento é feito na mesa, pelo próprio garçom, no
+      celular — o que já tinha exigido redesenhar a Fase 5 (ver abaixo). Depois de eu montar a
+      integração com QZ Tray (biblioteca `qz-tray`, `src/lib/qzPrint.js`, recibo em ESC/POS,
+      confirmado funcionando até o ponto de tentar conectar nas portas certas do QZ Tray e falhar
+      graciosamente sem o programa instalado), o usuário decidiu **não imprimir por enquanto**: a
+      plataforma é multi-restaurante e cada um teria uma impressora diferente pra configurar, o
+      que não vale a pena resolver agora. **Removido**: pacote `qz-tray` (`npm uninstall qz-tray`)
+      e o módulo `src/lib/qzPrint.js`. **No lugar, criei uma "notinha virtual"** —
+      `src/components/Notinha.jsx`, um componente visual bonito (cabeçalho com gradiente
+      azul/vermelho da marca, borda picotada imitando papel de cupom, itens com observação em
+      destaque, total grande, forma de pagamento, data/hora) que o garçom mostra na tela do
+      celular pro cliente ou lê os itens em voz alta. Esse componente é usado em dois lugares:
+      direto na tela do garçom (`ComandaGarcom.jsx`) assim que a comanda é fechada, e na tela de
+      consulta (`FechamentoCaixa.jsx`, acessível por `/caixa`, agora chamada de "Notinhas de hoje"
+      em vez de "Imprimir notinhas" no link do topo — `AppLayout.jsx`). O texto "Excluir"/"Imprimir"
+      em `CaixaHome.jsx` virou "Ver notinha". **Continua tudo em vigor da mudança anterior**: o
+      fechamento (taxa de serviço + forma de pagamento) acontece na tela do garçom, na mesa; o
+      papel **garçom** continua com acesso a `/caixa` (útil agora pra *ver* notinhas antigas, não
+      mais pra imprimir — e como não depende de programa nenhum no computador, funciona de
+      qualquer aparelho, celular incluso). Se algum dia for necessário reativar impressão física
+      pra um restaurante específico, isso vira um trabalho novo — o código do QZ Tray não ficou
+      guardado como feature flag, foi removido de verdade para não deixar código morto.
+
+## Próximos passos imediatos (nesta ordem)
+
+1. **Todas as 9 fases planejadas do sistema estão implementadas e testadas de ponta a ponta**,
+   incluindo a Fase 8 — só que com notinha virtual na tela em vez de impressão física, por decisão
+   do usuário (ver acima). Não há mais nenhuma fase grande pendente do roteiro original.
+2. O cardápio real da hamburgueria (o de exemplo já foi usado só como referência de estrutura,
+   nunca cadastrado de verdade) ainda precisa ser inserido pelo usuário via `/gestao/
+   administracao/cardapio` quando o restaurante de produção for cadastrado
+3. Depois do teste real da impressão, resta só polimento/ajustes conforme o uso real no dia a dia
+   da hamburgueria for revelando necessidades — não há mais fases grandes no roteiro original
+
+## Como trabalhar neste projeto
+
+- O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
+  desnecessário, e confirme antes de rodar comandos que ele não pediu
+- Sempre que uma fase for concluída, resuma o que foi feito e o que falta, do jeito que está
+  documentado aqui, para manter esse arquivo atualizado como fonte de verdade do projeto
+- Já existe um cardápio de exemplo (enviado separadamente ao usuário) com hambúrgueres,
+  acompanhamentos, bebidas e sobremesas — pode ser usado como base pra Fase 2, mas o cardápio real
+  da hamburgueria ainda não foi fornecido
