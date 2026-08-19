@@ -7,6 +7,7 @@ import HomeRedirect from "./components/HomeRedirect";
 
 import Login from "./pages/Login";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
+import SuperAdminRestauranteVisual from "./pages/superadmin/SuperAdminRestauranteVisual";
 import GarcomHome from "./pages/garcom/GarcomHome";
 import CozinhaHome from "./pages/cozinha/CozinhaHome";
 import CaixaHome from "./pages/caixa/CaixaHome";
@@ -19,6 +20,7 @@ import InsumosAdmin from "./pages/gestao/InsumosAdmin";
 import ReceitasAdmin from "./pages/gestao/ReceitasAdmin";
 import ReceitaProdutoEditor from "./pages/gestao/ReceitaProdutoEditor";
 import RelatoriosAdmin from "./pages/gestao/RelatoriosAdmin";
+import IdentidadeVisualAdmin from "./pages/gestao/IdentidadeVisualAdmin";
 import ComandaGarcom from "./pages/garcom/ComandaGarcom";
 import FechamentoCaixa from "./pages/caixa/FechamentoCaixa";
 
@@ -46,6 +48,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["super_admin"]}>
                     <SuperAdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/superadmin/restaurantes/:restaurantId/visual"
+                element={
+                  <ProtectedRoute allowedRoles={["super_admin"]}>
+                    <SuperAdminRestauranteVisual />
                   </ProtectedRoute>
                 }
               />
@@ -172,6 +183,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["gestao"]}>
                     <RelatoriosAdmin />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/gestao/administracao/identidade-visual"
+                element={
+                  <ProtectedRoute allowedRoles={["gestao"]}>
+                    <IdentidadeVisualAdmin />
                   </ProtectedRoute>
                 }
               />

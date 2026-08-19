@@ -63,6 +63,10 @@ quando fizer sentido pra um restaurante específico).
   mostra pro cliente ou lê os itens em voz alta. Pra ver de novo mais tarde, o link
   "Notinhas de hoje" no topo do site (visível pra garçom/caixa/gestão) lista as comandas
   fechadas no dia. Sem impressão física por enquanto (ver acima o porquê)
+- Identidade visual por restaurante: em "Área de administração" → "Identidade visual" (ou,
+  pelo super admin, no botão "Personalizar" da lista de restaurantes), cada restaurante pode
+  trocar a logo, a cor principal e a imagem de fundo do app, além do nome/ícone que aparece
+  na aba do navegador. Quem não personalizar nada continua com a aparência padrão da Thiro
 
 ## Passo a passo para colocar no ar
 
@@ -181,9 +185,34 @@ supabase/
 Relatórios (Fase 9) e a notinha virtual (Fase 8) não precisaram de SQL novo — são só código
 de frontend.
 
+## Site em produção
+
+O sistema já está no ar em **https://thiro-pedido.vercel.app**, hospedado no Vercel (time
+"Thiro", projeto `thiro-pedido`), com deploy automático a cada `git push` na branch `main`. O
+código-fonte está no GitHub em `contatotrmktdigital-stack/Thiro.pedido`.
+
+Detalhes importantes de quem for mexer nessa configuração:
+
+- **Variáveis de ambiente no Vercel**: `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY`,
+  configuradas em Project Settings → Environment Variables. Como o Vite grava essas variáveis
+  dentro dos arquivos do site já na hora de compilar (não lê elas depois, em tempo real), **toda
+  vez que uma delas mudar é preciso fazer um Redeploy manual** no Vercel (aba Deployments → "..."
+  → Redeploy) — só salvar a variável não é suficiente.
+- **Chave anon do Supabase — use o formato antigo (JWT), não o novo**: em Project Settings → API
+  do Supabase existem dois formatos de chave pública: a nova "publishable key" (começa com
+  `sb_publishable_...`) e a clássica (um token longo que começa com `eyJ...`). Neste projeto, a
+  chave nova causava erro 401 "Invalid API key" e o login parava de funcionar em produção — use
+  sempre a clássica (`eyJ...`) tanto no `.env` local quanto na env var do Vercel.
+- **`vercel.json`**: contém uma regra de rewrite (`"/(.*)" → "/index.html"`) necessária para as
+  rotas do React Router (`/garcom`, `/cozinha`, etc.) funcionarem ao recarregar a página ou abrir
+  o link direto — sem isso o Vercel retorna 404 nessas URLs.
+- **Authentication → URL Configuration no Supabase**: o "Site URL" e os "Redirect URLs" precisam
+  apontar para `https://thiro-pedido.vercel.app` (não `localhost`), senão links de e-mail (como
+  recuperação de senha) abrem com erro de conexão recusada.
+
 ## Próximos passos
 
-Todas as 9 fases planejadas já têm código pronto e testado. Só falta:
+Todas as 9 fases planejadas já têm código pronto e testado, e o site já está no ar. Só falta:
 
 1. Cadastrar o cardápio real, as comandas físicas e os insumos/receitas da hamburgueria
    (o que existe hoje é só estrutura de teste)
@@ -191,5 +220,7 @@ Todas as 9 fases planejadas já têm código pronto e testado. Só falta:
 3. Se algum dia fizer sentido imprimir de verdade num restaurante específico (impressora
    Epson TM-T20X via USB), isso é um trabalho novo a retomar — já existe experiência prévia
    com QZ Tray no histórico do projeto
+4. Limpar os perfis de super_admin de teste que sobraram no banco durante o troubleshooting do
+   login em produção (só a conta `thiagor.oliveira.profissional@gmail.com` está em uso hoje)
 
 Qualquer dúvida em algum desses passos, é só chamar — posso te guiar em cada etapa.

@@ -67,6 +67,20 @@ export default function AdministracaoHome() {
             </Link>
           </div>
           <div className="role-grid-item">
+            <h3 style={{ marginTop: 0 }}>Identidade visual</h3>
+            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
+              Logo, cor principal e imagem de fundo do seu restaurante.
+            </p>
+            <Link to="/gestao/administracao/identidade-visual">
+              <button
+                className="btn-primary btn-accent"
+                style={{ width: "auto", padding: "8px 16px" }}
+              >
+                Personalizar
+              </button>
+            </Link>
+          </div>
+          <div className="role-grid-item">
             <h3 style={{ marginTop: 0 }}>Relatórios</h3>
             <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
               Faturamento, formas de pagamento e produtos mais vendidos.

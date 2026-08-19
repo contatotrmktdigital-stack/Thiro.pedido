@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 
 function slugify(name) {
@@ -186,7 +187,12 @@ export default function SuperAdminDashboard() {
                       {r.active ? "Ativo" : "Inativo"}
                     </span>
                   </td>
-                  <td>
+                  <td style={{ display: "flex", gap: 8 }}>
+                    <Link to={`/superadmin/restaurantes/${r.id}/visual`}>
+                      <button className="btn-secondary" style={{ width: "auto" }}>
+                        Personalizar
+                      </button>
+                    </Link>
                     <button className="btn-secondary" onClick={() => toggleActive(r)}>
                       {r.active ? "Desativar" : "Ativar"}
                     </button>

@@ -49,7 +49,26 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
 - Nome do projeto no Supabase: "Thiro.pedidos"
 - Project ref: `gawkilcguovapcuevnsy`
 - Project URL: `https://gawkilcguovapcuevnsy.supabase.co`
-- O `.env` deste projeto já está preenchido com a URL e a chave publishable (anon)
+- O `.env` deste projeto já está preenchido com a URL e a chave **anon clássica (formato JWT,
+  começa com `eyJ...`)** — **não usar a chave "publishable" nova (`sb_publishable_...`)**, ver o
+  motivo na entrada sobre o deploy em produção logo abaixo em "Status atual"
+- **Authentication → URL Configuration** no Supabase: Site URL e Redirect URLs apontando pra
+  `https://thiro-pedido.vercel.app` (precisa disso pra e-mails de recuperação de senha
+  funcionarem em produção)
+
+## Produção (site no ar)
+
+- **Site**: https://thiro-pedido.vercel.app
+- **Repositório**: https://github.com/contatotrmktdigital-stack/Thiro.pedido (público — sem
+  segredos no código, chaves só em variável de ambiente)
+- **Hospedagem**: Vercel, time "Thiro" (conta `contato.trmktdigital-stack`), projeto
+  `thiro-pedido`, deploy automático a cada push na branch `main`. Variáveis de ambiente
+  (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) configuradas direto no painel da Vercel —
+  **lembrar que mudar uma env var na Vercel não atualiza o site sozinho, precisa rodar
+  "Redeploy"** (o Vite grava essas variáveis dentro dos arquivos na hora do build, não lê elas
+  em tempo real)
+- `vercel.json` na raiz faz o rewrite de todas as rotas pro `index.html` — necessário pras rotas
+  client-side (React Router) como `/garcom` não darem 404 em produção
 
 ## Status atual (o que já foi feito)
 
@@ -257,16 +276,103 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       pra um restaurante específico, isso vira um trabalho novo — o código do QZ Tray não ficou
       guardado como feature flag, foi removido de verdade para não deixar código morto.
 
+- [x] **Deploy em produção (site no ar).** Fluxo: `git init` neste projeto (era pasta solta,
+      nunca tinha sido versionada), criei `.gitignore` (baseado no projeto irmão db-agencia, mais
+      a entrada extra `supabase/.temp/` — esse cache do Supabase CLI guarda a connection string do
+      pooler do banco, então **nunca pode ir pro git**; cheguei a dar `git add -A` sem querer e ela
+      ficou staged, percebi antes de commitar e tirei com `git rm -r --cached`). Commit inicial,
+      push pro GitHub (`contatotrmktdigital-stack/Thiro.pedido`), import no Vercel (time "Thiro",
+      projeto `thiro-pedido`) com as env vars `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`. Criei
+      `vercel.json` com rewrite `"/(.*)" → "/index.html"` — sem isso as rotas do React Router (tipo
+      `/garcom`, `/cozinha`) dão 404 ao recarregar a página ou acessar direto pela URL, porque o
+      Vercel por padrão só serve arquivos estáticos existentes.
+      **Bug sério pós-deploy: login em produção falhava** com "E-mail ou senha incorretos" mesmo
+      com credenciais corretas (confirmado testando a API direto). Causa real: a chave salva em
+      `VITE_SUPABASE_ANON_KEY` estava no formato novo "publishable key" (`sb_publishable_...`), que
+      nesse projeto Supabase específico retornava 401 "Invalid API key" nas requisições feitas pelo
+      bundle de produção (visto no Network tab do navegador). **Fix**: trocar pela chave clássica
+      formato JWT (`eyJ...`, em Project Settings → API → o campo "anon public" legado, não o
+      "publishable" novo) — atualizado tanto no `.env` local quanto na env var do Vercel, com
+      **redeploy manual** depois (Vite grava as `VITE_*` dentro do bundle na hora do build, então só
+      trocar a env var no painel não basta — precisa rodar o build de novo). Regra gravada:
+      **sempre usar a anon key no formato JWT antigo, nunca a `sb_publishable_...`, neste projeto.**
+      Durante essa investigação apareceu também outro problema separado: o link de recuperação de
+      senha do Supabase abria em `localhost` (ERR_CONNECTION_REFUSED) em vez do domínio de produção
+      — causa: **Authentication → URL Configuration → Site URL/Redirect URLs** ainda apontava pra
+      `localhost`; corrigido apontando para `https://thiro-pedido.vercel.app`.
+      **Pendência de limpeza**: durante o troubleshooting o usuário criou vários usuários
+      super_admin de teste extras tentando contornar o que na real era o bug da API key — só
+      `600e5580-5d98-4f7d-8ba6-83a00970d428` (`thiagor.oliveira.profissional@gmail.com`) está em
+      uso; os outros (`22f21f8b-29fe-4b57-ab01-9857abceb9af`, `87ddcbc5-27aa-41b1-849b-a26c15a1a1a1`,
+      `b2c1f019-93e5-4851-ac92-de72e4f2197f`, `7e00c6dd-96f8-4fa8-a65c-aa63df2799dd`) ficaram órfãos
+      no banco (tabela `profiles` + Auth) e podem ser apagados quando sobrar tempo.
+      **Site no ar, confirmado funcionando**: https://thiro-pedido.vercel.app — o usuário logou com
+      sucesso e eu confirmei de forma independente vendo o Dashboard do Super Admin.
+
+- [x] **Limpeza dos dados de teste (reinício do sistema).** O usuário pediu pra "reiniciar o
+      sistema e tirar os testes" antes de começar a usar de verdade. Consultamos
+      `public.restaurants` e havia só um registro, o "restaurante teste"
+      (`ea8c14dc-8969-46d2-b806-6be63857a74b`, criado em 2026-08-17). Apagado via SQL Editor:
+      `delete from public.restaurants where id = 'ea8c14dc-8969-46d2-b806-6be63857a74b';` — como
+      toda tabela do sistema tem `restaurant_id ... on delete cascade`, isso já apagou sozinho tudo
+      que pertencia a esse restaurante (cardápio, comandas físicas, comandas, itens, insumos/
+      receitas, notinhas e os logins de equipe daquele restaurante). Confirmado no site em produção:
+      a tela do super admin mostra "Nenhum restaurante cadastrado ainda." Sistema pronto, limpo, pra
+      o usuário cadastrar o restaurante real da hamburgueria quando quiser.
+      **Nota**: isso não apagou os logins de super_admin órfãos (ver pendência de limpeza acima) —
+      são contas do `auth.users`/`profiles` sem `restaurant_id`, não afetadas pelo cascade.
+      **Atualização**: esses órfãos (e mais um que sobrou dessa própria limpeza) foram apagados
+      depois, junto com a Identidade Visual — ver item abaixo. Pendência encerrada.
+
+- [x] **Identidade visual por restaurante (diferencial pós-lançamento).** Pedido do usuário: cada
+      restaurante poder personalizar a aparência do app (logo, cor principal, imagem de fundo,
+      nome/ícone na aba do navegador), configurável tanto por ele mesmo (gestão) quanto pelo super
+      admin. Campos novos e opcionais em `restaurants` — `logo_url`, `cor_primaria`,
+      `background_url` (migração `supabase/sql/010_identidade_visual.sql`, já aplicada em
+      produção); restaurante sem nada preenchido continua com a aparência padrão da Thiro, então
+      nada quebrou pros restaurantes existentes.
+      **Como funciona**: bucket público `restaurant-assets` no Supabase Storage, um arquivo fixo
+      por tipo (`{restaurant_id}/logo` e `{restaurant_id}/background`, sem extensão no nome —
+      o `contentType` é gravado na hora do upload, então não precisa) com upload em cima do
+      anterior (`upsert`) — assim não sobra arquivo órfão quando o restaurante troca a imagem.
+      RLS do Storage: leitura pública (é só imagem de marca, não é dado sensível), escrita restrita
+      à pasta do próprio restaurante (gestão) ou ao super_admin.
+      **Aplicação do tema**: `src/lib/theme.js` converte a cor escolhida (um hex só) em HSL e gera
+      as 4 variações que o CSS já usa (`--color-blue-900/700/600/100`), sempre travando a
+      luminosidade num teto escuro (L 22–48%) e um piso de saturação — assim qualquer cor que o
+      restaurante escolher continua com contraste seguro pro texto branco do cabeçalho, sem
+      precisar validar cor por cor. `AppLayout.jsx` aplica essas variáveis como inline style no
+      `.app-shell` (cascata automática pro app inteiro), troca o ícone "TP" pela logo quando
+      existe, aplica a imagem de fundo com um overlay claro por cima (pra não atrapalhar a
+      leitura dos cards) e atualiza `document.title` + o favicon (`<link rel="icon">`) pelo nome/
+      logo do restaurante.
+      **Onde configurar**: gestão em Área de administração → "Identidade visual"
+      (`/gestao/administracao/identidade-visual`); super admin em "Personalizar" na lista de
+      restaurantes do painel (`/superadmin/restaurantes/:id/visual`) — os dois usam o mesmo
+      componente reaproveitado, `src/components/IdentidadeVisualForm.jsx`.
+      **Testado de ponta a ponta** com um restaurante de teste temporário (criado, testado cor +
+      logo + fundo + favicon/aba, confirmado tudo salvando certo no banco e no Storage, depois
+      apagado — incluindo os arquivos do Storage, que precisam ser removidos pela API de Storage,
+      não por SQL direto: o Supabase bloqueia `delete` direto em `storage.objects` de propósito).
+      Nessa limpeza final também apagamos os logins órfãos que tinham sobrado do troubleshooting de
+      login em produção (ver item acima) — banco 100% limpo de novo.
+      **Ainda não publicado em produção** — falta dar `git push` pra o Vercel fazer o deploy
+      automático (perguntar ao usuário antes, é uma ação que ele deve confirmar).
+
 ## Próximos passos imediatos (nesta ordem)
 
 1. **Todas as 9 fases planejadas do sistema estão implementadas e testadas de ponta a ponta**,
    incluindo a Fase 8 — só que com notinha virtual na tela em vez de impressão física, por decisão
    do usuário (ver acima). Não há mais nenhuma fase grande pendente do roteiro original.
-2. O cardápio real da hamburgueria (o de exemplo já foi usado só como referência de estrutura,
+2. **Site já está no ar em produção** (https://thiro-pedido.vercel.app, ver detalhes acima) e **os
+   dados de teste já foram apagados** — o sistema está zerado, pronto pro cadastro real.
+3. **Identidade visual por restaurante já está implementada e testada localmente**, mas ainda não
+   foi enviada pro GitHub/Vercel — perguntar ao usuário se quer publicar agora.
+4. O cardápio real da hamburgueria (o de exemplo já foi usado só como referência de estrutura,
    nunca cadastrado de verdade) ainda precisa ser inserido pelo usuário via `/gestao/
    administracao/cardapio` quando o restaurante de produção for cadastrado
-3. Depois do teste real da impressão, resta só polimento/ajustes conforme o uso real no dia a dia
-   da hamburgueria for revelando necessidades — não há mais fases grandes no roteiro original
+5. Depois disso, resta só polimento/ajustes e novos diferenciais conforme o usuário for pedindo —
+   não há mais fases grandes no roteiro original
 
 ## Como trabalhar neste projeto
 
