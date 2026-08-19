@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
+import ConfirmButton from "../../components/ConfirmButton";
 
 function slugify(name) {
   return name
@@ -25,11 +26,13 @@ export default function SuperAdminDashboard() {
   });
   const [creating, setCreating] = useState(false);
 
+  const [deletingId, setDeletingId] = useState(null);
+
   const loadRestaurants = async () => {
     setLoading(true);
     const { data, error: fetchError } = await supabase
       .from("restaurants")
-      .select("id, name, slug, active, created_at")
+      .select("id, name, slug, active, owner_email, created_at")
       .order("created_at", { ascending: false });
 
     if (fetchError) {
@@ -58,7 +61,7 @@ export default function SuperAdminDashboard() {
 
       const { data: newRestaurant, error: insertError } = await supabase
         .from("restaurants")
-        .insert({ name: form.name.trim(), slug })
+        .insert({ name: form.name.trim(), slug, owner_email: form.ownerEmail.trim() })
         .select()
         .single();
 
@@ -99,6 +102,25 @@ export default function SuperAdminDashboard() {
       setError(updateError.message);
     } else {
       await loadRestaurants();
+    }
+  };
+
+  const handleDelete = async (restaurant) => {
+    setError("");
+    setSuccessMsg("");
+    setDeletingId(restaurant.id);
+    try {
+      const { error: rpcError } = await supabase.rpc("delete_restaurant", {
+        p_restaurant_id: restaurant.id,
+      });
+      if (rpcError) throw rpcError;
+
+      setSuccessMsg(`Restaurante "${restaurant.name}" apagado, junto com os logins da equipe.`);
+      await loadRestaurants();
+    } catch (err) {
+      setError(err.message || String(err));
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -163,6 +185,11 @@ export default function SuperAdminDashboard() {
 
       <div className="card">
         <h2>Restaurantes cadastrados</h2>
+        <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
+          "Desativar" só bloqueia o acesso (dá pra reverter). "Apagar" é definitivo: some com o
+          cardápio, comandas, estoque, relatórios, identidade visual e os logins da equipe desse
+          restaurante.
+        </p>
         {loading ? (
           <p>Carregando...</p>
         ) : restaurants.length === 0 ? (
@@ -173,6 +200,7 @@ export default function SuperAdminDashboard() {
               <tr>
                 <th>Nome</th>
                 <th>Identificador</th>
+                <th>E-mail</th>
                 <th>Status</th>
                 <th></th>
               </tr>
@@ -182,12 +210,13 @@ export default function SuperAdminDashboard() {
                 <tr key={r.id}>
                   <td>{r.name}</td>
                   <td>{r.slug}</td>
+                  <td>{r.owner_email || "—"}</td>
                   <td>
                     <span className={`status-pill ${r.active ? "active" : "inactive"}`}>
                       {r.active ? "Ativo" : "Inativo"}
                     </span>
                   </td>
-                  <td style={{ display: "flex", gap: 8 }}>
+                  <td style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                     <Link to={`/superadmin/restaurantes/${r.id}/visual`}>
                       <button className="btn-secondary" style={{ width: "auto" }}>
                         Personalizar
@@ -196,6 +225,14 @@ export default function SuperAdminDashboard() {
                     <button className="btn-secondary" onClick={() => toggleActive(r)}>
                       {r.active ? "Desativar" : "Ativar"}
                     </button>
+                    <ConfirmButton
+                      onConfirm={() => handleDelete(r)}
+                      disabled={deletingId === r.id}
+                      confirmLabel="Apagar de vez?"
+                      style={{ width: "auto" }}
+                    >
+                      {deletingId === r.id ? "Apagando..." : "Apagar"}
+                    </ConfirmButton>
                   </td>
                 </tr>
               ))}
