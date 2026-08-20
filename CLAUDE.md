@@ -356,8 +356,58 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       não por SQL direto: o Supabase bloqueia `delete` direto em `storage.objects` de propósito).
       Nessa limpeza final também apagamos os logins órfãos que tinham sobrado do troubleshooting de
       login em produção (ver item acima) — banco 100% limpo de novo.
-      **Ainda não publicado em produção** — falta dar `git push` pra o Vercel fazer o deploy
-      automático (perguntar ao usuário antes, é uma ação que ele deve confirmar).
+      **Publicado em produção** — commit `4bea442`, enviado com autorização do usuário.
+      Depois disso o usuário testou sozinho em produção (criou dois restaurantes de teste,
+      "Teste" e "Thiro") e pediu pra zerar de novo — realizado por SQL manual como das vezes
+      anteriores.
+
+- [x] **Super admin ver o e-mail do restaurante e apagar de vez (não só desativar).** Pedido
+      direto do usuário, pra não precisar me chamar toda vez que quiser zerar um teste. Primeira
+      versão que tentei usava uma Edge Function (`delete-restaurant`) pra também apagar os logins
+      da equipe — mas isso exige deploy manual pelo Supabase Dashboard (Edge Functions → Via
+      Editor → colar código → Deploy), e o usuário achou complicado demais e pediu pra simplificar.
+      **Solução final, só com SQL** (`supabase/sql/011_restaurante_email_e_delete.sql`, já aplicada
+      em produção e publicada no commit `3dfd225`):
+      - Campo novo `restaurants.owner_email`, preenchido na hora de criar o restaurante
+        (`SuperAdminDashboard.jsx`), mostrado como coluna na listagem.
+      - Função `public.delete_restaurant(p_restaurant_id uuid)`, `security definer`, que só roda
+        se `is_super_admin()` for verdadeiro: apaga primeiro os logins (`auth.users`) de toda a
+        equipe daquele restaurante (a cascata do banco não alcança `auth.users`, só as tabelas
+        `public`), depois apaga o restaurante (cascata cuida do resto — cardápio, comandas,
+        estoque, identidade visual etc.). Chamada do frontend via `supabase.rpc("delete_restaurant",
+        ...)`, sem precisar de Edge Function nem de chave de serviço no navegador.
+      - Botão "Apagar" ao lado de "Desativar" na listagem do super admin, com confirmação em duas
+        etapas (`ConfirmButton`).
+      **Limitação aceita conscientemente**: essa função não apaga os arquivos de logo/fundo no
+      Storage (bucket `restaurant-assets`) — ficam órfãos lá se o restaurante tinha identidade
+      visual configurada. Apagar do Storage por SQL é bloqueado pelo Supabase de propósito
+      (`storage.protect_delete()`), só dá pela API de Storage — o que voltaria a exigir código
+      rodando com mais permissão. Decisão: aceitar esse resíduo pequeno (só arquivos de imagem,
+      não aparecem em lugar nenhum do app) em troca de manter a solução simples de aplicar.
+      **Publicado em produção**, commit `3dfd225`.
+
+- [x] **Abrir comanda escaneando QR code (opcional, além da forma manual).** Ideia do usuário:
+      colar um QR fixo em cada ficha de comanda física, gerado no momento em que a gestão cadastra
+      a comanda no sistema, pra abrir na hora sem precisar escolher numa lista.
+      **Decisão de design**: perguntei se o scan seria pela câmera comum do celular (o QR aponta
+      pra um link do site) ou por um botão de escanear dentro do app (exigiria pedir permissão de
+      câmera e uma lib de leitura, com mais risco de não funcionar direito no iPhone) — o usuário
+      escolheu a câmera comum, que é a solução mais simples e funciona igual em qualquer celular
+      sem exigir nenhuma biblioteca de leitura de QR.
+      **Como funciona**: o QR (gerado com a lib `qrcode`, 100% no navegador, sem serviço externo)
+      aponta pra `/garcom/abrir/{comanda_fisica_id}`. Essa tela nova
+      (`src/pages/garcom/AbrirComandaPorQR.jsx`) verifica se já existe uma comanda aberta pra
+      aquela ficha — se sim, pula direto pra ela; se não, pede só o número da mesa (o resto já é
+      fixo: a comanda física escaneada) e cria a comanda, igual ao fluxo manual. Gerar/imprimir o
+      QR fica em Área de administração → "Comandas físicas" → "Ver QR" em cada comanda (rótulo
+      pra colar na ficha física, com botão de imprimir usando CSS de impressão puro, sem nenhuma
+      biblioteca).
+      **Importante**: isso não substitui nada — o fluxo manual de abrir comanda em `/garcom`
+      (escolher tipo de atendimento + comanda física numa lista) continua exatamente como estava,
+      porque o usuário avisou que ainda não vai usar QR code por enquanto. `GarcomHome.jsx` não foi
+      tocado nessa mudança; o QR é só um atalho novo por cima, pra usar quando quiserem.
+      Não precisou de nenhum SQL novo — só reaproveita `comandas_fisicas`/`comandas` e as RLS que
+      já existiam.
 
 ## Próximos passos imediatos (nesta ordem)
 
@@ -366,12 +416,15 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
    do usuário (ver acima). Não há mais nenhuma fase grande pendente do roteiro original.
 2. **Site já está no ar em produção** (https://thiro-pedido.vercel.app, ver detalhes acima) e **os
    dados de teste já foram apagados** — o sistema está zerado, pronto pro cadastro real.
-3. **Identidade visual por restaurante já está implementada e testada localmente**, mas ainda não
-   foi enviada pro GitHub/Vercel — perguntar ao usuário se quer publicar agora.
-4. O cardápio real da hamburgueria (o de exemplo já foi usado só como referência de estrutura,
+3. **Identidade visual por restaurante e "apagar restaurante de vez" já estão publicados em
+   produção** (ver acima). Banco zerado de novo depois dos testes do usuário.
+4. **Lição aprendida**: o usuário prefere soluções só com SQL Editor a coisas que exigem deploy
+   manual (Edge Functions pelo Dashboard) — ver `[[feedback_sql_sobre_edge_function]]` se essa
+   memória existir, ou considerar esse padrão ao propor novas funcionalidades administrativas.
+5. O cardápio real da hamburgueria (o de exemplo já foi usado só como referência de estrutura,
    nunca cadastrado de verdade) ainda precisa ser inserido pelo usuário via `/gestao/
    administracao/cardapio` quando o restaurante de produção for cadastrado
-5. Depois disso, resta só polimento/ajustes e novos diferenciais conforme o usuário for pedindo —
+6. Depois disso, resta só polimento/ajustes e novos diferenciais conforme o usuário for pedindo —
    não há mais fases grandes no roteiro original
 
 ## Como trabalhar neste projeto

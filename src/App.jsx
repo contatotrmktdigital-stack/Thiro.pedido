@@ -22,6 +22,7 @@ import ReceitaProdutoEditor from "./pages/gestao/ReceitaProdutoEditor";
 import RelatoriosAdmin from "./pages/gestao/RelatoriosAdmin";
 import IdentidadeVisualAdmin from "./pages/gestao/IdentidadeVisualAdmin";
 import ComandaGarcom from "./pages/garcom/ComandaGarcom";
+import AbrirComandaPorQR from "./pages/garcom/AbrirComandaPorQR";
 import FechamentoCaixa from "./pages/caixa/FechamentoCaixa";
 
 import "./App.css";
@@ -75,6 +76,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["garcom", "gestao"]}>
                     <ComandaGarcom />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/garcom/abrir/:comandaFisicaId"
+                element={
+                  <ProtectedRoute allowedRoles={["garcom", "gestao"]}>
+                    <AbrirComandaPorQR />
                   </ProtectedRoute>
                 }
               />

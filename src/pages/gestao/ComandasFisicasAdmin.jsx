@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import AdminPinGate from "./AdminPinGate";
 import ConfirmButton from "../../components/ConfirmButton";
+import QrCodeComanda from "../../components/QrCodeComanda";
 
 function ComandasFisicasContent() {
   const { restaurant } = useAuth();
@@ -12,6 +13,7 @@ function ComandasFisicasContent() {
   const [error, setError] = useState("");
   const [novoNumero, setNovoNumero] = useState("");
   const [saving, setSaving] = useState(false);
+  const [qrAberto, setQrAberto] = useState(null);
 
   const loadComandasFisicas = async () => {
     setLoading(true);
@@ -118,7 +120,13 @@ function ComandasFisicasContent() {
               {comandas.map((comanda) => (
                 <tr key={comanda.id}>
                   <td>Comanda {comanda.numero}</td>
-                  <td>
+                  <td style={{ display: "flex", gap: 8 }}>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setQrAberto(qrAberto === comanda.id ? null : comanda.id)}
+                    >
+                      {qrAberto === comanda.id ? "Fechar QR" : "Ver QR"}
+                    </button>
                     <ConfirmButton onConfirm={() => handleDelete(comanda)}>Excluir</ConfirmButton>
                   </td>
                 </tr>
@@ -127,6 +135,14 @@ function ComandasFisicasContent() {
           </table>
         )}
       </div>
+
+      {qrAberto && (
+        <QrCodeComanda
+          numero={comandas.find((c) => c.id === qrAberto)?.numero}
+          restaurantName={restaurant?.name}
+          url={`${window.location.origin}/garcom/abrir/${qrAberto}`}
+        />
+      )}
     </div>
   );
 }
