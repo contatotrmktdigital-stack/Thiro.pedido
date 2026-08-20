@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { toLoginEmail } from "../lib/staffLogin";
 
 export default function Login() {
   const { signIn } = useAuth();
@@ -14,10 +15,10 @@ export default function Login() {
     e.preventDefault();
     setError("");
     setSubmitting(true);
-    const { error: signInError } = await signIn(email.trim(), password);
+    const { error: signInError } = await signIn(toLoginEmail(email), password);
     setSubmitting(false);
     if (signInError) {
-      setError("E-mail ou senha incorretos.");
+      setError("E-mail/usuário ou senha incorretos.");
       return;
     }
     navigate("/", { replace: true });
@@ -36,10 +37,10 @@ export default function Login() {
 
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label htmlFor="email">E-mail</label>
+            <label htmlFor="email">E-mail ou usuário</label>
             <input
               id="email"
-              type="email"
+              type="text"
               autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

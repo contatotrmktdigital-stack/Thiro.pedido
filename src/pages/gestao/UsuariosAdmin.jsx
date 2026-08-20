@@ -4,10 +4,11 @@ import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import { roleLabel } from "../../components/ProtectedRoute";
 import AdminPinGate from "./AdminPinGate";
+import { slugifyUsername, toLoginEmail } from "../../lib/staffLogin";
 
 const PAPEIS_CRIAVEIS = ["garcom", "cozinha", "caixa", "gestao"];
 
-const emptyForm = { fullName: "", email: "", password: "", role: "garcom" };
+const emptyForm = { fullName: "", username: "", password: "", role: "garcom" };
 
 function UsuariosContent() {
   const { restaurant, profile } = useAuth();
@@ -18,6 +19,21 @@ function UsuariosContent() {
 
   const [form, setForm] = useState(emptyForm);
   const [creating, setCreating] = useState(false);
+  const [usernameEditado, setUsernameEditado] = useState(false);
+
+  const sugerirUsername = (nome) => {
+    const base = slugifyUsername(nome);
+    if (!base || !restaurant?.slug) return base;
+    return `${base}.${restaurant.slug}`;
+  };
+
+  const handleFullNameChange = (value) => {
+    setForm((f) => ({
+      ...f,
+      fullName: value,
+      username: usernameEditado ? f.username : sugerirUsername(value),
+    }));
+  };
 
   const loadUsuarios = async () => {
     setLoading(true);
@@ -44,9 +60,10 @@ function UsuariosContent() {
     setSuccessMsg("");
     setCreating(true);
 
+    const username = form.username.trim();
     const { error: fnError } = await supabase.functions.invoke("create-user", {
       body: {
-        email: form.email.trim(),
+        email: toLoginEmail(username),
         password: form.password,
         full_name: form.fullName.trim(),
         role: form.role,
@@ -60,8 +77,11 @@ function UsuariosContent() {
       return;
     }
 
-    setSuccessMsg(`Login criado para ${form.fullName} (${roleLabel(form.role)}).`);
+    setSuccessMsg(
+      `Login criado para ${form.fullName} (${roleLabel(form.role)}). Usuário de login: "${username}" — anote e informe pro funcionário, junto com a senha.`
+    );
     setForm(emptyForm);
+    setUsernameEditado(false);
     await loadUsuarios();
   };
 
@@ -93,7 +113,8 @@ function UsuariosContent() {
         <h2>Novo usuário</h2>
         <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
           Cria o login que a pessoa vai usar pra entrar no sistema (não precisa da senha de
-          administração — essa é só pra área de administração).
+          administração — essa é só pra área de administração). Não precisa de e-mail: o nome de
+          usuário é sugerido automaticamente a partir do nome, mas você pode editar se quiser.
         </p>
 
         <form onSubmit={handleCreate}>
@@ -102,7 +123,7 @@ function UsuariosContent() {
               <label>Nome</label>
               <input
                 value={form.fullName}
-                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                onChange={(e) => handleFullNameChange(e.target.value)}
                 required
               />
             </div>
@@ -119,11 +140,15 @@ function UsuariosContent() {
           </div>
           <div className="inline-form" style={{ marginBottom: 0 }}>
             <div className="field">
-              <label>E-mail de login</label>
+              <label>Nome de usuário (login)</label>
               <input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                type="text"
+                value={form.username}
+                onChange={(e) => {
+                  setUsernameEditado(true);
+                  setForm({ ...form, username: e.target.value });
+                }}
+                placeholder="gerado a partir do nome"
                 required
               />
             </div>

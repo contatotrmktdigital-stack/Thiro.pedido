@@ -409,6 +409,30 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       Não precisou de nenhum SQL novo — só reaproveita `comandas_fisicas`/`comandas` e as RLS que
       já existiam.
 
+- [x] **Cadastro de funcionário só com nome, sem inventar e-mail.** Pedido do usuário: "na hora de
+      cadastrar garçons e outros funcionários tem como ser apenas o nome em vez de um email".
+      O Supabase Auth exige um e-mail por baixo dos panos (não tem como tirar isso), então a
+      solução foi gerar esse e-mail automaticamente, sem a gestão nunca precisar ver ou pensar
+      nele: `src/lib/staffLogin.js` monta um nome de usuário sugerido a partir do nome digitado
+      (`joao` → `joao.{slug-do-restaurante}`, com o slug do restaurante embutido porque o e-mail
+      técnico por trás precisa ser único em toda a plataforma, não só dentro de um restaurante) e
+      usa isso como e-mail interno (`{usuario}@equipe.thiropedido.app`, um domínio que nunca
+      recebe e-mail de verdade, só existe pro Supabase aceitar o formato). O campo "Nome de
+      usuário" em `UsuariosAdmin.jsx` vem pré-preenchido com essa sugestão mas pode ser editado
+      livremente antes de criar o login.
+      **Login continua funcionando dos dois jeitos**: `Login.jsx` aceita tanto um e-mail de
+      verdade (o que a gestão/super admin já usavam antes dessa mudança, sem precisar recriar
+      nada) quanto um nome de usuário de funcionário — se o texto digitado tem "@", trata como
+      e-mail; senão, completa com o domínio interno (`toLoginEmail()` em `staffLogin.js`). Essa
+      mudança só vale pro que gestão cadastra em Área de administração → Usuários (garçom,
+      cozinha, caixa, ou outro login de gestão); o e-mail do PRIMEIRO login de gestão de cada
+      restaurante (criado pelo super admin ao cadastrar o restaurante) continua pedindo e-mail de
+      verdade — é o "dono" da conta, faz sentido continuar com e-mail real.
+      **Não testado ao vivo por mim** (não tenho como logar sem senha pra validar o fluxo de
+      ponta a ponta) — build passou e as funções puras (`slugifyUsername`, `toLoginEmail`) foram
+      testadas isoladamente, mas pedir pro usuário criar um funcionário de teste e logar com o
+      usuário gerado depois do deploy é importante antes de considerar 100% validado.
+
 ## Próximos passos imediatos (nesta ordem)
 
 1. **Todas as 9 fases planejadas do sistema estão implementadas e testadas de ponta a ponta**,
