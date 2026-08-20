@@ -432,6 +432,21 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       ponta a ponta) — build passou e as funções puras (`slugifyUsername`, `toLoginEmail`) foram
       testadas isoladamente, mas pedir pro usuário criar um funcionário de teste e logar com o
       usuário gerado depois do deploy é importante antes de considerar 100% validado.
+      **Atualização — bug real encontrado no teste em produção**: o usuário testou no cliente de
+      verdade ("Dil's Burguer", já cadastrado e funcionando) e tentou criar um funcionário
+      ("carlos", Cozinha) com senha "0000" (4 dígitos) — deu erro genérico "Edge Function returned
+      a non-2xx status code". Causa real: senha menor que 6 caracteres (exigido pelo
+      `create-user`), mas a mensagem de erro de verdade nunca chegava na tela porque o
+      `supabase-js` só expõe um texto genérico em `fnError.message` quando uma Edge Function
+      retorna erro — a mensagem real fica dentro do corpo da resposta HTTP
+      (`fnError.context.json()`). Corrigido em duas frentes: `src/lib/functionError.js` (novo,
+      função `readFunctionErrorMessage` que lê a mensagem de verdade) usado tanto em
+      `UsuariosAdmin.jsx` quanto em `SuperAdminDashboard.jsx`; e validação da senha (mínimo 6
+      caracteres) no cliente ANTES de chamar a função, pra nem deixar tentar com senha curta.
+      Aproveitei pra corrigir de brinde um bug latente relacionado em
+      `SuperAdminDashboard.jsx`: se o login de gestão falhasse ao criar um restaurante novo, o
+      restaurante já tinha sido inserido e ficava órfão (sem login nenhum) — agora desfaz
+      automaticamente chamando `delete_restaurant` nesse caso.
 
 ## Próximos passos imediatos (nesta ordem)
 
