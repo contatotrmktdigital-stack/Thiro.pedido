@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { roleLabel } from "../../components/ProtectedRoute";
 import AdminPinGate from "./AdminPinGate";
 import { slugifyUsername, toLoginEmail } from "../../lib/staffLogin";
+import { readFunctionErrorMessage } from "../../lib/functionError";
 
 const PAPEIS_CRIAVEIS = ["garcom", "cozinha", "caixa", "gestao"];
 
@@ -58,9 +59,14 @@ function UsuariosContent() {
 
     setError("");
     setSuccessMsg("");
-    setCreating(true);
 
     const username = form.username.trim();
+    if (form.password.length < 6) {
+      setError("A senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
+
+    setCreating(true);
     const { error: fnError } = await supabase.functions.invoke("create-user", {
       body: {
         email: toLoginEmail(username),
@@ -73,7 +79,7 @@ function UsuariosContent() {
 
     setCreating(false);
     if (fnError) {
-      setError(fnError.message || String(fnError));
+      setError(await readFunctionErrorMessage(fnError));
       return;
     }
 
@@ -153,12 +159,13 @@ function UsuariosContent() {
               />
             </div>
             <div className="field">
-              <label>Senha inicial</label>
+              <label>Senha inicial (mínimo 6 caracteres)</label>
               <input
                 type="text"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="mínimo 6 caracteres"
+                placeholder="Ex: 123456"
+                minLength={6}
                 required
               />
             </div>

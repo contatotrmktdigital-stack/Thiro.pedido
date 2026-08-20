@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import ConfirmButton from "../../components/ConfirmButton";
+import { readFunctionErrorMessage } from "../../lib/functionError";
 
 function slugify(name) {
   return name
@@ -58,6 +59,9 @@ export default function SuperAdminDashboard() {
       if (!slug) {
         throw new Error("Informe um nome de restaurante válido.");
       }
+      if (form.ownerPassword.length < 6) {
+        throw new Error("A senha precisa ter pelo menos 6 caracteres.");
+      }
 
       const { data: newRestaurant, error: insertError } = await supabase
         .from("restaurants")
@@ -77,7 +81,12 @@ export default function SuperAdminDashboard() {
         },
       });
 
-      if (fnError) throw fnError;
+      if (fnError) {
+        // O restaurante já tinha sido criado, mas sem o login de gestão não serve pra nada —
+        // desfaz pra não deixar restaurante órfão (mesma função usada no botão "Apagar").
+        await supabase.rpc("delete_restaurant", { p_restaurant_id: newRestaurant.id });
+        throw new Error(await readFunctionErrorMessage(fnError));
+      }
 
       setSuccessMsg(
         `Restaurante "${newRestaurant.name}" criado! Login da gestão: ${form.ownerEmail}`
@@ -167,12 +176,13 @@ export default function SuperAdminDashboard() {
               />
             </div>
             <div className="field">
-              <label>Senha inicial</label>
+              <label>Senha inicial (mínimo 6 caracteres)</label>
               <input
                 type="text"
                 value={form.ownerPassword}
                 onChange={(e) => setForm({ ...form, ownerPassword: e.target.value })}
-                placeholder="mínimo 6 caracteres"
+                placeholder="Ex: 123456"
+                minLength={6}
                 required
               />
             </div>
