@@ -57,7 +57,11 @@ quando fizer sentido pra um restaurante específico).
 - Relatórios: em "Área de administração" → "Relatórios", com filtro de período (atalhos de
   hoje/7 dias/30 dias/este mês ou datas customizadas) — faturamento total, número de
   comandas fechadas, ticket médio, gráfico de faturamento por dia, gráficos por forma de
-  pagamento e por tipo de atendimento, e ranking dos produtos mais vendidos
+  pagamento e por tipo de atendimento, e ranking dos produtos mais vendidos. O faturamento
+  aqui não inclui a taxa de serviço dos garçons (ver item abaixo)
+- Caixinha da equipe: em "Área de administração" → "Caixinha da equipe", o total da taxa de
+  serviço (10%) cobrada dos clientes no período escolhido — é dinheiro da equipe, fica
+  separado do faturamento do estabelecimento nos Relatórios
 - Notinha virtual: assim que o garçom fecha a conta, aparece uma notinha bem visual na tela
   (estilo cupom, com o nome do restaurante, itens, total e forma de pagamento) — o garçom
   mostra pro cliente ou lê os itens em voz alta. Pra ver de novo mais tarde, o link

@@ -460,11 +460,60 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
 4. **Lição aprendida**: o usuário prefere soluções só com SQL Editor a coisas que exigem deploy
    manual (Edge Functions pelo Dashboard) — ver `[[feedback_sql_sobre_edge_function]]` se essa
    memória existir, ou considerar esse padrão ao propor novas funcionalidades administrativas.
-5. O cardápio real da hamburgueria (o de exemplo já foi usado só como referência de estrutura,
-   nunca cadastrado de verdade) ainda precisa ser inserido pelo usuário via `/gestao/
-   administracao/cardapio` quando o restaurante de produção for cadastrado
+5. **O restaurante real já está cadastrado e em uso**: "Dil's Burguer" (não é mais teste), gestão
+   é o Adilson. Cardápio completo já cadastrado via SQL (ver item abaixo). Cuidado redobrado a
+   partir de agora com qualquer SQL de `delete`/limpeza — não é mais ambiente de teste.
 6. Depois disso, resta só polimento/ajustes e novos diferenciais conforme o usuário for pedindo —
    não há mais fases grandes no roteiro original
+
+- [x] **Cardápio do Dil's Burguer cadastrado via SQL** (`supabase/sql/012_cardapio_dils_burguer.sql`)
+      — 8 categorias, 65 produtos, extraídos de uma imagem do cardápio que o usuário mandou. O
+      script busca o restaurante pelo nome (`ilike '%Dil%Burg%'`) em vez de precisar do ID.
+      **Armadilha que aconteceu na prática**: rodei o script, confirmei 8/65, mas depois o usuário
+      testou e "não aparecia" no site — o restaurante tinha sido apagado/recriado em algum momento
+      entre uma coisa e outra (mesmo nome, só que ID novo por trás), e como tudo é ligado por
+      `restaurant_id` com cascade, o cardápio antigo sumiu junto com o restaurante antigo. Resolvido
+      rodando o mesmo script de novo (idempotente o suficiente pra isso, já que busca pelo nome
+      atual). **Lição**: depois de qualquer carga de dados por SQL, se o usuário disser "não
+      apareceu", a explicação mais provável não é cache — é verificar se o `restaurant_id` que
+      recebeu os dados ainda é o mesmo que o usuário está usando agora (`select restaurant_id from
+      profiles where full_name = '...'` compara com o que o SQL de carga usou).
+
+- [ ] **Abrir comanda aproximando um cartão NFC — cogitado e descartado.** Ideia do usuário:
+      reaproveitar cartões de crédito/hotel antigos como "chave" pra abrir a comanda. Expliquei
+      antes de implementar que isso só funciona em Android no Chrome (Web NFC não existe no
+      iPhone/Safari — limitação da Apple, sem solução) e que cartão de crédito de verdade pode nem
+      reagir (chip fechado pra pagamento). O usuário topou mesmo assim (coexistindo com QR/manual,
+      sem substituir nada) e cheguei a implementar por completo (`src/lib/webNfc.js`, botão em
+      `ComandasFisicasAdmin.jsx`/`GarcomHome.jsx`, migração com `comandas_fisicas.nfc_uid`) — mas
+      antes de rodar o SQL ou publicar, o usuário decidiu não seguir ("deixa quieto essa ideia
+      melhor só o qr code mesmo"). **Revertido por completo**: os dois arquivos `.jsx` voltaram ao
+      estado anterior (`git checkout`), `src/lib/webNfc.js` e a migração `013_nfc_comandas.sql`
+      foram apagados antes de qualquer commit — nada disso chegou a ir pro banco de produção nem
+      pro GitHub. Só fica este registro pra não propor de novo sem necessidade.
+
+- [x] **Separar a taxa de serviço (10%) do faturamento — "Caixinha da equipe".** Pedido do
+      usuário, já com o Dil's Burguer em uso real: hoje a taxa de serviço cobrada na mesa entra
+      misturada no `valor_total` da comanda, e por isso contava como faturamento normal do
+      estabelecimento nos Relatórios — mas esse dinheiro é dos garçons, não da casa. Expliquei o
+      comportamento atual antes de mexer (pedido explícito do usuário) e perguntei se ele queria
+      só o total geral da caixinha por período ou também o detalhe por garçom — escolheu só o
+      total geral por enquanto.
+      **O que mudou**: campo novo `comandas.valor_taxa_servico` (migração
+      `supabase/sql/014_caixinha_garcons.sql`), calculado e gravado no momento do fechamento em
+      `ComandaGarcom.jsx` (`subtotal * 0.1` quando a taxa está ligada, `0` quando não está) — sem
+      mexer no `valor_total` em si (continua sendo o total real cobrado do cliente, usado pro
+      caixa/notinha). Em `RelatoriosAdmin.jsx`, todo "Faturamento" (total, por dia, por forma de
+      pagamento, por tipo de atendimento) agora é `valor_total - valor_taxa_servico`, com uma nota
+      visível na tela avisando disso. Nova tela **"Caixinha da equipe"**
+      (`src/pages/gestao/CaixinhaAdmin.jsx`, rota `/gestao/administracao/caixinha`, card próprio em
+      Área de administração) mostra só o total acumulado da taxa no período escolhido (mesmo
+      seletor de período hoje/7 dias/30 dias/mês/personalizado) — sem quebrar por garçom por
+      decisão do usuário. Extraí os helpers de período (`hojeString`/`diasAtras`/`inicioDoMes`) pra
+      `src/lib/dateRanges.js`, reaproveitados pelas duas telas.
+      **Dados antigos**: como o histórico de comandas do Dil's Burguer tinha acabado de ser zerado
+      (pedido anterior do usuário, restaurante saindo de fase de teste), não havia nada pra
+      corrigir retroativamente — a separação vale a partir de agora, pra frente.
 
 ## Como trabalhar neste projeto
 

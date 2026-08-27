@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabaseClient";
 import AdminPinGate from "./AdminPinGate";
 import BarList from "../../components/charts/BarList";
 import VerticalBars from "../../components/charts/VerticalBars";
+import { hojeString, diasAtras, inicioDoMes, toDateInputValue } from "../../lib/dateRanges";
 
 const COR_PAGAMENTO = { dinheiro: "#2a78d6", debito: "#eb6834", credito: "#1baf7a", pix: "#eda100" };
 const LABEL_PAGAMENTO = { dinheiro: "Dinheiro", debito: "Débito", credito: "Crédito", pix: "Pix" };
@@ -13,25 +14,6 @@ const LABEL_TIPO = { mesa: "Mesa", balcao: "Balcão", delivery: "Delivery" };
 
 function formatMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
-
-function toDateInputValue(date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function hojeString() {
-  return toDateInputValue(new Date());
-}
-
-function diasAtras(n) {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return toDateInputValue(d);
-}
-
-function inicioDoMes() {
-  const d = new Date();
-  return toDateInputValue(new Date(d.getFullYear(), d.getMonth(), 1));
 }
 
 function listaDeDias(inicio, fim) {
@@ -59,7 +41,7 @@ function RelatoriosContent() {
 
     const { data: comandasData, error: comandasError } = await supabase
       .from("comandas")
-      .select("id, tipo, forma_pagamento, valor_total, fechada_at")
+      .select("id, tipo, forma_pagamento, valor_total, valor_taxa_servico, fechada_at")
       .eq("status", "fechada")
       .gte("fechada_at", `${dataInicial}T00:00:00`)
       .lte("fechada_at", `${dataFinal}T23:59:59.999`);
@@ -106,7 +88,12 @@ function RelatoriosContent() {
     return <p>Carregando relatório...</p>;
   }
 
-  const totalFaturado = comandas.reduce((soma, c) => soma + Number(c.valor_total || 0), 0);
+  // A taxa de serviço (10%) é dinheiro dos garçons, não do estabelecimento — por isso o
+  // faturamento aqui é sempre valor_total MENOS a taxa. Ver "Caixinha da equipe" para o valor
+  // da taxa separado.
+  const faturamentoDe = (c) => Number(c.valor_total || 0) - Number(c.valor_taxa_servico || 0);
+
+  const totalFaturado = comandas.reduce((soma, c) => soma + faturamentoDe(c), 0);
   const numeroComandas = comandas.length;
   const ticketMedio = numeroComandas > 0 ? totalFaturado / numeroComandas : 0;
 
@@ -114,9 +101,7 @@ function RelatoriosContent() {
     .map((chave) => ({
       chave,
       label: LABEL_PAGAMENTO[chave],
-      value: comandas
-        .filter((c) => c.forma_pagamento === chave)
-        .reduce((soma, c) => soma + Number(c.valor_total || 0), 0),
+      value: comandas.filter((c) => c.forma_pagamento === chave).reduce((soma, c) => soma + faturamentoDe(c), 0),
     }))
     .filter((item) => item.value > 0);
 
@@ -124,7 +109,7 @@ function RelatoriosContent() {
     .map((chave) => ({
       chave,
       label: LABEL_TIPO[chave],
-      value: comandas.filter((c) => c.tipo === chave).reduce((soma, c) => soma + Number(c.valor_total || 0), 0),
+      value: comandas.filter((c) => c.tipo === chave).reduce((soma, c) => soma + faturamentoDe(c), 0),
     }))
     .filter((item) => item.value > 0);
 
@@ -132,7 +117,7 @@ function RelatoriosContent() {
   const porDia = dias.map((dia) => {
     const total = comandas
       .filter((c) => c.fechada_at && c.fechada_at.slice(0, 10) === dia)
-      .reduce((soma, c) => soma + Number(c.valor_total || 0), 0);
+      .reduce((soma, c) => soma + faturamentoDe(c), 0);
     const [, mes, diaNum] = dia.split("-");
     return { label: `${diaNum}/${mes}`, value: total };
   });
@@ -184,6 +169,11 @@ function RelatoriosContent() {
           </div>
         </div>
       </div>
+
+      <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem" }}>
+        O faturamento abaixo não inclui a taxa de serviço (10%) — esse valor é da equipe, veja em{" "}
+        <Link to="/gestao/administracao/caixinha">Caixinha da equipe</Link>.
+      </p>
 
       <div className="role-grid" style={{ marginBottom: 18 }}>
         <div className="role-grid-item">

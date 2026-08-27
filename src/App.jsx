@@ -21,6 +21,7 @@ import ReceitasAdmin from "./pages/gestao/ReceitasAdmin";
 import ReceitaProdutoEditor from "./pages/gestao/ReceitaProdutoEditor";
 import RelatoriosAdmin from "./pages/gestao/RelatoriosAdmin";
 import IdentidadeVisualAdmin from "./pages/gestao/IdentidadeVisualAdmin";
+import CaixinhaAdmin from "./pages/gestao/CaixinhaAdmin";
 import ComandaGarcom from "./pages/garcom/ComandaGarcom";
 import AbrirComandaPorQR from "./pages/garcom/AbrirComandaPorQR";
 import FechamentoCaixa from "./pages/caixa/FechamentoCaixa";
@@ -202,6 +203,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["gestao"]}>
                     <IdentidadeVisualAdmin />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/gestao/administracao/caixinha"
+                element={
+                  <ProtectedRoute allowedRoles={["gestao"]}>
+                    <CaixinhaAdmin />
                   </ProtectedRoute>
                 }
               />

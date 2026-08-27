@@ -193,6 +193,7 @@ export default function ComandaGarcom() {
   const totalComTaxa = subtotal * 1.1;
   const taxaEntrega = comanda.tipo === "delivery" ? Number(comanda.taxa_entrega) || 0 : 0;
   const totalPrevisto = (taxaServico ? totalComTaxa : subtotal) + taxaEntrega;
+  const valorTaxaServico = taxaServico ? subtotal * 0.1 : 0;
 
   const handleFecharComanda = async () => {
     if (!formaPagamento) {
@@ -210,6 +211,7 @@ export default function ComandaGarcom() {
         taxa_servico: taxaServico,
         forma_pagamento: formaPagamento,
         valor_total: totalPrevisto,
+        valor_taxa_servico: valorTaxaServico,
         fechada_at: new Date().toISOString(),
       })
       .eq("id", comandaId);
