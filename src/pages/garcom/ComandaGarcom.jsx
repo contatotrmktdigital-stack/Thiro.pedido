@@ -11,7 +11,7 @@ function formatMoeda(valor) {
 
 export default function ComandaGarcom() {
   const { comandaId } = useParams();
-  const { restaurant } = useAuth();
+  const { restaurant, profile } = useAuth();
 
   const [comanda, setComanda] = useState(null);
   const [itens, setItens] = useState([]);
@@ -329,6 +329,16 @@ export default function ComandaGarcom() {
                           confirmLabel="Confirmar cancelamento"
                         >
                           Cancelar
+                        </ConfirmButton>
+                      )}
+                      {item.status === "entregue" && profile?.role === "gestao" && (
+                        <ConfirmButton
+                          disabled={busy}
+                          onConfirm={() => handleCancelarItem(item)}
+                          style={{ padding: "4px 10px" }}
+                          confirmLabel="Já foi entregue — remover mesmo assim?"
+                        >
+                          Remover da conta
                         </ConfirmButton>
                       )}
                     </td>

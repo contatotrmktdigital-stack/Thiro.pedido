@@ -515,6 +515,20 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       (pedido anterior do usuário, restaurante saindo de fase de teste), não havia nada pra
       corrigir retroativamente — a separação vale a partir de agora, pra frente.
 
+- [x] **Gestão também lança pedidos + pode remover item já entregue.** Dois pedidos do usuário:
+      1) a gestão poder fazer pedidos igual o garçom — já era **tecnicamente permitido** desde
+      sempre (as rotas `/garcom`, `/garcom/comanda/:id` e as RLS de `comanda_itens` já incluíam
+      `gestao` no papel liberado), só faltava um **link visível** pra chegar lá — adicionado em
+      `GestaoHome.jsx` ("Fazer pedido (como garçom)"). 2) poder cancelar/remover um item da
+      comanda mesmo depois de já marcado "Entregue" — hoje isso também já era permitido pelo
+      banco (RLS de `comanda_itens_update`/`delete` não olha o status do ITEM, só que a comanda
+      esteja `aberta`), só a **tela** que escondia o botão de cancelar assim que o item virava
+      "Entregue". Deixei esse botão extra ("Remover da conta") aparecer **só pra gestão**
+      (`profile.role === 'gestao'`) quando o item está entregue — garçom continua sem essa opção
+      de propósito, pra não poder apagar um item já servido por conta própria; só a gestão tem
+      essa autoridade. Nenhum SQL novo, nenhuma RLS nova — as duas coisas já existiam no banco,
+      só faltava a tela deixar usar.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
