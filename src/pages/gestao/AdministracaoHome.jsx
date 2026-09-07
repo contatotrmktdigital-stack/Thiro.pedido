@@ -81,6 +81,20 @@ export default function AdministracaoHome() {
             </Link>
           </div>
           <div className="role-grid-item">
+            <h3 style={{ marginTop: 0 }}>Pagamento Pix</h3>
+            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
+              Chave Pix usada pra gerar o QR code com o valor certo ao fechar a comanda.
+            </p>
+            <Link to="/gestao/administracao/pix">
+              <button
+                className="btn-primary btn-accent"
+                style={{ width: "auto", padding: "8px 16px" }}
+              >
+                Configurar
+              </button>
+            </Link>
+          </div>
+          <div className="role-grid-item">
             <h3 style={{ marginTop: 0 }}>Caixinha da equipe</h3>
             <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
               Total da taxa de serviço (10%) a repassar pros garçons — separado do faturamento.

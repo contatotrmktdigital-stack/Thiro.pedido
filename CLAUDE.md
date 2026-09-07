@@ -529,6 +529,33 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       essa autoridade. Nenhum SQL novo, nenhuma RLS nova — as duas coisas já existiam no banco,
       só faltava a tela deixar usar.
 
+- [x] **QR code Pix com o valor certo, direto no fechamento da comanda.** Pedido do usuário:
+      gerar o Pix "na conta bancária da hamburgueria com o valor da compra", dentro do próprio
+      app do garçom. Pesquisei a API da InfinitePay (que o usuário usa) — ela tem confirmação
+      automática de pagamento via webhook, mas isso exige um "link de checkout" hospedado por
+      eles e uma Edge Function só pra receber o aviso (não tem como um site estático receber um
+      aviso de fora sem isso). Expliquei a troca antes de implementar; o usuário decidiu não
+      seguir com a InfinitePay e pediu só o **QR code Pix "Copia e Cola" simples**, sem
+      confirmação automática (o garçom confere visualmente que o cliente pagou, como já era feito
+      antes com qualquer forma de pagamento).
+      **Como funciona**: `src/lib/pix.js` monta o payload no formato oficial do Banco Central
+      (EMV/BR Code — campos TLV + checksum CRC16) inteiramente no navegador, sem nenhum serviço
+      externo. **Validei a implementação byte a byte contra o exemplo oficial do manual do Banco
+      Central** (o mesmo payload, o mesmo CRC) antes de usar — não é algo que dava pra arriscar
+      errado, já que um Pix mal formado simplesmente não funciona no banco do cliente. Campos
+      novos `restaurants.chave_pix` e `restaurants.pix_cidade` (migração
+      `supabase/sql/015_pix.sql`), configuráveis pela gestão em Área de administração →
+      "Pagamento Pix" (`PagamentoPixAdmin.jsx`). Em `ComandaGarcom.jsx`, ao escolher "Pix" como
+      forma de pagamento no fechamento, aparece na hora um QR code (`PixQrCode.jsx`, usa a lib
+      `qrcode` já instalada) com o valor exato a cobrar — usa o id da própria comanda como txid,
+      pra ajudar a gestão a conferir depois no extrato do banco qual Pix é de qual comanda, mesmo
+      sem confirmação automática.
+      **Se um dia quiserem a confirmação automática de verdade**: fica documentado aqui que a
+      InfinitePay suporta via API de Checkout Integrado (`POST
+      https://api.checkout.infinitepay.io/links`, com `handle`/`webhook_url`/`order_nsu`) — só
+      precisa aceitar que o cliente finaliza numa página de checkout da InfinitePay (não um QR
+      100% dentro do nosso app) e que se crie uma Edge Function pra receber o webhook.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

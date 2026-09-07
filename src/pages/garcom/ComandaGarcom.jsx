@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import ConfirmButton from "../../components/ConfirmButton";
 import Notinha from "../../components/Notinha";
+import PixQrCode from "../../components/PixQrCode";
 
 function formatMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -456,15 +457,27 @@ export default function ComandaGarcom() {
               </p>
 
               <div className="field">
-                <label>Forma de pagamento (cobrada separadamente na maquininha)</label>
+                <label>Forma de pagamento</label>
                 <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
                   <option value="">Selecione...</option>
                   <option value="dinheiro">Dinheiro</option>
-                  <option value="debito">Cartão de débito</option>
-                  <option value="credito">Cartão de crédito</option>
+                  <option value="debito">Cartão de débito (na maquininha)</option>
+                  <option value="credito">Cartão de crédito (na maquininha)</option>
                   <option value="pix">Pix</option>
                 </select>
               </div>
+
+              {formaPagamento === "pix" && (
+                <div className="card" style={{ background: "var(--color-bg)" }}>
+                  <PixQrCode
+                    chavePix={restaurant?.chave_pix}
+                    cidade={restaurant?.pix_cidade}
+                    nomeRecebedor={restaurant?.name}
+                    valor={totalPrevisto}
+                    txid={comandaId}
+                  />
+                </div>
+              )}
 
               <button
                 className="btn-primary btn-accent"

@@ -34,7 +34,9 @@ export function AuthProvider({ children }) {
     if (profileData?.restaurant_id) {
       const { data: restaurantData, error: restaurantError } = await supabase
         .from("restaurants")
-        .select("id, name, slug, active, admin_pin_hash, logo_url, cor_primaria, background_url")
+        .select(
+          "id, name, slug, active, admin_pin_hash, logo_url, cor_primaria, background_url, chave_pix, pix_cidade"
+        )
         .eq("id", profileData.restaurant_id)
         .single();
 
