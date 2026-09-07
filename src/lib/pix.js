@@ -34,6 +34,22 @@ function crc16ccitt(payload) {
   return crc.toString(16).toUpperCase().padStart(4, "0");
 }
 
+// Formata a chave Pix certo pra cada tipo — em especial telefone, que
+// precisa do código do país (+55) na frente pro banco reconhecer. Sem
+// isso, bancos acusam "chave inexistente" mesmo com o número certo.
+export function formatarChavePix(tipo, valorDigitado) {
+  const valor = (valorDigitado || "").trim();
+  if (tipo === "cpf" || tipo === "cnpj") {
+    return valor.replace(/\D/g, "");
+  }
+  if (tipo === "telefone") {
+    const digitos = valor.replace(/\D/g, "");
+    const semCodigoPais = digitos.startsWith("55") && digitos.length > 11 ? digitos.slice(2) : digitos;
+    return `+55${semCodigoPais}`;
+  }
+  return valor;
+}
+
 // txid: identificador opcional (só letras/números, até 25 caracteres) —
 // aparece no comprovante do cliente e ajuda a conferir depois qual
 // comanda gerou aquele Pix. "***" é o padrão do Banco Central quando não

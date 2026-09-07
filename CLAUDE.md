@@ -555,6 +555,16 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       https://api.checkout.infinitepay.io/links`, com `handle`/`webhook_url`/`order_nsu`) — só
       precisa aceitar que o cliente finaliza numa página de checkout da InfinitePay (não um QR
       100% dentro do nosso app) e que se crie uma Edge Function pra receber o webhook.
+      **Bug real encontrado no primeiro teste**: o usuário cadastrou o telefone
+      (`67999014777`) como chave, e o banco do cliente acusou "chave inexistente" — causa: chave
+      Pix do tipo telefone precisa do código do país na frente (`+55...`), sem isso o DICT do
+      Banco Central não encontra. Corrigido em duas frentes: 1) migração
+      `supabase/sql/016_pix_tipo_chave.sql` já ajusta a chave existente do Dil's Burguer pra
+      `+5567999014777` e adiciona a coluna `tipo_chave_pix`; 2) `PagamentoPixAdmin.jsx` agora
+      pergunta o **tipo da chave** (CPF/CNPJ/e-mail/telefone/aleatória) e
+      `formatarChavePix()` (`src/lib/pix.js`) formata sozinho — telefone sempre vira `+55...`
+      (aceita com ou sem formatação/código do país já digitado), CPF/CNPJ tira pontuação — pra
+      esse erro específico nunca mais acontecer com nenhum restaurante novo.
 
 ## Como trabalhar neste projeto
 

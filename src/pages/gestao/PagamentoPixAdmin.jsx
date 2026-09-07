@@ -3,9 +3,19 @@ import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import AdminPinGate from "./AdminPinGate";
+import { formatarChavePix } from "../../lib/pix";
+
+const TIPOS_CHAVE = [
+  { value: "cpf", label: "CPF" },
+  { value: "cnpj", label: "CNPJ" },
+  { value: "email", label: "E-mail" },
+  { value: "telefone", label: "Telefone" },
+  { value: "aleatoria", label: "Chave aleatória" },
+];
 
 function PagamentoPixContent() {
   const { restaurant, refreshProfile } = useAuth();
+  const [tipoChave, setTipoChave] = useState(restaurant?.tipo_chave_pix || "cpf");
   const [chavePix, setChavePix] = useState(restaurant?.chave_pix || "");
   const [cidade, setCidade] = useState(restaurant?.pix_cidade || "");
   const [saving, setSaving] = useState(false);
@@ -22,10 +32,12 @@ function PagamentoPixContent() {
       return;
     }
 
+    const chaveFormatada = formatarChavePix(tipoChave, chavePix);
+
     setSaving(true);
     const { error: updateError } = await supabase
       .from("restaurants")
-      .update({ chave_pix: chavePix.trim(), pix_cidade: cidade.trim() })
+      .update({ chave_pix: chaveFormatada, tipo_chave_pix: tipoChave, pix_cidade: cidade.trim() })
       .eq("id", restaurant.id);
     setSaving(false);
 
@@ -33,7 +45,8 @@ function PagamentoPixContent() {
       setError(updateError.message);
       return;
     }
-    setSuccessMsg("Salvo! Já pode gerar o QR code Pix na hora de fechar as comandas.");
+    setChavePix(chaveFormatada);
+    setSuccessMsg(`Salvo! Chave gravada como "${chaveFormatada}". Já pode gerar o QR code Pix na hora de fechar as comandas.`);
     await refreshProfile();
   };
 
@@ -58,11 +71,29 @@ function PagamentoPixContent() {
 
         <form onSubmit={handleSave}>
           <div className="field">
+            <label>Tipo de chave</label>
+            <select value={tipoChave} onChange={(e) => setTipoChave(e.target.value)}>
+              {TIPOS_CHAVE.map((t) => (
+                <option key={t.value} value={t.value}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
             <label>Chave Pix</label>
             <input
               value={chavePix}
               onChange={(e) => setChavePix(e.target.value)}
-              placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória"
+              placeholder={
+                tipoChave === "telefone"
+                  ? "Ex: 67999014777 (sem +55, eu completo)"
+                  : tipoChave === "cpf"
+                    ? "Só números"
+                    : tipoChave === "cnpj"
+                      ? "Só números"
+                      : "Digite a chave"
+              }
               required
             />
           </div>
