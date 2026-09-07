@@ -10,6 +10,13 @@ function formatMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+const LABEL_PAGAMENTO = {
+  dinheiro: "Dinheiro",
+  debito: "Cartão de débito",
+  credito: "Cartão de crédito",
+  pix: "Pix",
+};
+
 export default function ComandaGarcom() {
   const { comandaId } = useParams();
   const { restaurant, profile } = useAuth();
@@ -26,6 +33,7 @@ export default function ComandaGarcom() {
   const [taxaServico, setTaxaServico] = useState(true);
   const [formaPagamento, setFormaPagamento] = useState("");
   const [fechando, setFechando] = useState(false);
+  const [confirmandoPagamento, setConfirmandoPagamento] = useState(false);
 
   const loadTudo = async () => {
     setLoading(true);
@@ -458,7 +466,13 @@ export default function ComandaGarcom() {
 
               <div className="field">
                 <label>Forma de pagamento</label>
-                <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
+                <select
+                  value={formaPagamento}
+                  onChange={(e) => {
+                    setFormaPagamento(e.target.value);
+                    setConfirmandoPagamento(false);
+                  }}
+                >
                   <option value="">Selecione...</option>
                   <option value="dinheiro">Dinheiro</option>
                   <option value="debito">Cartão de débito (na maquininha)</option>
@@ -479,14 +493,57 @@ export default function ComandaGarcom() {
                 </div>
               )}
 
-              <button
-                className="btn-primary btn-accent"
-                disabled={fechando}
-                onClick={handleFecharComanda}
-                style={{ width: "auto", padding: "10px 24px", marginTop: 8 }}
-              >
-                {fechando ? "Fechando..." : "Fechar comanda"}
-              </button>
+              {confirmandoPagamento ? (
+                <div className="card" style={{ background: "var(--color-red-100)" }}>
+                  <p style={{ margin: "0 0 4px", fontSize: "0.9rem" }}>
+                    Confira antes de fechar — forma de pagamento selecionada:
+                  </p>
+                  <p
+                    style={{
+                      margin: "0 0 14px",
+                      fontSize: "1.3rem",
+                      fontWeight: 800,
+                      color: "var(--color-red-700)",
+                    }}
+                  >
+                    {LABEL_PAGAMENTO[formaPagamento]}
+                  </p>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                    <button
+                      className="btn-primary btn-accent"
+                      disabled={fechando}
+                      onClick={handleFecharComanda}
+                      style={{ width: "auto", padding: "10px 20px" }}
+                    >
+                      {fechando ? "Fechando..." : "Confirmar pagamento"}
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      disabled={fechando}
+                      onClick={() => setConfirmandoPagamento(false)}
+                      style={{ width: "auto", padding: "10px 20px" }}
+                    >
+                      Trocar forma de pagamento
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  className="btn-primary btn-accent"
+                  disabled={fechando}
+                  onClick={() => {
+                    if (!formaPagamento) {
+                      setError("Escolha a forma de pagamento.");
+                      return;
+                    }
+                    setError("");
+                    setConfirmandoPagamento(true);
+                  }}
+                  style={{ width: "auto", padding: "10px 24px", marginTop: 8 }}
+                >
+                  Fechar comanda
+                </button>
+              )}
             </div>
           )}
         </>

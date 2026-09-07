@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabaseClient";
 import AdminPinGate from "./AdminPinGate";
 import BarList from "../../components/charts/BarList";
 import VerticalBars from "../../components/charts/VerticalBars";
+import ConfirmButton from "../../components/ConfirmButton";
 import { hojeString, diasAtras, inicioDoMes, toDateInputValue } from "../../lib/dateRanges";
 
 const COR_PAGAMENTO = { dinheiro: "#2a78d6", debito: "#eb6834", credito: "#1baf7a", pix: "#eda100" };
@@ -41,10 +42,13 @@ function RelatoriosContent() {
 
     const { data: comandasData, error: comandasError } = await supabase
       .from("comandas")
-      .select("id, tipo, forma_pagamento, valor_total, valor_taxa_servico, fechada_at")
+      .select(
+        "id, tipo, mesa_numero, cliente_nome, forma_pagamento, valor_total, valor_taxa_servico, fechada_at, comandas_fisicas(numero)"
+      )
       .eq("status", "fechada")
       .gte("fechada_at", `${dataInicial}T00:00:00`)
-      .lte("fechada_at", `${dataFinal}T23:59:59.999`);
+      .lte("fechada_at", `${dataFinal}T23:59:59.999`)
+      .order("fechada_at", { ascending: false });
 
     if (comandasError) {
       setError(comandasError.message);
@@ -82,6 +86,19 @@ function RelatoriosContent() {
   const aplicarPreset = (inicio, fim) => {
     setDataInicial(inicio);
     setDataFinal(fim);
+  };
+
+  const handleApagarComanda = async (comanda) => {
+    setError("");
+    const { error: deleteError } = await supabase.from("comandas").delete().eq("id", comanda.id);
+    if (deleteError) setError(deleteError.message);
+    else await loadRelatorio();
+  };
+
+  const identificarComanda = (c) => {
+    if (c.tipo === "mesa") return `Mesa ${c.mesa_numero} · Comanda ${c.comandas_fisicas?.numero ?? "-"}`;
+    if (c.tipo === "balcao") return `Balcão · ${c.cliente_nome || "-"}`;
+    return `Delivery · ${c.cliente_nome || "-"}`;
   };
 
   if (loading) {
@@ -224,6 +241,51 @@ function RelatoriosContent() {
             }}
           />
         </div>
+      </div>
+
+      <div className="card">
+        <h2>Comandas fechadas no período</h2>
+        <p style={{ color: "var(--color-text-muted)", marginTop: -8, fontSize: "0.85rem" }}>
+          Fechou alguma sem querer errada? Apague aqui — ela e o valor somem do faturamento na
+          hora.
+        </p>
+        {comandas.length === 0 ? (
+          <p style={{ color: "var(--color-text-muted)" }}>Nenhuma comanda fechada no período.</p>
+        ) : (
+          <table className="table-list">
+            <thead>
+              <tr>
+                <th>Data/hora</th>
+                <th>Comanda</th>
+                <th>Pagamento</th>
+                <th>Valor</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {comandas.map((c) => (
+                <tr key={c.id}>
+                  <td>
+                    {new Date(c.fechada_at).toLocaleString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </td>
+                  <td>{identificarComanda(c)}</td>
+                  <td>{LABEL_PAGAMENTO[c.forma_pagamento] || "-"}</td>
+                  <td>{formatMoeda(faturamentoDe(c))}</td>
+                  <td>
+                    <ConfirmButton onConfirm={() => handleApagarComanda(c)} confirmLabel="Apagar de vez?">
+                      Apagar
+                    </ConfirmButton>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       <div className="card">

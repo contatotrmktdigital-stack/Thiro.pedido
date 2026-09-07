@@ -566,6 +566,25 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       (aceita com ou sem formatação/código do país já digitado), CPF/CNPJ tira pontuação — pra
       esse erro específico nunca mais acontecer com nenhum restaurante novo.
 
+- [x] **Apagar comanda fechada errada + confirmar forma de pagamento antes de fechar.** Dois
+      pedidos do usuário depois do primeiro uso real do Pix: 1) numa comanda de teste ele apertou
+      "Dinheiro" quando era Pix, sem querer, e não tinha como corrigir — a gestão precisa poder
+      apagar uma comanda fechada errada e ver o valor sumir do faturamento na hora; 2) pra não
+      repetir esse erro, quis um aviso de confirmação antes de fechar, mostrando bem visível qual
+      forma de pagamento foi selecionada, com a opção de confirmar ou trocar.
+      **Apagar comanda**: não existia NENHUMA política de RLS de `delete` em `comandas` até agora
+      (só criar/editar) — criada em `supabase/sql/017_apagar_comanda.sql`, só pra `gestao` e só do
+      próprio restaurante. Em `RelatoriosAdmin.jsx`, nova tabela "Comandas fechadas no período"
+      (data/hora, identificação da comanda, forma de pagamento, valor) com botão "Apagar"
+      (`ConfirmButton`) em cada linha — como todos os totais/gráficos já eram calculados ao vivo a
+      partir do array de comandas carregado, apagar uma e recarregar já corrige tudo sozinho
+      (faturamento, por dia, por forma de pagamento, produtos mais vendidos).
+      **Confirmação antes de fechar**: em `ComandaGarcom.jsx`, o botão "Fechar comanda" agora abre
+      um cartão de confirmação em vermelho mostrando bem grande a forma de pagamento escolhida,
+      com dois botões — "Confirmar pagamento" (fecha de verdade) ou "Trocar forma de pagamento"
+      (volta pro seletor, sem fechar nada). Trocar a forma de pagamento no seletor também reseta
+      essa confirmação automaticamente, pra nunca confirmar em cima de uma escolha antiga.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
