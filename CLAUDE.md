@@ -617,6 +617,15 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
          botão "Fechar comanda" some e aparece um aviso — não dá pra fechar a conta com pedido
          ainda preso na lista local sem a cozinha nunca ter visto.
 
+- [x] **Menu lateral de categorias mais estiloso.** Depois de testar o item 3 acima, o usuário
+      pediu um visual mais trabalhado. Adicionado: `src/lib/categoriaEmoji.js` adivinha um emoji
+      pra cada categoria a partir do nome (palavras-chave tipo "hambúrguer"→🍔, "bebida"→🥤,
+      "sobremesa"→🍰 etc., com prato genérico 🍽️ de fallback), contador de quantos itens tem em
+      cada categoria, e a categoria ativa ganhou destaque com gradiente + sombra + leve zoom (CSS
+      só, em `App.css`). O menu agora também fica "grudado" (`position: sticky`) enquanto rola a
+      lista de produtos. Segue usando as variáveis de cor do tema (`--color-blue-700/900`), então
+      já respeita a identidade visual de cada restaurante automaticamente.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

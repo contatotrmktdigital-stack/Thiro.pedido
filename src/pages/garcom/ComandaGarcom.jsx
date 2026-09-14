@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import ConfirmButton from "../../components/ConfirmButton";
 import Notinha from "../../components/Notinha";
 import PixQrCode from "../../components/PixQrCode";
+import { emojiDaCategoria } from "../../lib/categoriaEmoji";
 
 function formatMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -426,16 +427,21 @@ export default function ComandaGarcom() {
             ) : (
               <div className="cardapio-layout">
                 <div className="categoria-sidebar">
-                  {categorias.map((categoria) => (
-                    <button
-                      key={categoria.id}
-                      type="button"
-                      className={`categoria-sidebar-item${categoriaSelecionada === categoria.id ? " ativa" : ""}`}
-                      onClick={() => setCategoriaSelecionada(categoria.id)}
-                    >
-                      {categoria.nome}
-                    </button>
-                  ))}
+                  {categorias.map((categoria) => {
+                    const quantidade = produtos.filter((p) => p.categoria_id === categoria.id).length;
+                    return (
+                      <button
+                        key={categoria.id}
+                        type="button"
+                        className={`categoria-sidebar-item${categoriaSelecionada === categoria.id ? " ativa" : ""}`}
+                        onClick={() => setCategoriaSelecionada(categoria.id)}
+                      >
+                        <span className="categoria-emoji">{emojiDaCategoria(categoria.nome)}</span>
+                        <span>{categoria.nome}</span>
+                        <span className="categoria-contagem">{quantidade} {quantidade === 1 ? "item" : "itens"}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="produtos-area">
