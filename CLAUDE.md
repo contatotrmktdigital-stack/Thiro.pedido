@@ -626,6 +626,18 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       lista de produtos. Segue usando as variáveis de cor do tema (`--color-blue-700/900`), então
       já respeita a identidade visual de cada restaurante automaticamente.
 
+- [x] **Busca de produto no lugar da observação prévia + pop-up de observação ao clicar.** O
+      campo de "Observação" que ficava acima do cardápio (preenchido ANTES de clicar no produto —
+      uma UX confusa, fácil de esquecer de limpar) virou um campo de **busca**: digitando, filtra
+      produtos pelo nome em TODAS as categorias de uma vez (`produtos.filter(nome.includes(busca))`),
+      sem precisar saber em qual categoria o item está — some a busca, volta o menu lateral normal.
+      A observação em si agora é perguntada num **pop-up** (`.modal-backdrop`/`.modal-card`, CSS
+      novo em `App.css` — primeiro uso de modal no projeto) que abre ao clicar em qualquer produto
+      (do menu normal ou da busca), mostrando nome/preço, um campo de observação opcional, e os
+      botões "Confirmar e adicionar ao carrinho" / "Cancelar". Só depois de confirmar no pop-up é
+      que o item entra na lista local "Itens a enviar" — mantém o comportamento do item anterior
+      (nada vai pro banco/cozinha até clicar em "Enviar para a cozinha").
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

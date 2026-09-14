@@ -29,10 +29,12 @@ export default function ComandaGarcom() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [observacaoPendente, setObservacaoPendente] = useState("");
+  const [buscaProduto, setBuscaProduto] = useState("");
   const [carrinho, setCarrinho] = useState([]);
   const [enviando, setEnviando] = useState(false);
   const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
+  const [produtoParaObservacao, setProdutoParaObservacao] = useState(null);
+  const [observacaoModal, setObservacaoModal] = useState("");
 
   const [taxaServico, setTaxaServico] = useState(true);
   const [formaPagamento, setFormaPagamento] = useState("");
@@ -97,10 +99,18 @@ export default function ComandaGarcom() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comandaId]);
 
-  // Clicar num item do cardápio só adiciona numa lista local ("a enviar") — nada é gravado
-  // ainda, e a cozinha não vê nada até o garçom clicar em "Enviar para a cozinha".
+  // Clicar num item do cardápio abre um pop-up perguntando a observação (opcional). Só depois
+  // de confirmar ali é que o item entra na lista local "a enviar" — nada é gravado ainda, e a
+  // cozinha não vê nada até o garçom clicar em "Enviar para a cozinha".
   const handleAddProduto = (produto) => {
-    const observacao = observacaoPendente.trim() || null;
+    setProdutoParaObservacao(produto);
+    setObservacaoModal("");
+  };
+
+  const handleConfirmarAdicionarAoCarrinho = () => {
+    const produto = produtoParaObservacao;
+    if (!produto) return;
+    const observacao = observacaoModal.trim() || null;
 
     setCarrinho((atual) => {
       // Só junta na mesma linha (soma quantidade) se nenhum dos dois tiver observação —
@@ -126,7 +136,8 @@ export default function ComandaGarcom() {
         },
       ];
     });
-    setObservacaoPendente("");
+    setProdutoParaObservacao(null);
+    setObservacaoModal("");
   };
 
   const handleAlterarQuantidadeCarrinho = (chave, delta) => {
@@ -409,21 +420,47 @@ export default function ComandaGarcom() {
             <h2>Cardápio</h2>
 
             <div className="field">
-              <label>Observação (opcional, ex: sem salada, bem passado)</label>
+              <label>Buscar produto</label>
               <input
-                value={observacaoPendente}
-                onChange={(e) => setObservacaoPendente(e.target.value)}
-                placeholder="Escreva aqui antes de clicar no item, se for o caso"
+                value={buscaProduto}
+                onChange={(e) => setBuscaProduto(e.target.value)}
+                placeholder="Digite o nome do item (ex: coca, x-bacon...)"
               />
             </div>
-            {observacaoPendente.trim() && (
-              <p style={{ color: "var(--color-red-700)", fontWeight: 600, fontSize: "0.85rem", marginTop: -10 }}>
-                Essa observação vai ser aplicada ao próximo item que você clicar abaixo.
-              </p>
-            )}
 
             {categorias.length === 0 ? (
               <p style={{ color: "var(--color-text-muted)" }}>Nenhum item no cardápio ainda.</p>
+            ) : buscaProduto.trim() ? (
+              (() => {
+                const encontrados = produtos.filter((p) =>
+                  p.nome.toLowerCase().includes(buscaProduto.trim().toLowerCase())
+                );
+                return encontrados.length === 0 ? (
+                  <p style={{ color: "var(--color-text-muted)" }}>
+                    Nenhum produto encontrado com "{buscaProduto}".
+                  </p>
+                ) : (
+                  <div className="role-grid">
+                    {encontrados.map((produto) => (
+                      <button
+                        key={produto.id}
+                        className="btn-secondary"
+                        onClick={() => handleAddProduto(produto)}
+                        style={{ width: "100%", textAlign: "left", padding: "12px 14px" }}
+                      >
+                        <strong>{produto.nome}</strong>
+                        <br />
+                        <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                          {Number(produto.preco).toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()
             ) : (
               <div className="cardapio-layout">
                 <div className="categoria-sidebar">
@@ -474,6 +511,42 @@ export default function ComandaGarcom() {
               </div>
             )}
           </div>
+
+          {produtoParaObservacao && (
+            <div className="modal-backdrop" onClick={() => setProdutoParaObservacao(null)}>
+              <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+                <h2 style={{ marginTop: 0 }}>{produtoParaObservacao.nome}</h2>
+                <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
+                  {formatMoeda(produtoParaObservacao.preco)}
+                </p>
+                <div className="field">
+                  <label>Observação (opcional)</label>
+                  <input
+                    value={observacaoModal}
+                    onChange={(e) => setObservacaoModal(e.target.value)}
+                    placeholder="Ex: sem salada, bem passado"
+                    autoFocus
+                  />
+                </div>
+                <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+                  <button
+                    className="btn-primary btn-accent"
+                    onClick={handleConfirmarAdicionarAoCarrinho}
+                    style={{ width: "auto", padding: "10px 18px" }}
+                  >
+                    Confirmar e adicionar ao carrinho
+                  </button>
+                  <button
+                    className="btn-secondary"
+                    onClick={() => setProdutoParaObservacao(null)}
+                    style={{ width: "auto", padding: "10px 18px" }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="card">
             <h2>Itens a enviar {carrinho.length > 0 ? `(${carrinho.length})` : ""}</h2>
