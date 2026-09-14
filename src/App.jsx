@@ -23,6 +23,7 @@ import RelatoriosAdmin from "./pages/gestao/RelatoriosAdmin";
 import IdentidadeVisualAdmin from "./pages/gestao/IdentidadeVisualAdmin";
 import CaixinhaAdmin from "./pages/gestao/CaixinhaAdmin";
 import PagamentoPixAdmin from "./pages/gestao/PagamentoPixAdmin";
+import HistoricoPedidosAdmin from "./pages/gestao/HistoricoPedidosAdmin";
 import ComandaGarcom from "./pages/garcom/ComandaGarcom";
 import AbrirComandaPorQR from "./pages/garcom/AbrirComandaPorQR";
 import FechamentoCaixa from "./pages/caixa/FechamentoCaixa";
@@ -222,6 +223,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["gestao"]}>
                     <PagamentoPixAdmin />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/gestao/administracao/historico"
+                element={
+                  <ProtectedRoute allowedRoles={["gestao"]}>
+                    <HistoricoPedidosAdmin />
                   </ProtectedRoute>
                 }
               />

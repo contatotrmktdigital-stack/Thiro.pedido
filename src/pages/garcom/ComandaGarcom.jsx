@@ -29,6 +29,9 @@ export default function ComandaGarcom() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [observacaoPendente, setObservacaoPendente] = useState("");
+  const [carrinho, setCarrinho] = useState([]);
+  const [enviando, setEnviando] = useState(false);
+  const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
 
   const [taxaServico, setTaxaServico] = useState(true);
   const [formaPagamento, setFormaPagamento] = useState("");
@@ -70,6 +73,7 @@ export default function ComandaGarcom() {
       setItens(itensResult.data || []);
       setCategorias(categoriasResult.data || []);
       setProdutos(produtosResult.data || []);
+      setCategoriaSelecionada((atual) => atual ?? categoriasResult.data?.[0]?.id ?? null);
     }
     setLoading(false);
   };
@@ -92,44 +96,70 @@ export default function ComandaGarcom() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comandaId]);
 
-  const handleAddProduto = async (produto) => {
-    if (!restaurant?.id) return;
-
+  // Clicar num item do cardápio só adiciona numa lista local ("a enviar") — nada é gravado
+  // ainda, e a cozinha não vê nada até o garçom clicar em "Enviar para a cozinha".
+  const handleAddProduto = (produto) => {
     const observacao = observacaoPendente.trim() || null;
 
-    setBusy(true);
-    setError("");
-
-    // Só junta na mesma linha (soma quantidade) se nenhum dos dois tiver observação —
-    // itens com observação diferente ficam em linhas separadas de propósito, pra cozinha
-    // não perder o pedido especial de um item específico.
-    const itemExistente = observacao
-      ? null
-      : itens.find(
-          (item) => item.produto_id === produto.id && item.status === "pendente" && !item.observacao
-        );
-
-    const { error: saveError } = itemExistente
-      ? await supabase
-          .from("comanda_itens")
-          .update({ quantidade: itemExistente.quantidade + 1 })
-          .eq("id", itemExistente.id)
-      : await supabase.from("comanda_itens").insert({
-          restaurant_id: restaurant.id,
-          comanda_id: comandaId,
+    setCarrinho((atual) => {
+      // Só junta na mesma linha (soma quantidade) se nenhum dos dois tiver observação —
+      // itens com observação diferente ficam em linhas separadas de propósito, pra cozinha
+      // não perder o pedido especial de um item específico.
+      if (!observacao) {
+        const indice = atual.findIndex((linha) => linha.produto_id === produto.id && !linha.observacao);
+        if (indice >= 0) {
+          const copia = [...atual];
+          copia[indice] = { ...copia[indice], quantidade: copia[indice].quantidade + 1 };
+          return copia;
+        }
+      }
+      return [
+        ...atual,
+        {
+          chave: `${produto.id}-${Date.now()}-${Math.random()}`,
           produto_id: produto.id,
           nome_produto: produto.nome,
           preco_unitario: produto.preco,
           quantidade: 1,
           observacao,
-        });
+        },
+      ];
+    });
+    setObservacaoPendente("");
+  };
 
-    setBusy(false);
-    if (saveError) {
-      setError(saveError.message);
+  const handleAlterarQuantidadeCarrinho = (chave, delta) => {
+    setCarrinho((atual) =>
+      atual
+        .map((linha) => (linha.chave === chave ? { ...linha, quantidade: linha.quantidade + delta } : linha))
+        .filter((linha) => linha.quantidade > 0)
+    );
+  };
+
+  const handleEnviarParaCozinha = async () => {
+    if (!restaurant?.id || carrinho.length === 0) return;
+
+    setEnviando(true);
+    setError("");
+
+    const { error: insertError } = await supabase.from("comanda_itens").insert(
+      carrinho.map((linha) => ({
+        restaurant_id: restaurant.id,
+        comanda_id: comandaId,
+        produto_id: linha.produto_id,
+        nome_produto: linha.nome_produto,
+        preco_unitario: linha.preco_unitario,
+        quantidade: linha.quantidade,
+        observacao: linha.observacao,
+      }))
+    );
+
+    setEnviando(false);
+    if (insertError) {
+      setError(insertError.message);
       return;
     }
-    setObservacaoPendente("");
+    setCarrinho([]);
     await loadTudo();
   };
 
@@ -394,37 +424,116 @@ export default function ComandaGarcom() {
             {categorias.length === 0 ? (
               <p style={{ color: "var(--color-text-muted)" }}>Nenhum item no cardápio ainda.</p>
             ) : (
-              categorias.map((categoria) => {
-                const produtosDaCategoria = produtos.filter((p) => p.categoria_id === categoria.id);
-                if (produtosDaCategoria.length === 0) return null;
-                return (
-                  <div key={categoria.id} style={{ marginBottom: 18 }}>
-                    <h3 style={{ color: "var(--color-blue-900)", fontSize: "0.95rem" }}>
+              <div className="cardapio-layout">
+                <div className="categoria-sidebar">
+                  {categorias.map((categoria) => (
+                    <button
+                      key={categoria.id}
+                      type="button"
+                      className={`categoria-sidebar-item${categoriaSelecionada === categoria.id ? " ativa" : ""}`}
+                      onClick={() => setCategoriaSelecionada(categoria.id)}
+                    >
                       {categoria.nome}
-                    </h3>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="produtos-area">
+                  {produtos.filter((p) => p.categoria_id === categoriaSelecionada).length === 0 ? (
+                    <p style={{ color: "var(--color-text-muted)" }}>Nenhum item nessa categoria.</p>
+                  ) : (
                     <div className="role-grid">
-                      {produtosDaCategoria.map((produto) => (
-                        <button
-                          key={produto.id}
-                          className="btn-secondary"
-                          disabled={busy}
-                          onClick={() => handleAddProduto(produto)}
-                          style={{ width: "100%", textAlign: "left", padding: "12px 14px" }}
-                        >
-                          <strong>{produto.nome}</strong>
-                          <br />
-                          <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-                            {Number(produto.preco).toLocaleString("pt-BR", {
-                              style: "currency",
-                              currency: "BRL",
-                            })}
-                          </span>
-                        </button>
-                      ))}
+                      {produtos
+                        .filter((p) => p.categoria_id === categoriaSelecionada)
+                        .map((produto) => (
+                          <button
+                            key={produto.id}
+                            className="btn-secondary"
+                            onClick={() => handleAddProduto(produto)}
+                            style={{ width: "100%", textAlign: "left", padding: "12px 14px" }}
+                          >
+                            <strong>{produto.nome}</strong>
+                            <br />
+                            <span style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                              {Number(produto.preco).toLocaleString("pt-BR", {
+                                style: "currency",
+                                currency: "BRL",
+                              })}
+                            </span>
+                          </button>
+                        ))}
                     </div>
-                  </div>
-                );
-              })
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="card">
+            <h2>Itens a enviar {carrinho.length > 0 ? `(${carrinho.length})` : ""}</h2>
+            <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
+              Nada disso vai pra cozinha até você clicar em "Enviar para a cozinha".
+            </p>
+
+            {carrinho.length === 0 ? (
+              <p style={{ color: "var(--color-text-muted)" }}>Nenhum item selecionado ainda.</p>
+            ) : (
+              <>
+                <table className="table-list">
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th>Qtd.</th>
+                      <th>Subtotal</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {carrinho.map((linha) => (
+                      <tr key={linha.chave}>
+                        <td>
+                          {linha.nome_produto}
+                          {linha.observacao && (
+                            <div style={{ color: "var(--color-red-700)", fontWeight: 700, fontSize: "0.8rem" }}>
+                              Obs: {linha.observacao}
+                            </div>
+                          )}
+                        </td>
+                        <td>{linha.quantidade}</td>
+                        <td>{formatMoeda(linha.preco_unitario * linha.quantidade)}</td>
+                        <td style={{ display: "flex", gap: 6 }}>
+                          <button
+                            className="btn-secondary"
+                            onClick={() => handleAlterarQuantidadeCarrinho(linha.chave, -1)}
+                            style={{ width: "auto", padding: "4px 10px" }}
+                          >
+                            -
+                          </button>
+                          <button
+                            className="btn-secondary"
+                            onClick={() => handleAlterarQuantidadeCarrinho(linha.chave, 1)}
+                            style={{ width: "auto", padding: "4px 10px" }}
+                          >
+                            +
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p style={{ textAlign: "right", fontWeight: 700, margin: "10px 0" }}>
+                  Subtotal a enviar:{" "}
+                  {formatMoeda(carrinho.reduce((soma, l) => soma + l.preco_unitario * l.quantidade, 0))}
+                </p>
+                <button
+                  className="btn-primary btn-accent"
+                  disabled={enviando}
+                  onClick={handleEnviarParaCozinha}
+                  style={{ width: "auto", padding: "10px 20px" }}
+                >
+                  {enviando ? "Enviando..." : "Enviar para a cozinha"}
+                </button>
+              </>
             )}
           </div>
 
@@ -527,6 +636,11 @@ export default function ComandaGarcom() {
                     </button>
                   </div>
                 </div>
+              ) : carrinho.length > 0 ? (
+                <p style={{ color: "var(--color-red-700)", fontWeight: 600 }}>
+                  Tem {carrinho.length} item(ns) ainda não enviado(s) pra cozinha. Envie antes de
+                  fechar a comanda.
+                </p>
               ) : (
                 <button
                   className="btn-primary btn-accent"

@@ -34,13 +34,15 @@ export default function CozinhaHome() {
 
   const loadItens = useCallback(async () => {
     setError("");
+    // Não filtra pela comanda estar "aberta" de propósito: às vezes o cliente paga (fechando a
+    // comanda) antes da cozinha terminar de preparar — o pedido tem que continuar aparecendo pra
+    // cozinha até ela mesma marcar como pronto, independente da comanda já estar fechada ou não.
     const { data, error: fetchError } = await supabase
       .from("comanda_itens")
       .select(
-        "id, nome_produto, quantidade, observacao, status, created_at, comandas!inner(tipo, mesa_numero, cliente_nome, status, comandas_fisicas(numero))"
+        "id, nome_produto, quantidade, observacao, status, created_at, comandas!inner(tipo, mesa_numero, cliente_nome, comandas_fisicas(numero))"
       )
       .in("status", ["pendente", "preparo"])
-      .eq("comandas.status", "aberta")
       .order("created_at");
 
     if (fetchError) setError(fetchError.message);

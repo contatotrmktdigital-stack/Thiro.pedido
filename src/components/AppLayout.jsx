@@ -45,6 +45,16 @@ export default function AppLayout() {
           <span>Thiro.pedido{restaurant ? ` · ${restaurant.name}` : ""}</span>
         </div>
         <div className="topbar-user">
+          {profile?.role === "gestao" && (
+            <>
+              <Link to="/garcom" className="logout-btn" style={{ textDecoration: "none" }}>
+                Fazer pedido
+              </Link>
+              <Link to="/gestao/administracao" className="logout-btn" style={{ textDecoration: "none" }}>
+                Administração
+              </Link>
+            </>
+          )}
           {profile?.role && PODE_VER_NOTINHAS.includes(profile.role) && (
             <Link to="/caixa" className="logout-btn" style={{ textDecoration: "none" }}>
               Notinhas de hoje

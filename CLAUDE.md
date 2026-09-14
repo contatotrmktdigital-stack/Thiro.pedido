@@ -585,6 +585,38 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       (volta pro seletor, sem fechar nada). Trocar a forma de pagamento no seletor também reseta
       essa confirmação automaticamente, pra nunca confirmar em cima de uma escolha antiga.
 
+- [x] **Cinco ajustes de uso real, todos no mesmo pedido — nenhum precisou de SQL.** Pedi pra
+      explicar o plano antes de mexer (o usuário topou todos, só corrigindo o critério do
+      histórico: por data de lançamento, não de pagamento). Nenhuma mudança de banco — só telas.
+      1. **Cozinha não perde pedido quando a comanda fecha primeiro**: achei a causa exata —
+         `CozinhaHome.jsx` filtrava itens por `comandas.status = 'aberta'`, então fechar a conta
+         (cliente pagando antes da cozinha terminar) fazia o pedido sumir da tela da cozinha na
+         hora. Tirado esse filtro; agora o item só sai da lista quando ELE MESMO chega em
+         pendente/preparo→pronto/entregue, independente do status da comanda.
+      2. **Histórico de pedidos** (`HistoricoPedidosAdmin.jsx`, rota
+         `/gestao/administracao/historico`): lista cada item lançado no período (mesmo seletor de
+         datas dos Relatórios), filtrando por `comanda_itens.created_at` — aparece mesmo se a
+         comanda ainda não foi fechada/paga. É um log operacional do que foi pedido, diferente dos
+         Relatórios (que só mostram dados de comandas já fechadas).
+      3. **Menu lateral de categorias na tela do garçom** (`ComandaGarcom.jsx`): antes, todas as
+         categorias apareciam empilhadas com todos os produtos ao mesmo tempo (rolagem longa).
+         Agora é um menu lateral (`.categoria-sidebar` no `App.css`) com só os nomes das
+         categorias; clicar numa mostra só os produtos dela ao lado (`.produtos-area`). Escolhe a
+         primeira categoria sozinho ao abrir.
+      4. **Trocar entre "Fazer pedido" e "Administração" sem sair da tela**: dois links fixos no
+         topo (`AppLayout.jsx`), visíveis só pra quem é `gestao`, em qualquer tela do sistema —
+         não precisa mais voltar pra tela inicial pra trocar de área.
+      5. **Pedido só vai pra cozinha depois de confirmado** — a mudança mais estrutural das cinco.
+         Antes, cada clique num item do cardápio já gravava na hora em `comanda_itens` (a cozinha
+         via na hora). Agora `handleAddProduto` só mexe num estado local (`carrinho`, um array na
+         tela, nada no banco) — clicar só acumula numa lista "Itens a enviar", com +/- pra ajustar
+         quantidade, tudo local. Só quando clica em **"Enviar para a cozinha"** é que um
+         `insert` em lote grava tudo de uma vez em `comanda_itens`, e SÓ AÍ a cozinha vê (via
+         Realtime, como já era). Itens já enviados antes continuam com o fluxo de sempre
+         (cancelar/marcar entregue). Adicionei uma trava: se sobrar item no carrinho sem enviar, o
+         botão "Fechar comanda" some e aparece um aviso — não dá pra fechar a conta com pedido
+         ainda preso na lista local sem a cozinha nunca ter visto.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

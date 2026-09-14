@@ -109,6 +109,20 @@ export default function AdministracaoHome() {
             </Link>
           </div>
           <div className="role-grid-item">
+            <h3 style={{ marginTop: 0 }}>Histórico de pedidos</h3>
+            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
+              Todos os pedidos lançados no dia ou período, pagos ou não.
+            </p>
+            <Link to="/gestao/administracao/historico">
+              <button
+                className="btn-primary btn-accent"
+                style={{ width: "auto", padding: "8px 16px" }}
+              >
+                Ver histórico
+              </button>
+            </Link>
+          </div>
+          <div className="role-grid-item">
             <h3 style={{ marginTop: 0 }}>Relatórios</h3>
             <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
               Faturamento, formas de pagamento e produtos mais vendidos.
