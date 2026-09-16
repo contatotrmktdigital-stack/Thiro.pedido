@@ -671,6 +671,22 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       em si. Se o sintoma voltar a acontecer depois da fila limpa, o aviso novo na tela do garçom
       vai ajudar a apontar exatamente quando e onde a gravação falha.
 
+- [x] **Causa raiz encontrada: RLS bloqueava a cozinha de avançar item de comanda já fechada.**
+      Testando com um item de nome único ("fechador de comanda"), ficou claro que itens de
+      comandas "abertas" avançavam de status normalmente, mas itens de comandas "fechadas" NUNCA
+      avançavam (0 linhas alteradas, sem erro — o aviso do item anterior ainda não cobria esse
+      caso porque é outra tabela/tela). Causa: a política `comanda_itens_update`, criada em
+      `007_fase5_caixa.sql` (Fase 5 — Caixa), só permitia atualizar um item enquanto
+      `comandas.status = 'aberta'`, **pra qualquer papel, inclusive cozinha**. O ajuste anterior
+      (cozinha continuar vendo o pedido na tela mesmo com a comanda fechada) resolveu só a
+      exibição — a gravação do avanço de status continuava travada por essa política antiga, sem
+      dar erro visível (é assim que o Postgres se comporta quando RLS barra a atualização: 0
+      linhas afetadas, sem exceção). Corrigido em
+      `supabase/sql/020_fix_cozinha_atualizar_item_comanda_fechada.sql`: agora a cozinha pode
+      atualizar o status do item mesmo com a comanda já fechada; garçom/gestão continuam só
+      podendo mexer nos itens enquanto a comanda está aberta (protege uma conta já fechada/paga de
+      ser alterada por engano).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
