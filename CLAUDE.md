@@ -638,6 +638,39 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       que o item entra na lista local "Itens a enviar" — mantém o comportamento do item anterior
       (nada vai pro banco/cozinha até clicar em "Enviar para a cozinha").
 
+- [x] **Atualização do cardápio do Dil's Burguer (preços e categorias novas).** O usuário mandou
+      a lista atualizada do cardápio real (categorias e preços novos — ex: os "Smash" viraram
+      categoria própria, entraram "Kids/Mini" e "Drinks & Doses" juntos). Como os nomes/categorias
+      mudaram bastante em relação ao cardápio anterior, em vez de tentar casar item por item, o
+      script `supabase/sql/018_atualizar_cardapio_dils_burguer.sql` apaga as categorias/produtos
+      atuais do restaurante (`delete from categorias where restaurant_id = ...`, cascata apaga os
+      produtos) e recadastra tudo do zero: 9 categorias, 71 produtos. Pedidos já lançados no
+      histórico/relatórios não são afetados (guardam nome/preço da venda, não dependem do produto
+      continuar existindo). Rodado pelo usuário no SQL Editor do Supabase e testado — confirmado
+      funcionando.
+
+- [x] **Investigação: comanda fechada continuava em "Comandas em atendimento"; cozinha às vezes
+      não avança pedido.** O usuário suspeitou que o ajuste anterior (cozinha não perder pedido
+      quando a comanda fecha antes de terminar) tinha quebrado o fechamento de comanda. Conferido
+      pelo histórico do git: aquele ajuste só mexeu em `CozinhaHome.jsx` (a consulta de itens),
+      não tocou em `GarcomHome.jsx`/`CaixaHome.jsx` nem na política de segurança de `comandas` —
+      então não foi ele que causou isso. Diagnóstico feito via SQL direto no Supabase: contas de
+      cozinha/garçom/gestão do restaurante com cargo e `restaurant_id` corretos (não é problema de
+      permissão claramente errada); mas os itens ficaram inconsistentes — alguns avançaram de
+      status normalmente, outros (ex: um "Abacaxi" antigo) continuaram "pendente" mesmo depois de
+      clicado. Como não dá pra reproduzir ao vivo (sem sessão autenticada no ambiente do
+      assistente) e os dados de teste já estavam bagunçados, a saída foi: (1) tornar o fechamento
+      de comanda à prova de falha silenciosa — `handleFecharComanda` em `ComandaGarcom.jsx` agora
+      usa `.select("id")` depois do `.update(...)` e, se vier 0 linhas alteradas (o que aconteceria
+      se uma política de segurança bloqueasse a gravação sem gerar erro), mostra um aviso claro em
+      vez de deixar a tela seguir como se tivesse dado certo — assim, se acontecer de novo, fica
+      visível na hora, em vez de exigir investigação por SQL depois; (2)
+      `supabase/sql/019_limpar_fila_cozinha_dils_burguer.sql` apaga só os itens "pendente"/"preparo"
+      (fila atual da cozinha) do Dil's Burguer pra zerar a bagunça de testes, sem mexer em itens já
+      entregues/cancelados (esses continuam valendo pro Histórico e Relatórios) nem nas comandas
+      em si. Se o sintoma voltar a acontecer depois da fila limpa, o aviso novo na tela do garçom
+      vai ajudar a apontar exatamente quando e onde a gravação falha.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

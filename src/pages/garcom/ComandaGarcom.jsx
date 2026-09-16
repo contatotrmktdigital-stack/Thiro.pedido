@@ -255,7 +255,7 @@ export default function ComandaGarcom() {
     setFechando(true);
     setError("");
 
-    const { error: updateError } = await supabase
+    const { data: fechada, error: updateError } = await supabase
       .from("comandas")
       .update({
         status: "fechada",
@@ -265,11 +265,18 @@ export default function ComandaGarcom() {
         valor_taxa_servico: valorTaxaServico,
         fechada_at: new Date().toISOString(),
       })
-      .eq("id", comandaId);
+      .eq("id", comandaId)
+      .select("id");
 
     setFechando(false);
     if (updateError) {
       setError(updateError.message);
+      return;
+    }
+    if (!fechada || fechada.length === 0) {
+      setError(
+        "Não foi possível confirmar o fechamento (nenhuma alteração foi salva). Tente novamente e, se continuar, avise o suporte."
+      );
       return;
     }
     await loadTudo();
