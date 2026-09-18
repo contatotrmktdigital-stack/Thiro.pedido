@@ -687,6 +687,18 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       podendo mexer nos itens enquanto a comanda está aberta (protege uma conta já fechada/paga de
       ser alterada por engano).
 
+- [x] **"Valor avulso" no fechamento da comanda.** O garçom pode somar um valor manual na conta
+      (com descrição opcional, ex: "item fora do cardápio") — nome escolhido pelo usuário. Fica
+      no fim do card "Fechar comanda" em `ComandaGarcom.jsx` (campos Valor + Descrição + botão
+      "Adicionar à conta"). Sem migração nova: grava uma linha normal em `comanda_itens`
+      (`produto_id` nulo, `nome_produto = "Valor avulso"`, quantidade 1, descrição em
+      `observacao`) já com `status = 'entregue'` — assim NÃO aparece na fila da cozinha (que só
+      mostra pendente/preparo), não mexe em estoque (sem produto) e entra sozinho no subtotal,
+      taxa de serviço de 10%, notinha, relatórios e histórico. Como pode ser digitado errado,
+      qualquer garçom (não só gestão) consegue "Remover valor avulso" enquanto a comanda está
+      aberta. Adicionar valor durante a confirmação de pagamento cancela a confirmação pra
+      forçar reconferir o total novo.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

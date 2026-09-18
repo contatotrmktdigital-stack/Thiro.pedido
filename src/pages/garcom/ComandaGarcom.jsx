@@ -40,6 +40,9 @@ export default function ComandaGarcom() {
   const [formaPagamento, setFormaPagamento] = useState("");
   const [fechando, setFechando] = useState(false);
   const [confirmandoPagamento, setConfirmandoPagamento] = useState(false);
+  const [valorAvulso, setValorAvulso] = useState("");
+  const [descricaoAvulso, setDescricaoAvulso] = useState("");
+  const [lancandoAvulso, setLancandoAvulso] = useState(false);
 
   const loadTudo = async () => {
     setLoading(true);
@@ -172,6 +175,39 @@ export default function ComandaGarcom() {
       return;
     }
     setCarrinho([]);
+    await loadTudo();
+  };
+
+  const handleLancarValorAvulso = async () => {
+    const valor = Math.round(Number(String(valorAvulso).replace(",", ".")) * 100) / 100;
+    if (!Number.isFinite(valor) || valor <= 0) {
+      setError("Informe um valor avulso maior que zero.");
+      return;
+    }
+
+    setLancandoAvulso(true);
+    setError("");
+
+    // Entra já como "entregue" pra não aparecer na fila da cozinha (não tem preparo).
+    const { error: insertError } = await supabase.from("comanda_itens").insert({
+      restaurant_id: restaurant.id,
+      comanda_id: comandaId,
+      produto_id: null,
+      nome_produto: "Valor avulso",
+      preco_unitario: valor,
+      quantidade: 1,
+      observacao: descricaoAvulso.trim() || null,
+      status: "entregue",
+    });
+
+    setLancandoAvulso(false);
+    if (insertError) {
+      setError(insertError.message);
+      return;
+    }
+    setValorAvulso("");
+    setDescricaoAvulso("");
+    setConfirmandoPagamento(false);
     await loadTudo();
   };
 
@@ -389,12 +425,17 @@ export default function ComandaGarcom() {
                           Cancelar
                         </ConfirmButton>
                       )}
-                      {item.status === "entregue" && profile?.role === "gestao" && (
+                      {item.status === "entregue" &&
+                        (profile?.role === "gestao" || item.nome_produto === "Valor avulso") && (
                         <ConfirmButton
                           disabled={busy}
                           onConfirm={() => handleCancelarItem(item)}
                           style={{ padding: "4px 10px" }}
-                          confirmLabel="Já foi entregue — remover mesmo assim?"
+                          confirmLabel={
+                            item.nome_produto === "Valor avulso"
+                              ? "Remover valor avulso?"
+                              : "Já foi entregue — remover mesmo assim?"
+                          }
                         >
                           Remover da conta
                         </ConfirmButton>
@@ -744,6 +785,46 @@ export default function ComandaGarcom() {
                   Fechar comanda
                 </button>
               )}
+
+              <div
+                style={{
+                  marginTop: 20,
+                  paddingTop: 16,
+                  borderTop: "1px solid var(--color-border)",
+                }}
+              >
+                <h3 style={{ margin: "0 0 4px", fontSize: "1rem" }}>Valor avulso</h3>
+                <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem", margin: "0 0 10px" }}>
+                  Soma um valor manual na conta (não vai pra cozinha).
+                </p>
+                <div className="inline-form" style={{ marginBottom: 0 }}>
+                  <div className="field">
+                    <label>Valor (R$)</label>
+                    <input
+                      value={valorAvulso}
+                      onChange={(e) => setValorAvulso(e.target.value)}
+                      placeholder="Ex: 12,50"
+                      inputMode="decimal"
+                    />
+                  </div>
+                  <div className="field">
+                    <label>Descrição (opcional)</label>
+                    <input
+                      value={descricaoAvulso}
+                      onChange={(e) => setDescricaoAvulso(e.target.value)}
+                      placeholder="Ex: item fora do cardápio"
+                    />
+                  </div>
+                  <button
+                    className="btn-primary"
+                    disabled={lancandoAvulso || fechando}
+                    onClick={handleLancarValorAvulso}
+                    style={{ width: "auto", padding: "10px 18px" }}
+                  >
+                    {lancandoAvulso ? "Adicionando..." : "Adicionar à conta"}
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </>
