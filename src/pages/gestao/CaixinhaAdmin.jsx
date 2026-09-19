@@ -23,6 +23,7 @@ function CaixinhaContent() {
       .from("comandas")
       .select("id, valor_taxa_servico, fechada_at")
       .eq("status", "fechada")
+      .eq("fora_dos_relatorios", false)
       .gt("valor_taxa_servico", 0)
       .gte("fechada_at", `${dataInicial}T00:00:00`)
       .lte("fechada_at", `${dataFinal}T23:59:59.999`);

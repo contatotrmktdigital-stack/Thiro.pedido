@@ -46,6 +46,7 @@ function RelatoriosContent() {
         "id, tipo, mesa_numero, cliente_nome, forma_pagamento, valor_total, valor_taxa_servico, fechada_at, comandas_fisicas(numero)"
       )
       .eq("status", "fechada")
+      .eq("fora_dos_relatorios", false)
       .gte("fechada_at", `${dataInicial}T00:00:00`)
       .lte("fechada_at", `${dataFinal}T23:59:59.999`)
       .order("fechada_at", { ascending: false });

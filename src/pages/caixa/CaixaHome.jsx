@@ -39,6 +39,7 @@ export default function CaixaHome() {
         .from("comandas")
         .select("id, tipo, mesa_numero, cliente_nome, valor_total, fechada_at, comandas_fisicas(numero)")
         .eq("status", "fechada")
+        .eq("fora_dos_relatorios", false)
         .gte("fechada_at", inicioDeHoje())
         .order("fechada_at", { ascending: false }),
     ]);

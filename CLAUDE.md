@@ -699,6 +699,17 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       aberta. Adicionar valor durante a confirmação de pagamento cancela a confirmação pra
       forçar reconferir o total novo.
 
+- [x] **Aba "Comandas em aberto" na Administração (fechar sem contar nos relatórios).** Nova
+      página `ComandasAbertasAdmin.jsx` (rota `/gestao/administracao/comandas-abertas`, card na
+      `AdministracaoHome`, atrás do PIN) lista as comandas abertas (atendimento, hora, qtd de
+      itens, total lançado) com botão "Fechar sem contar" (com confirmação). Migração
+      `021_fechar_comanda_fora_dos_relatorios.sql` adiciona `comandas.fora_dos_relatorios boolean
+      default false` — **precisa rodar ANTES do deploy**, senão Relatórios/Caixinha/Caixa quebram
+      por coluna inexistente. Ao fechar por essa aba: `status='fechada'`, `fora_dos_relatorios=true`,
+      `valor_total=0`, `valor_taxa_servico=0`, sem forma de pagamento. Relatórios, Caixinha e a
+      lista "fechadas hoje" do Caixa passaram a filtrar `.eq("fora_dos_relatorios", false)`. Os
+      itens continuam no Histórico de pedidos (foram lançados de verdade).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
