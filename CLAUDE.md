@@ -710,6 +710,20 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       lista "fechadas hoje" do Caixa passaram a filtrar `.eq("fora_dos_relatorios", false)`. Os
       itens continuam no Histórico de pedidos (foram lançados de verdade).
 
+- [x] **"Marcar pronto" da cozinha já vira "entregue" (sem botão "Marcar entregue" no garçom).**
+      Em `CozinhaHome.jsx`, `PROXIMO_STATUS.preparo` agora é `"entregue"` (antes `"pronto"`); o
+      texto do botão continua "Marcar pronto". Em `ComandaGarcom.jsx` foram removidos
+      `handleMarcarEntregue` e o botão "Marcar entregue". A regra de quem pode tirar item da conta
+      foi mantida: garçom cancela direto só item ainda `pendente`/`preparo`; depois disso
+      (`pronto`/`entregue`) o botão "Remover da conta" aparece pra todos, mas o garçom precisa
+      digitar a **senha da gestão** (o mesmo PIN de administração, conferido por
+      `rpc("verify_admin_pin")` — a função já aceita qualquer papel do restaurante) num pop-up;
+      só com a senha certa o item vira `cancelado`. Gestão logada continua removendo só com
+      confirmação simples. Exceção: "Valor avulso", que qualquer garçom remove sem senha por ser
+      digitação manual. Se o restaurante ainda não criou o PIN, o pop-up avisa em vez de
+      liberar. O status `pronto` ficou sem uso pra itens novos, mas itens antigos ainda em
+      `pronto` são tratados igual a `entregue` na tela. Sem migração de banco.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

@@ -43,6 +43,10 @@ export default function ComandaGarcom() {
   const [valorAvulso, setValorAvulso] = useState("");
   const [descricaoAvulso, setDescricaoAvulso] = useState("");
   const [lancandoAvulso, setLancandoAvulso] = useState(false);
+  const [itemParaRemover, setItemParaRemover] = useState(null);
+  const [senhaRemocao, setSenhaRemocao] = useState("");
+  const [erroSenhaRemocao, setErroSenhaRemocao] = useState("");
+  const [verificandoSenha, setVerificandoSenha] = useState(false);
 
   const loadTudo = async () => {
     setLoading(true);
@@ -229,19 +233,35 @@ export default function ComandaGarcom() {
     await loadTudo();
   };
 
-  const handleMarcarEntregue = async (item) => {
-    setBusy(true);
-    setError("");
-    const { error: updateError } = await supabase
-      .from("comanda_itens")
-      .update({ status: "entregue" })
-      .eq("id", item.id);
-    setBusy(false);
-    if (updateError) {
-      setError(updateError.message);
+  const handleConfirmarRemocaoComSenha = async (e) => {
+    e.preventDefault();
+    if (!restaurant?.admin_pin_hash) {
+      setErroSenhaRemocao("A gestão ainda não criou a senha de administração.");
       return;
     }
-    await loadTudo();
+
+    setVerificandoSenha(true);
+    setErroSenhaRemocao("");
+    const { data: senhaOk, error: rpcError } = await supabase.rpc("verify_admin_pin", {
+      p_restaurant_id: restaurant.id,
+      p_pin: senhaRemocao,
+    });
+    setVerificandoSenha(false);
+
+    if (rpcError) {
+      setErroSenhaRemocao(rpcError.message);
+      return;
+    }
+    if (!senhaOk) {
+      setErroSenhaRemocao("Senha da gestão incorreta.");
+      setSenhaRemocao("");
+      return;
+    }
+
+    const item = itemParaRemover;
+    setItemParaRemover(null);
+    setSenhaRemocao("");
+    await handleCancelarItem(item);
   };
 
   const handleCancelarItem = async (item) => {
@@ -378,7 +398,7 @@ export default function ComandaGarcom() {
                   <td>{formatMoeda(item.preco_unitario * item.quantidade)}</td>
                   <td>
                     <span
-                      className={`status-pill ${item.status === "pronto" ? "active" : "inactive"}`}
+                      className={`status-pill ${["pronto", "entregue"].includes(item.status) ? "active" : "inactive"}`}
                     >
                       {LABEL_STATUS[item.status] || item.status}
                     </span>
@@ -405,17 +425,7 @@ export default function ComandaGarcom() {
                           </button>
                         </>
                       )}
-                      {item.status === "pronto" && (
-                        <button
-                          className="btn-primary btn-accent"
-                          disabled={busy}
-                          onClick={() => handleMarcarEntregue(item)}
-                          style={{ width: "auto", padding: "4px 10px" }}
-                        >
-                          Marcar entregue
-                        </button>
-                      )}
-                      {["pendente", "preparo", "pronto"].includes(item.status) && (
+                      {["pendente", "preparo"].includes(item.status) && (
                         <ConfirmButton
                           disabled={busy}
                           onConfirm={() => handleCancelarItem(item)}
@@ -425,21 +435,34 @@ export default function ComandaGarcom() {
                           Cancelar
                         </ConfirmButton>
                       )}
-                      {item.status === "entregue" &&
-                        (profile?.role === "gestao" || item.nome_produto === "Valor avulso") && (
-                        <ConfirmButton
-                          disabled={busy}
-                          onConfirm={() => handleCancelarItem(item)}
-                          style={{ padding: "4px 10px" }}
-                          confirmLabel={
-                            item.nome_produto === "Valor avulso"
-                              ? "Remover valor avulso?"
-                              : "Já foi entregue — remover mesmo assim?"
-                          }
-                        >
-                          Remover da conta
-                        </ConfirmButton>
-                      )}
+                      {["pronto", "entregue"].includes(item.status) &&
+                        (profile?.role === "gestao" || item.nome_produto === "Valor avulso" ? (
+                          <ConfirmButton
+                            disabled={busy}
+                            onConfirm={() => handleCancelarItem(item)}
+                            style={{ padding: "4px 10px" }}
+                            confirmLabel={
+                              item.nome_produto === "Valor avulso"
+                                ? "Remover valor avulso?"
+                                : "Já foi entregue — remover mesmo assim?"
+                            }
+                          >
+                            Remover da conta
+                          </ConfirmButton>
+                        ) : (
+                          <button
+                            className="btn-secondary"
+                            disabled={busy}
+                            onClick={() => {
+                              setItemParaRemover(item);
+                              setSenhaRemocao("");
+                              setErroSenhaRemocao("");
+                            }}
+                            style={{ padding: "4px 10px" }}
+                          >
+                            Remover da conta
+                          </button>
+                        ))}
                     </td>
                   )}
                 </tr>
@@ -454,6 +477,52 @@ export default function ComandaGarcom() {
           </p>
         )}
       </div>
+
+      {itemParaRemover && (
+        <div className="modal-backdrop" onClick={() => setItemParaRemover(null)}>
+          <form
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+            onSubmit={handleConfirmarRemocaoComSenha}
+          >
+            <h2 style={{ marginTop: 0 }}>Remover da conta</h2>
+            <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
+              {itemParaRemover.quantidade}x {itemParaRemover.nome_produto} já foi feito pela cozinha.
+              Peça a senha da gestão para remover.
+            </p>
+            {erroSenhaRemocao && <div className="error-box">{erroSenhaRemocao}</div>}
+            <div className="field">
+              <label>Senha da gestão</label>
+              <input
+                type="password"
+                inputMode="numeric"
+                value={senhaRemocao}
+                onChange={(e) => setSenhaRemocao(e.target.value)}
+                autoFocus
+                required
+              />
+            </div>
+            <div style={{ display: "flex", gap: 10, marginTop: 8 }}>
+              <button
+                className="btn-primary btn-accent"
+                type="submit"
+                disabled={verificandoSenha}
+                style={{ width: "auto", padding: "10px 18px" }}
+              >
+                {verificandoSenha ? "Verificando..." : "Remover da conta"}
+              </button>
+              <button
+                className="btn-secondary"
+                type="button"
+                onClick={() => setItemParaRemover(null)}
+                style={{ width: "auto", padding: "10px 18px" }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {comanda.status === "fechada" ? (
         <div className="card">

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 
+// "Marcar pronto" já grava direto como "entregue" — o garçom não confirma entrega à parte.
 const PROXIMO_STATUS = {
   pendente: "preparo",
-  preparo: "pronto",
+  preparo: "entregue",
 };
 
 const LABEL_ACAO = {
