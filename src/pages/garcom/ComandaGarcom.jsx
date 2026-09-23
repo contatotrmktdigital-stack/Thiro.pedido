@@ -40,6 +40,7 @@ export default function ComandaGarcom() {
   const [formaPagamento, setFormaPagamento] = useState("");
   const [fechando, setFechando] = useState(false);
   const [confirmandoPagamento, setConfirmandoPagamento] = useState(false);
+  const [revisandoFechamento, setRevisandoFechamento] = useState(false);
   const [valorAvulso, setValorAvulso] = useState("");
   const [descricaoAvulso, setDescricaoAvulso] = useState("");
   const [lancandoAvulso, setLancandoAvulso] = useState(false);
@@ -212,6 +213,7 @@ export default function ComandaGarcom() {
     setValorAvulso("");
     setDescricaoAvulso("");
     setConfirmandoPagamento(false);
+    setRevisandoFechamento(false);
     await loadTudo();
   };
 
@@ -769,90 +771,130 @@ export default function ComandaGarcom() {
                 Total a cobrar: {formatMoeda(totalPrevisto)}
               </p>
 
-              <div className="field">
-                <label>Forma de pagamento</label>
-                <select
-                  value={formaPagamento}
-                  onChange={(e) => {
-                    setFormaPagamento(e.target.value);
-                    setConfirmandoPagamento(false);
-                  }}
-                >
-                  <option value="">Selecione...</option>
-                  <option value="dinheiro">Dinheiro</option>
-                  <option value="debito">Cartão de débito (na maquininha)</option>
-                  <option value="credito">Cartão de crédito (na maquininha)</option>
-                  <option value="pix">Pix</option>
-                </select>
-              </div>
-
-              {formaPagamento === "pix" && (
-                <div className="card" style={{ background: "var(--color-bg)" }}>
-                  <PixQrCode
-                    chavePix={restaurant?.chave_pix}
-                    cidade={restaurant?.pix_cidade}
-                    nomeRecebedor={restaurant?.name}
-                    valor={totalPrevisto}
-                    txid={comandaId}
-                  />
-                </div>
-              )}
-
-              {confirmandoPagamento ? (
-                <div className="card" style={{ background: "var(--color-red-100)" }}>
-                  <p style={{ margin: "0 0 4px", fontSize: "0.9rem" }}>
-                    Confira antes de fechar — forma de pagamento selecionada:
-                  </p>
-                  <p
-                    style={{
-                      margin: "0 0 14px",
-                      fontSize: "1.3rem",
-                      fontWeight: 800,
-                      color: "var(--color-red-700)",
-                    }}
-                  >
-                    {LABEL_PAGAMENTO[formaPagamento]}
-                  </p>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                    <button
-                      className="btn-primary btn-accent"
-                      disabled={fechando}
-                      onClick={handleFecharComanda}
-                      style={{ width: "auto", padding: "10px 20px" }}
-                    >
-                      {fechando ? "Fechando..." : "Confirmar pagamento"}
-                    </button>
-                    <button
-                      className="btn-secondary"
-                      disabled={fechando}
-                      onClick={() => setConfirmandoPagamento(false)}
-                      style={{ width: "auto", padding: "10px 20px" }}
-                    >
-                      Trocar forma de pagamento
-                    </button>
-                  </div>
-                </div>
-              ) : carrinho.length > 0 ? (
+              {carrinho.length > 0 ? (
                 <p style={{ color: "var(--color-red-700)", fontWeight: 600 }}>
                   Tem {carrinho.length} item(ns) ainda não enviado(s) pra cozinha. Envie antes de
                   fechar a comanda.
                 </p>
-              ) : (
+              ) : !revisandoFechamento ? (
                 <button
                   className="btn-primary btn-accent"
                   disabled={fechando}
-                  onClick={() => {
-                    if (!formaPagamento) {
-                      setError("Escolha a forma de pagamento.");
-                      return;
-                    }
-                    setError("");
-                    setConfirmandoPagamento(true);
-                  }}
+                  onClick={() => setRevisandoFechamento(true)}
                   style={{ width: "auto", padding: "10px 24px", marginTop: 8 }}
                 >
                   Fechar comanda
                 </button>
+              ) : (
+                <>
+                  <div style={{ margin: "16px 0" }}>
+                    <p style={{ textAlign: "center", color: "var(--color-text-muted)", marginBottom: 10 }}>
+                      Mostre essa notinha pro cliente conferir os itens antes de pagar.
+                    </p>
+                    <Notinha
+                      restaurantName={restaurant?.name}
+                      comanda={{
+                        ...comanda,
+                        taxa_servico: taxaServico,
+                        valor_total: totalPrevisto,
+                        forma_pagamento: formaPagamento || null,
+                        fechada_at: null,
+                      }}
+                      itens={itens}
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label>Forma de pagamento</label>
+                    <select
+                      value={formaPagamento}
+                      onChange={(e) => {
+                        setFormaPagamento(e.target.value);
+                        setConfirmandoPagamento(false);
+                      }}
+                    >
+                      <option value="">Selecione...</option>
+                      <option value="dinheiro">Dinheiro</option>
+                      <option value="debito">Cartão de débito (na maquininha)</option>
+                      <option value="credito">Cartão de crédito (na maquininha)</option>
+                      <option value="pix">Pix</option>
+                    </select>
+                  </div>
+
+                  {formaPagamento === "pix" && (
+                    <div className="card" style={{ background: "var(--color-bg)" }}>
+                      <PixQrCode
+                        chavePix={restaurant?.chave_pix}
+                        cidade={restaurant?.pix_cidade}
+                        nomeRecebedor={restaurant?.name}
+                        valor={totalPrevisto}
+                        txid={comandaId}
+                      />
+                    </div>
+                  )}
+
+                  {confirmandoPagamento ? (
+                    <div className="card" style={{ background: "var(--color-red-100)" }}>
+                      <p style={{ margin: "0 0 4px", fontSize: "0.9rem" }}>
+                        Confira antes de fechar — forma de pagamento selecionada:
+                      </p>
+                      <p
+                        style={{
+                          margin: "0 0 14px",
+                          fontSize: "1.3rem",
+                          fontWeight: 800,
+                          color: "var(--color-red-700)",
+                        }}
+                      >
+                        {LABEL_PAGAMENTO[formaPagamento]}
+                      </p>
+                      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                        <button
+                          className="btn-primary btn-accent"
+                          disabled={fechando}
+                          onClick={handleFecharComanda}
+                          style={{ width: "auto", padding: "10px 20px" }}
+                        >
+                          {fechando ? "Fechando..." : "Confirmar pagamento"}
+                        </button>
+                        <button
+                          className="btn-secondary"
+                          disabled={fechando}
+                          onClick={() => setConfirmandoPagamento(false)}
+                          style={{ width: "auto", padding: "10px 20px" }}
+                        >
+                          Trocar forma de pagamento
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <button
+                        className="btn-primary btn-accent"
+                        disabled={fechando}
+                        onClick={() => {
+                          if (!formaPagamento) {
+                            setError("Escolha a forma de pagamento.");
+                            return;
+                          }
+                          setError("");
+                          setConfirmandoPagamento(true);
+                        }}
+                        style={{ width: "auto", padding: "10px 20px" }}
+                      >
+                        Fechar comanda
+                      </button>
+                      <button
+                        className="btn-secondary"
+                        disabled={fechando}
+                        onClick={() => setRevisandoFechamento(false)}
+                        style={{ width: "auto", padding: "10px 20px" }}
+                      >
+                        Voltar
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
 
               <div

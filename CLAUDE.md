@@ -724,6 +724,21 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       liberar. O status `pronto` ficou sem uso pra itens novos, mas itens antigos ainda em
       `pronto` são tratados igual a `entregue` na tela. Sem migração de banco.
 
+- [x] **Notinha aparece ao clicar "Fechar comanda", antes de escolher a forma de pagamento.**
+      Antes, o `<Notinha>` só era renderizado depois que `comanda.status` virava "fechada" (ou
+      seja, depois do pagamento já confirmado no banco) — o cliente só via a conta depois de já
+      ter sido cobrado. Agora, em `ComandaGarcom.jsx`, clicar em "Fechar comanda" liga um novo
+      estado `revisandoFechamento` que mostra a Notinha ANTES de qualquer gravação no banco,
+      montada com os dados ainda locais (`taxa_servico: taxaServico`, `valor_total:
+      totalPrevisto`, `forma_pagamento: formaPagamento || null`) — só depois dela é que aparecem o
+      seletor de forma de pagamento, o QR do Pix (se escolhido) e o mesmo aviso de "Confirmar
+      pagamento / Trocar forma de pagamento" de antes (que só grava de verdade ao clicar
+      "Confirmar pagamento"). Um botão "Voltar" fecha a revisão sem fechar a comanda. A Notinha em
+      si (`components/Notinha.jsx`) já mostrava o nome do restaurante e já herdava as cores
+      personalizadas (`--color-blue-900/700`, definidas por `buildRestaurantThemeVars` a partir da
+      cor escolhida em Identidade Visual) e já tinha a linha "Taxa de serviço (10%)" com o valor —
+      não precisou mexer nela, só em quando ela aparece.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
