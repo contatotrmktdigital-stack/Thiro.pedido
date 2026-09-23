@@ -411,3 +411,15 @@
   width: 100%;
   box-shadow: 0 16px 40px rgba(11, 37, 89, 0.35);
 }
+
+.notinha-fullscreen {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+  padding: 20px 16px 40px;
+}

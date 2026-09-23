@@ -41,6 +41,7 @@ export default function ComandaGarcom() {
   const [fechando, setFechando] = useState(false);
   const [confirmandoPagamento, setConfirmandoPagamento] = useState(false);
   const [revisandoFechamento, setRevisandoFechamento] = useState(false);
+  const [notinhaTelaCheia, setNotinhaTelaCheia] = useState(false);
   const [valorAvulso, setValorAvulso] = useState("");
   const [descricaoAvulso, setDescricaoAvulso] = useState("");
   const [lancandoAvulso, setLancandoAvulso] = useState(false);
@@ -304,6 +305,17 @@ export default function ComandaGarcom() {
   const totalPrevisto = (taxaServico ? totalComTaxa : subtotal) + taxaEntrega;
   const valorTaxaServico = taxaServico ? subtotal * 0.1 : 0;
 
+  const notinhaComanda =
+    comanda.status === "fechada"
+      ? comanda
+      : {
+          ...comanda,
+          taxa_servico: taxaServico,
+          valor_total: totalPrevisto,
+          forma_pagamento: formaPagamento || null,
+          fechada_at: null,
+        };
+
   const handleFecharComanda = async () => {
     if (!formaPagamento) {
       setError("Escolha a forma de pagamento.");
@@ -531,7 +543,14 @@ export default function ComandaGarcom() {
           <p style={{ textAlign: "center", color: "var(--color-text-muted)", marginTop: -4 }}>
             Mostre essa notinha pro cliente, ou leia os itens em voz alta.
           </p>
-          <Notinha restaurantName={restaurant?.name} comanda={comanda} itens={itens} />
+          <Notinha restaurantName={restaurant?.name} comanda={notinhaComanda} itens={itens} />
+          <button
+            className="btn-secondary"
+            onClick={() => setNotinhaTelaCheia(true)}
+            style={{ width: "auto", padding: "8px 16px", margin: "12px auto 0", display: "block" }}
+          >
+            Ver em tela cheia
+          </button>
         </div>
       ) : (
         <>
@@ -791,17 +810,14 @@ export default function ComandaGarcom() {
                     <p style={{ textAlign: "center", color: "var(--color-text-muted)", marginBottom: 10 }}>
                       Mostre essa notinha pro cliente conferir os itens antes de pagar.
                     </p>
-                    <Notinha
-                      restaurantName={restaurant?.name}
-                      comanda={{
-                        ...comanda,
-                        taxa_servico: taxaServico,
-                        valor_total: totalPrevisto,
-                        forma_pagamento: formaPagamento || null,
-                        fechada_at: null,
-                      }}
-                      itens={itens}
-                    />
+                    <Notinha restaurantName={restaurant?.name} comanda={notinhaComanda} itens={itens} />
+                    <button
+                      className="btn-secondary"
+                      onClick={() => setNotinhaTelaCheia(true)}
+                      style={{ width: "auto", padding: "8px 16px", margin: "12px auto 0", display: "block" }}
+                    >
+                      Ver em tela cheia
+                    </button>
                   </div>
 
                   <div className="field">
@@ -939,6 +955,21 @@ export default function ComandaGarcom() {
             </div>
           )}
         </>
+      )}
+
+      {notinhaTelaCheia && (
+        <div className="notinha-fullscreen" onClick={() => setNotinhaTelaCheia(false)}>
+          <button
+            className="btn-secondary"
+            onClick={() => setNotinhaTelaCheia(false)}
+            style={{ width: "auto", padding: "8px 16px", alignSelf: "flex-end", marginBottom: 12 }}
+          >
+            Fechar
+          </button>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 460 }}>
+            <Notinha restaurantName={restaurant?.name} comanda={notinhaComanda} itens={itens} />
+          </div>
+        </div>
       )}
     </div>
   );

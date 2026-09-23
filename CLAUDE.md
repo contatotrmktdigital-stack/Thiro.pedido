@@ -739,6 +739,14 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       cor escolhida em Identidade Visual) e já tinha a linha "Taxa de serviço (10%)" com o valor —
       não precisou mexer nela, só em quando ela aparece.
 
+- [x] **Botão "Ver em tela cheia" na notinha.** Nas duas telas que mostram a Notinha (revisão
+      antes de fechar e a notinha final após fechada), um botão abre a mesma notinha num overlay
+      `.notinha-fullscreen` (`position: fixed; inset: 0`, cor de fundo do tema, `App.css`) cobrindo
+      a tela toda — mais fácil de virar o celular pro cliente ler. Fecha clicando em "Fechar" ou
+      fora do cartão. Refatorei um `notinhaComanda` único (usa `comanda` direto se já fechada, ou
+      monta o preview local se ainda em revisão) pra não duplicar essa lógica nos três lugares que
+      agora renderizam `<Notinha>`.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
