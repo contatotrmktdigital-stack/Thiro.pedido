@@ -762,6 +762,16 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       abertos ao mesmo tempo. A taxa de entrega continua somando no total e aparecendo na notinha
       (isso já funcionava, não mudou). **Rodar a migração 022 antes do deploy.**
 
+- [x] **Delivery volta a pedir o nome do cliente (só telefone/endereço ficaram de fora).** Logo
+      depois do item anterior o usuário pediu pra manter o nome — só telefone e endereço mesmo
+      que somem. `supabase/sql/023_delivery_manter_nome_cliente.sql` recria o
+      `comandas_dados_por_tipo` exigindo `cliente_nome is not null` pra delivery de novo (igual
+      balcão). `GarcomHome.jsx`: campo "Nome do cliente" de volta no formulário de delivery (usa o
+      mesmo estado `clienteNome` do balcão), obrigatório, com a mesma validação de antes. Os
+      fallbacks pra "Delivery" sem nome (item anterior) continuam existindo pra não quebrar
+      comandas delivery antigas que ficaram sem nome nesse intervalo. **Rodar a migração 023 antes
+      do deploy.**
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

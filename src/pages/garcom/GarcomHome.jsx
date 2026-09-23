@@ -106,6 +106,11 @@ export default function GarcomHome() {
       }
       payload.cliente_nome = clienteNome.trim();
     } else {
+      if (!clienteNome.trim()) {
+        setError("Informe o nome do cliente.");
+        return;
+      }
+      payload.cliente_nome = clienteNome.trim();
       payload.taxa_entrega = Number(String(taxaEntrega).replace(",", ".")) || 0;
     }
 
@@ -213,6 +218,15 @@ export default function GarcomHome() {
 
         {tipo === "delivery" && (
           <form onSubmit={handleAbrirComanda} className="inline-form">
+            <div className="field">
+              <label>Nome do cliente</label>
+              <input
+                value={clienteNome}
+                onChange={(e) => setClienteNome(e.target.value)}
+                placeholder="Ex: João"
+                required
+              />
+            </div>
             <div className="field">
               <label>Taxa de entrega (R$, opcional)</label>
               <input
