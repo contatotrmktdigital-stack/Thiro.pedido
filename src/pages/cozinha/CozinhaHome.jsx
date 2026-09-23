@@ -24,7 +24,7 @@ function labelAtendimento(comanda) {
   if (comanda.tipo === "balcao") {
     return `Balcão · ${comanda.cliente_nome}`;
   }
-  return `Delivery · ${comanda.cliente_nome}`;
+  return comanda.cliente_nome ? `Delivery · ${comanda.cliente_nome}` : "Delivery";
 }
 
 export default function CozinhaHome() {

@@ -20,7 +20,7 @@ function identificarComanda(c) {
   if (!c) return "-";
   if (c.tipo === "mesa") return `Mesa ${c.mesa_numero} · Comanda ${c.comandas_fisicas?.numero ?? "-"}`;
   if (c.tipo === "balcao") return `Balcão · ${c.cliente_nome || "-"}`;
-  return `Delivery · ${c.cliente_nome || "-"}`;
+  return c.cliente_nome ? `Delivery · ${c.cliente_nome}` : "Delivery";
 }
 
 function HistoricoContent() {

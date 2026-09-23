@@ -127,10 +127,12 @@ export default function FechamentoCaixa() {
           )}
           {comanda.tipo === "delivery" && (
             <>
-              <h2>Delivery — {comanda.cliente_nome}</h2>
-              <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
-                {comanda.cliente_telefone} · {comanda.endereco_entrega}
-              </p>
+              <h2>Delivery{comanda.cliente_nome ? ` — ${comanda.cliente_nome}` : ""}</h2>
+              {(comanda.cliente_telefone || comanda.endereco_entrega) && (
+                <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
+                  {[comanda.cliente_telefone, comanda.endereco_entrega].filter(Boolean).join(" · ")}
+                </p>
+              )}
             </>
           )}
 

@@ -747,6 +747,21 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       monta o preview local se ainda em revisão) pra não duplicar essa lógica nos três lugares que
       agora renderizam `<Notinha>`.
 
+- [x] **Delivery simplificado: só a taxa de entrega, sem nome/telefone/endereço.** O pedido em si
+      já vem de fora do sistema (iFood, WhatsApp etc.), então tirei os campos de nome, telefone e
+      endereço do formulário de abrir comanda delivery em `GarcomHome.jsx` — sobrou só "Taxa de
+      entrega (R$, opcional)". Precisou de migração porque um CHECK constraint
+      (`comandas_dados_por_tipo`, da Fase 6) EXIGIA `cliente_nome`/`cliente_telefone`/
+      `endereco_entrega` preenchidos pra `tipo = 'delivery'` — sem soltar essa trava a criação
+      teria dado erro direto no banco. `supabase/sql/022_simplificar_delivery.sql` recria o
+      constraint deixando delivery exigir só `mesa_numero`/`comanda_fisica_id` nulos (igual balcão
+      não muda). Como esses campos ficam `null` daqui pra frente, troquei todo lugar que montava
+      `Delivery · ${cliente_nome}` (viraria "Delivery · null" na tela) por um fallback: mostra o
+      nome se existir (comandas antigas ainda têm), senão mostra só "Delivery" — nas listas
+      (`GarcomHome`, `CaixaHome`) o fallback é o horário de abertura, pra distinguir dois delivery
+      abertos ao mesmo tempo. A taxa de entrega continua somando no total e aparecendo na notinha
+      (isso já funcionava, não mudou). **Rodar a migração 022 antes do deploy.**
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

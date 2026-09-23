@@ -16,7 +16,12 @@ function labelComanda(comanda) {
   if (comanda.tipo === "balcao") {
     return { titulo: "Balcão", subtitulo: comanda.cliente_nome };
   }
-  return { titulo: "Delivery", subtitulo: comanda.cliente_nome };
+  return {
+    titulo: "Delivery",
+    subtitulo:
+      comanda.cliente_nome ||
+      new Date(comanda.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+  };
 }
 
 export default function GarcomHome() {
@@ -32,8 +37,6 @@ export default function GarcomHome() {
   const [mesaNumero, setMesaNumero] = useState("");
   const [comandaFisicaId, setComandaFisicaId] = useState("");
   const [clienteNome, setClienteNome] = useState("");
-  const [clienteTelefone, setClienteTelefone] = useState("");
-  const [enderecoEntrega, setEnderecoEntrega] = useState("");
   const [taxaEntrega, setTaxaEntrega] = useState("");
   const [abrindo, setAbrindo] = useState(false);
 
@@ -44,7 +47,7 @@ export default function GarcomHome() {
     const [comandasResult, comandasFisicasResult] = await Promise.all([
       supabase
         .from("comandas")
-        .select("id, tipo, mesa_numero, comanda_fisica_id, cliente_nome, comandas_fisicas(numero)")
+        .select("id, tipo, mesa_numero, comanda_fisica_id, cliente_nome, created_at, comandas_fisicas(numero)")
         .eq("status", "aberta")
         .order("created_at"),
       supabase.from("comandas_fisicas").select("id, numero").order("numero"),
@@ -70,8 +73,6 @@ export default function GarcomHome() {
     setMesaNumero("");
     setComandaFisicaId("");
     setClienteNome("");
-    setClienteTelefone("");
-    setEnderecoEntrega("");
     setTaxaEntrega("");
   };
 
@@ -105,13 +106,6 @@ export default function GarcomHome() {
       }
       payload.cliente_nome = clienteNome.trim();
     } else {
-      if (!clienteNome.trim() || !clienteTelefone.trim() || !enderecoEntrega.trim()) {
-        setError("Informe nome, telefone e endereço do cliente.");
-        return;
-      }
-      payload.cliente_nome = clienteNome.trim();
-      payload.cliente_telefone = clienteTelefone.trim();
-      payload.endereco_entrega = enderecoEntrega.trim();
       payload.taxa_entrega = Number(String(taxaEntrega).replace(",", ".")) || 0;
     }
 
@@ -218,55 +212,19 @@ export default function GarcomHome() {
         )}
 
         {tipo === "delivery" && (
-          <form onSubmit={handleAbrirComanda}>
-            <div className="inline-form">
-              <div className="field">
-                <label>Nome do cliente</label>
-                <input
-                  value={clienteNome}
-                  onChange={(e) => setClienteNome(e.target.value)}
-                  placeholder="Ex: João"
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>Telefone</label>
-                <input
-                  value={clienteTelefone}
-                  onChange={(e) => setClienteTelefone(e.target.value)}
-                  placeholder="Ex: (67) 99999-9999"
-                  required
-                />
-              </div>
-            </div>
+          <form onSubmit={handleAbrirComanda} className="inline-form">
             <div className="field">
-              <label>Endereço de entrega</label>
+              <label>Taxa de entrega (R$, opcional)</label>
               <input
-                value={enderecoEntrega}
-                onChange={(e) => setEnderecoEntrega(e.target.value)}
-                placeholder="Rua, número, bairro, complemento"
-                required
+                value={taxaEntrega}
+                onChange={(e) => setTaxaEntrega(e.target.value)}
+                placeholder="Ex: 8,00"
+                inputMode="decimal"
               />
             </div>
-            <div className="inline-form" style={{ marginBottom: 0 }}>
-              <div className="field">
-                <label>Taxa de entrega (R$, opcional)</label>
-                <input
-                  value={taxaEntrega}
-                  onChange={(e) => setTaxaEntrega(e.target.value)}
-                  placeholder="Ex: 8,00"
-                  inputMode="decimal"
-                />
-              </div>
-              <button
-                className="btn-primary"
-                type="submit"
-                disabled={abrindo}
-                style={{ width: "auto", padding: "10px 20px" }}
-              >
-                {abrindo ? "Abrindo..." : "Abrir comanda"}
-              </button>
-            </div>
+            <button className="btn-primary" type="submit" disabled={abrindo}>
+              {abrindo ? "Abrindo..." : "Abrir comanda"}
+            </button>
           </form>
         )}
       </div>

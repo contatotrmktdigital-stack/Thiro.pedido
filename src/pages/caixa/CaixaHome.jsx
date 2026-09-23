@@ -9,7 +9,13 @@ function labelComanda(comanda) {
   if (comanda.tipo === "balcao") {
     return { titulo: "Balcão", subtitulo: comanda.cliente_nome };
   }
-  return { titulo: "Delivery", subtitulo: comanda.cliente_nome };
+  return {
+    titulo: "Delivery",
+    subtitulo:
+      comanda.cliente_nome ||
+      (comanda.created_at &&
+        new Date(comanda.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })),
+  };
 }
 
 function inicioDeHoje() {
@@ -32,7 +38,7 @@ export default function CaixaHome() {
     const [abertasResult, fechadasResult] = await Promise.all([
       supabase
         .from("comandas")
-        .select("id, tipo, mesa_numero, cliente_nome, comandas_fisicas(numero)")
+        .select("id, tipo, mesa_numero, cliente_nome, created_at, comandas_fisicas(numero)")
         .eq("status", "aberta")
         .order("created_at"),
       supabase

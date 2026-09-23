@@ -20,7 +20,7 @@ export default function Notinha({ restaurantName, comanda, itens }) {
   } else if (comanda.tipo === "balcao") {
     atendimento = `Balcão · ${comanda.cliente_nome}`;
   } else {
-    atendimento = `Delivery · ${comanda.cliente_nome}`;
+    atendimento = comanda.cliente_nome ? `Delivery · ${comanda.cliente_nome}` : "Delivery";
   }
 
   return (
