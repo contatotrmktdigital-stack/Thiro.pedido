@@ -36,7 +36,7 @@ export default function Login() {
     <div className="lg">
       <aside className="lg-side">
         <Link to="/" className="lg-brand">
-          <span className="lg-brand-mark">TP</span>
+          <span className="lg-brand-mark"><img src="/logo-simbolo.png" alt="" /></span>
           <span>Thiro.pedido</span>
         </Link>
 
@@ -75,6 +75,7 @@ export default function Login() {
 
       <main className="lg-main">
         <div className="lg-card">
+          <img className="lg-logo" src="/logo.png" alt="Thiro Pedidos" />
           <h2>Entrar</h2>
           <p className="lg-card-sub">Use o login da sua conta para continuar.</p>
 

@@ -816,6 +816,17 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       trocado por `:where(...)` (especificidade zero) nos dois arquivos. Verificado: 1280x720
       sem rolagem, card centralizado, margens ok; ≤900px layout de uma coluna.
 
+- [x] **Logo real aplicada (home, login e favicon).** O arquivo original do usuário é
+      `C:\Users\thiag\Downloads\Logo Thiro Pedidos com Recibo Abstrato.png` (1254x1254, ~1 MB, fundo
+      branco, sem transparência — pesado demais pra web). Gerei duas versões leves em `public/`:
+      `logo.png` (logo completa, 600x600, ~200 KB — usada em grande no cartão do login) e
+      `logo-simbolo.png` (só o "T" com recibo, 256x256, ~47 KB — no topo/rodapé da home, topo do
+      login e como favicon em `index.html`, no lugar do ícone roxo padrão do Vite). Como a logo tem
+      fundo branco e texto escuro, ela sempre aparece dentro de um quadradinho/cartão branco
+      arredondado sobre os fundos pretos (`.lp-brand-mark`, `.lg-brand-mark`, `.lg-logo`). O
+      original NÃO foi copiado pro repositório (só as versões leves). Se um dia quiser logo com
+      fundo transparente (pra ficar direto sobre o preto), precisa de um arquivo novo do designer.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

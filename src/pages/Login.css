@@ -69,13 +69,26 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.4rem;
-  height: 2.4rem;
+  width: 2.6rem;
+  height: 2.6rem;
+  overflow: hidden;
   border-radius: 0.7rem;
-  background: var(--lg-orange);
-  color: #0a0a0a;
-  font-weight: 900;
-  font-size: 1rem;
+  background: #ffffff;
+}
+
+.lg-brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.lg-logo {
+  display: block;
+  width: clamp(6.5rem, 9vw, 9rem);
+  height: auto;
+  margin: 0 auto 1.4rem;
+  border-radius: 1.2rem;
 }
 
 .lg-eyebrow {

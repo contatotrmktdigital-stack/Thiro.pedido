@@ -157,7 +157,7 @@ export default function Landing() {
       <header className="lp-header">
         <div className="lp-header-inner">
           <a href="#topo" className="lp-brand" onClick={fecharMenu}>
-            <span className="lp-brand-mark">TP</span>
+            <span className="lp-brand-mark"><img src="/logo-simbolo.png" alt="" /></span>
             <span>Thiro.pedido</span>
           </a>
 
@@ -341,7 +341,7 @@ export default function Landing() {
       <footer className="lp-footer">
         <div className="lp-container lp-footer-inner">
           <a href="#topo" className="lp-brand">
-            <span className="lp-brand-mark">TP</span>
+            <span className="lp-brand-mark"><img src="/logo-simbolo.png" alt="" /></span>
             <span>Thiro.pedido</span>
           </a>
           <p>Comandas, cozinha e caixa para restaurantes.</p>
