@@ -1,3 +1,10 @@
+/* Em telas grandes, a base de tamanho (rem) cresce junto com a tela — assim textos, ícones,
+   cartões e o mock do celular preenchem a página inteira em vez de ficarem presos no centro.
+   Só vale enquanto a home está na tela. */
+:root:has(.lp) {
+  font-size: clamp(16px, 0.55vw + 10px, 28px);
+}
+
 .lp {
   --lp-bg: #0a0a0a;
   --lp-bg-2: #111111;
@@ -7,12 +14,14 @@
   --lp-orange-2: #ff8a2b;
   --lp-text: #ffffff;
   --lp-muted: #a8a8a8;
+  --lp-pad: clamp(1rem, 5vw, 7rem);
 
   min-height: 100dvh;
   width: 100%;
   background: var(--lp-bg);
   color: var(--lp-text);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
   line-height: 1.5;
   overflow-x: hidden;
 }
@@ -38,9 +47,8 @@
 
 .lp-container {
   width: 100%;
-  max-width: 1240px;
   margin: 0 auto;
-  padding: 0 clamp(16px, 4vw, 40px);
+  padding: 0 var(--lp-pad);
 }
 
 /* ---------- Topo ---------- */
@@ -58,19 +66,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 1rem;
   width: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 12px clamp(16px, 4vw, 40px);
+  padding: 0.75rem var(--lp-pad);
 }
 
 .lp-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 0.65rem;
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   letter-spacing: 0.2px;
 }
 
@@ -78,20 +84,20 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.65rem;
   background: var(--lp-orange);
   color: #0a0a0a;
   font-weight: 900;
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .lp-nav {
   display: flex;
   align-items: center;
-  gap: 26px;
-  font-size: 0.95rem;
+  gap: 1.7rem;
+  font-size: 1rem;
   color: var(--lp-muted);
 }
 
@@ -124,11 +130,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 20px;
-  border-radius: 12px;
+  padding: 0.65rem 1.3rem;
+  border-radius: 0.8rem;
   border: 2px solid transparent;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
@@ -138,8 +144,8 @@
 }
 
 .lp-btn-grande {
-  padding: 14px 28px;
-  font-size: 1.05rem;
+  padding: 0.9rem 1.9rem;
+  font-size: 1.1rem;
 }
 
 .lp .lp-btn-primary {
@@ -182,7 +188,7 @@
 
 /* ---------- Hero ---------- */
 .lp-hero {
-  min-height: calc(100dvh - 59px);
+  min-height: calc(100dvh - 4rem);
   display: flex;
   align-items: center;
   background:
@@ -190,24 +196,22 @@
     radial-gradient(ellipse 50% 50% at 0% 100%, rgba(255, 106, 0, 0.12), transparent 70%),
     linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  background-size: auto, auto, 48px 48px, 48px 48px;
+  background-size: auto, auto, 3rem 3rem, 3rem 3rem;
 }
 
 .lp-hero-inner {
   width: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: clamp(32px, 6vw, 72px) clamp(16px, 4vw, 40px);
+  padding: clamp(2rem, 6vw, 6rem) var(--lp-pad);
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   align-items: center;
-  gap: clamp(28px, 5vw, 64px);
+  gap: clamp(1.75rem, 5vw, 6rem);
 }
 
 .lp-eyebrow {
   display: inline-block;
-  margin-bottom: 14px;
-  padding: 5px 12px;
+  margin-bottom: 1.1rem;
+  padding: 0.3rem 0.8rem;
   border: 1px solid rgba(255, 106, 0, 0.5);
   border-radius: 999px;
   color: var(--lp-orange);
@@ -223,7 +227,7 @@
 }
 
 .lp-hero h1 {
-  font-size: clamp(2.2rem, 5.4vw, 4.2rem);
+  font-size: clamp(2.2rem, 4.2vw, 4rem);
   line-height: 1.05;
   font-weight: 900;
   letter-spacing: -1px;
@@ -234,22 +238,22 @@
 }
 
 .lp-hero-sub {
-  margin-top: 20px;
-  max-width: 560px;
-  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  margin-top: 1.4rem;
+  max-width: 38rem;
+  font-size: clamp(1rem, 1.5vw, 1.35rem);
   color: var(--lp-muted);
 }
 
 .lp-hero-acoes {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 28px;
+  gap: 0.8rem;
+  margin-top: 1.9rem;
 }
 
 .lp-hero-nota {
-  margin-top: 16px;
-  font-size: 0.88rem;
+  margin-top: 1.1rem;
+  font-size: 0.9rem;
   color: var(--lp-muted);
 }
 
@@ -261,11 +265,11 @@
 /* ---------- Mock do celular ---------- */
 .lp-phone {
   position: relative;
-  width: min(100%, 320px);
+  width: min(100%, clamp(22rem, 27vw, 40rem));
   border: 2px solid #2f2f2f;
-  border-radius: 34px;
+  border-radius: 2.2rem;
   background: #101010;
-  padding: 12px;
+  padding: 0.75rem;
   box-shadow: 0 30px 80px rgba(255, 106, 0, 0.22), 0 0 0 6px #161616;
 }
 
@@ -273,17 +277,17 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
-  border-radius: 22px 22px 8px 8px;
+  padding: 0.9rem 1rem;
+  border-radius: 1.4rem 1.4rem 0.5rem 0.5rem;
   background: linear-gradient(90deg, #ff6a00, #ff8a2b);
   color: #0a0a0a;
   font-weight: 800;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
 }
 
 .lp-phone-dot {
-  width: 10px;
-  height: 10px;
+  width: 0.65rem;
+  height: 0.65rem;
   border-radius: 50%;
   background: #0a0a0a;
 }
@@ -291,15 +295,15 @@
 .lp-phone-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 16px 8px 8px;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem 0.5rem;
 }
 
 .lp-phone-row {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  font-size: 0.88rem;
+  gap: 0.6rem;
+  font-size: 0.92rem;
 }
 
 .lp-phone-row strong {
@@ -308,9 +312,9 @@
 
 .lp-phone-pill {
   align-self: flex-start;
-  padding: 2px 10px;
+  padding: 0.1rem 0.65rem;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
 }
 
@@ -326,7 +330,7 @@
 
 .lp-phone-sep {
   height: 1px;
-  margin: 6px 0;
+  margin: 0.4rem 0;
   border-top: 1px dashed #3a3a3a;
 }
 
@@ -334,7 +338,7 @@
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  padding-top: 8px;
+  padding-top: 0.5rem;
   border-top: 2px solid var(--lp-orange);
   font-weight: 800;
 }
@@ -345,9 +349,9 @@
 }
 
 .lp-phone-btn {
-  margin-top: 10px;
-  padding: 12px;
-  border-radius: 12px;
+  margin-top: 0.65rem;
+  padding: 0.8rem;
+  border-radius: 0.8rem;
   background: var(--lp-orange);
   color: #0a0a0a;
   text-align: center;
@@ -356,14 +360,14 @@
 
 .lp-toast {
   position: absolute;
-  left: -28px;
-  bottom: -24px;
+  left: -1.75rem;
+  bottom: -1.5rem;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
+  gap: 0.65rem;
+  padding: 0.65rem 0.9rem;
   border: 1px solid var(--lp-border);
-  border-radius: 14px;
+  border-radius: 0.9rem;
   background: #1c1c1c;
   color: var(--lp-orange);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
@@ -373,7 +377,7 @@
 .lp-toast div {
   display: flex;
   flex-direction: column;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   line-height: 1.25;
 }
 
@@ -399,16 +403,16 @@
 
 .lp-faixa-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
-  gap: 24px;
-  padding-top: 28px;
-  padding-bottom: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: 1.5rem;
+  padding-top: 1.9rem;
+  padding-bottom: 1.9rem;
 }
 
 .lp-faixa-item {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 0.9rem;
 }
 
 .lp-faixa-icone,
@@ -417,11 +421,17 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.9rem;
   background: rgba(255, 106, 0, 0.14);
   color: var(--lp-orange);
+}
+
+.lp-faixa-icone svg,
+.lp-card-icone svg {
+  width: 1.5rem;
+  height: 1.5rem;
 }
 
 .lp-faixa-item strong {
@@ -429,18 +439,18 @@
 }
 
 .lp-faixa-item p {
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   color: var(--lp-muted);
 }
 
 /* ---------- Seções ---------- */
 .lp-secao {
-  padding: clamp(56px, 9vw, 110px) 0;
+  padding: clamp(3.5rem, 8vw, 8rem) 0;
 }
 
 .lp-secao h2 {
-  max-width: 760px;
-  font-size: clamp(1.7rem, 3.8vw, 2.8rem);
+  max-width: 50rem;
+  font-size: clamp(1.7rem, 3.2vw, 2.8rem);
   line-height: 1.12;
   font-weight: 900;
   letter-spacing: -0.5px;
@@ -459,19 +469,19 @@
 
 .lp-grade {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
-  gap: 18px;
-  margin-top: 40px;
+  grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
+  gap: 1.2rem;
+  margin-top: 2.5rem;
 }
 
 .lp-grade-3 {
-  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(17rem, 100%), 1fr));
 }
 
 .lp-card {
-  padding: 24px;
+  padding: 1.6rem;
   border: 1px solid var(--lp-border);
-  border-radius: 20px;
+  border-radius: 1.3rem;
   background: var(--lp-card);
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
@@ -482,8 +492,8 @@
 }
 
 .lp-card h3 {
-  margin: 16px 0 6px;
-  font-size: 1.1rem;
+  margin: 1rem 0 0.4rem;
+  font-size: 1.15rem;
 }
 
 .lp-card p {
@@ -494,15 +504,15 @@
 .lp-card-tela h3 {
   margin-top: 0;
   color: var(--lp-orange);
-  font-size: 1.3rem;
+  font-size: 1.35rem;
 }
 
 .lp-card-tela ul,
 .lp-lista {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-top: 16px;
+  gap: 0.8rem;
+  margin-top: 1rem;
   padding: 0;
   list-style: none;
 }
@@ -511,27 +521,29 @@
 .lp-lista li {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 0.65rem;
 }
 
 .lp-card-tela li svg,
 .lp-lista li svg {
   flex-shrink: 0;
-  margin-top: 2px;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.2rem;
   color: var(--lp-orange);
 }
 
 /* ---------- Passos ---------- */
 .lp-passos {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
-  gap: 18px;
-  margin-top: 40px;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: 1.2rem;
+  margin-top: 2.5rem;
 }
 
 .lp-passo {
-  padding: 26px;
-  border-radius: 20px;
+  padding: 1.7rem;
+  border-radius: 1.3rem;
   background: #0a0a0a;
   color: var(--lp-text);
 }
@@ -540,8 +552,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 2.8rem;
+  height: 2.8rem;
   border-radius: 50%;
   background: var(--lp-orange);
   color: #0a0a0a;
@@ -550,7 +562,8 @@
 }
 
 .lp-passo h3 {
-  margin: 16px 0 6px;
+  margin: 1rem 0 0.4rem;
+  font-size: 1.15rem;
 }
 
 .lp-passo p {
@@ -562,38 +575,38 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
-  gap: clamp(28px, 5vw, 64px);
+  gap: clamp(1.75rem, 5vw, 6rem);
 }
 
 .lp-marca-texto {
-  margin-top: 16px;
+  margin-top: 1rem;
   color: var(--lp-muted);
-  max-width: 520px;
+  max-width: 36rem;
 }
 
 .lp-marca-amostra {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0.9rem;
 }
 
 .lp-amostra {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 18px 20px;
-  border-radius: 18px;
+  gap: 0.9rem;
+  padding: 1.2rem 1.4rem;
+  border-radius: 1.2rem;
   background: linear-gradient(90deg, var(--cor), color-mix(in srgb, var(--cor) 60%, #000));
-  font-size: 1.1rem;
+  font-size: 1.15rem;
 }
 
 .lp-amostra-logo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 0.8rem;
   background: rgba(255, 255, 255, 0.92);
   color: var(--cor);
   font-weight: 900;
@@ -601,7 +614,7 @@
 
 /* ---------- Chamada final ---------- */
 .lp-cta {
-  padding: clamp(56px, 9vw, 100px) 0;
+  padding: clamp(3.5rem, 8vw, 7rem) 0;
   background: var(--lp-orange);
   color: #0a0a0a;
   text-align: center;
@@ -611,18 +624,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 0.8rem;
 }
 
 .lp-cta h2 {
-  font-size: clamp(1.7rem, 4vw, 3rem);
+  font-size: clamp(1.7rem, 3.6vw, 3.2rem);
   font-weight: 900;
   line-height: 1.1;
   letter-spacing: -0.5px;
 }
 
 .lp-cta p {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
 }
 
 .lp-cta-acoes {
@@ -631,7 +644,7 @@
 
 /* ---------- Rodapé ---------- */
 .lp-footer {
-  padding: 32px 0;
+  padding: 2rem 0;
   background: #000;
   border-top: 1px solid var(--lp-border);
 }
@@ -641,7 +654,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .lp-footer p,
@@ -656,7 +669,7 @@
 
 /* ---------- Âncoras com topo fixo ---------- */
 .lp [id] {
-  scroll-margin-top: 70px;
+  scroll-margin-top: 4.5rem;
 }
 
 /* ---------- Responsivo ---------- */
@@ -692,7 +705,7 @@
     flex-direction: column;
     align-items: stretch;
     gap: 0;
-    padding: 8px clamp(16px, 4vw, 40px) 16px;
+    padding: 0.5rem var(--lp-pad) 1rem;
     background: #0a0a0a;
     border-bottom: 1px solid var(--lp-border);
   }
@@ -702,13 +715,13 @@
   }
 
   .lp-nav a:not(.lp-btn) {
-    padding: 14px 4px;
+    padding: 0.9rem 0.25rem;
     border-bottom: 1px solid var(--lp-border);
     color: var(--lp-text);
   }
 
   .lp-nav .lp-nav-entrar {
-    margin-top: 14px;
+    margin-top: 0.9rem;
   }
 
   .lp-hero-acoes .lp-btn {

@@ -792,6 +792,15 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       `public/` pra eu usar no topo (a logo é fundo branco, texto escuro: precisa de um chip
       branco ou só o símbolo no topo preto). Testado no navegador (desktop, 800px e celular
       375px, sem rolagem lateral, menu abre/fecha).
+      **Ajuste pedido logo depois (tela larga):** a home estava presa num miolo de 1240px, com
+      faixas vazias dos lados em monitor grande. Em `Landing.css`: removido todo `max-width` fixo
+      (conteúdo vai de borda a borda com margem lateral `--lp-pad = clamp(1rem, 5vw, 7rem)`), e
+      o tamanho base cresce com a tela via `:root:has(.lp) { font-size: clamp(16px, 0.55vw +
+      10px, 28px) }` — como quase tudo foi convertido de px pra rem, textos, ícones, cartões e o
+      mock do celular escalam juntos (sem JS, só vale enquanto a home está na tela). Medido em
+      1920px: topo e grade de cards de 96px a 1809px, 4 colunas de cartões, h1 com ~80px; em
+      375px o rem fica 16px e continua sem rolagem lateral. Grades usam `minmax(min(Xrem, 100%),
+      1fr)` pra nunca estourar em tela estreita.
 
 ## Como trabalhar neste projeto
 
