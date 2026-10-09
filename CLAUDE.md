@@ -802,6 +802,20 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       375px o rem fica 16px e continua sem rolagem lateral. Grades usam `minmax(min(Xrem, 100%),
       1fr)` pra nunca estourar em tela estreita.
 
+- [x] **Tela de login no mesmo estilo da home (laranja e preto, tela cheia).** O `/login` é um
+      só pra todo mundo (super admin e equipe dos restaurantes), então a mudança vale pros dois.
+      `src/pages/Login.jsx` + novo `Login.css` (classes `lg-`, autocontido, mesmo esquema da
+      Landing: `:root:has(.lg)` escala o rem em monitor grande): tela dividida — à esquerda um
+      painel de marca (logo TP, "Bem-vindo de volta", 4 benefícios, fundo com brilho laranja e
+      grade) e à direita o cartão escuro com o formulário e botão laranja. Em ≤900px vira uma
+      coluna só: faixa fina de marca no topo e o formulário embaixo (texto promocional some).
+      Lógica do login intocada (`signIn(toLoginEmail(...))` → `navigate("/")`). Erro de login
+      aparece em caixa vermelha escura (`role="alert"`). **Bug de CSS corrigido de carona:** o
+      reset `.lp p { margin: 0 }` (e o equivalente do login) tinha especificidade maior que as
+      classes de margem (`.lp-hero-sub` etc.), então o subtítulo da home colava no título;
+      trocado por `:where(...)` (especificidade zero) nos dois arquivos. Verificado: 1280x720
+      sem rolagem, card centralizado, margens ok; ≤900px layout de uma coluna.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

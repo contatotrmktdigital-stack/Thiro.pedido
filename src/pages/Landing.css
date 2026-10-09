@@ -37,11 +37,7 @@
   text-decoration: none;
 }
 
-.lp h1,
-.lp h2,
-.lp h3,
-.lp p,
-.lp ul {
+:where(.lp h1, .lp h2, .lp h3, .lp p, .lp ul) {
   margin: 0;
 }
 

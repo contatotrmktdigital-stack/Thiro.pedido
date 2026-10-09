@@ -1,0 +1,271 @@
+/* Mesma base de tamanho da home: cresce com a tela pra preencher monitores grandes. */
+:root:has(.lg) {
+  font-size: clamp(16px, 0.5vw + 10px, 26px);
+}
+
+.lg {
+  --lg-bg: #0a0a0a;
+  --lg-card: #151515;
+  --lg-border: #2a2a2a;
+  --lg-orange: #ff6a00;
+  --lg-orange-2: #ff8a2b;
+  --lg-text: #ffffff;
+  --lg-muted: #a8a8a8;
+  --lg-pad: clamp(1.25rem, 5vw, 6rem);
+
+  min-height: 100dvh;
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  background: var(--lg-bg);
+  color: var(--lg-text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.lg *,
+.lg *::before,
+.lg *::after {
+  box-sizing: border-box;
+}
+
+:where(.lg h1, .lg h2, .lg p, .lg ul) {
+  margin: 0;
+}
+
+.lg a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ---------- Lado esquerdo (marca) ---------- */
+.lg-side {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(1.5rem, 4vw, 4rem) var(--lg-pad);
+  background:
+    radial-gradient(ellipse 70% 60% at 85% 15%, rgba(255, 106, 0, 0.3), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 0% 100%, rgba(255, 106, 0, 0.14), transparent 70%),
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: auto, auto, 3rem 3rem, 3rem 3rem;
+  border-right: 1px solid var(--lg-border);
+}
+
+.lg-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  align-self: flex-start;
+  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.lg-brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.7rem;
+  background: var(--lg-orange);
+  color: #0a0a0a;
+  font-weight: 900;
+  font-size: 1rem;
+}
+
+.lg-eyebrow {
+  display: inline-block;
+  margin-bottom: 1.1rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px solid rgba(255, 106, 0, 0.5);
+  border-radius: 999px;
+  color: var(--lg-orange);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.lg-side h1 {
+  font-size: clamp(2.2rem, 4.2vw, 4rem);
+  line-height: 1.05;
+  font-weight: 900;
+  letter-spacing: -1px;
+}
+
+.lg-side h1 span {
+  color: var(--lg-orange);
+}
+
+.lg-side-sub {
+  margin-top: 1.2rem;
+  max-width: 34rem;
+  font-size: clamp(1rem, 1.4vw, 1.3rem);
+  color: var(--lg-muted);
+}
+
+.lg-beneficios {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  margin-top: 2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.lg-beneficios li {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.lg-beneficios svg {
+  flex-shrink: 0;
+  width: 1.7rem;
+  height: 1.7rem;
+  padding: 0.35rem;
+  border-radius: 50%;
+  background: rgba(255, 106, 0, 0.16);
+  color: var(--lg-orange);
+}
+
+.lg-side-rodape {
+  font-size: 0.9rem;
+  color: var(--lg-muted);
+}
+
+/* ---------- Lado direito (formulário) ---------- */
+.lg-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.25rem, 4vw, 4rem) var(--lg-pad);
+}
+
+.lg-card {
+  width: 100%;
+  max-width: 28rem;
+  padding: clamp(1.5rem, 2.6vw, 2.4rem);
+  border: 1px solid var(--lg-border);
+  border-radius: 1.5rem;
+  background: var(--lg-card);
+  box-shadow: 0 30px 80px rgba(255, 106, 0, 0.1);
+}
+
+.lg-card h2 {
+  font-size: 1.8rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+
+.lg-card-sub {
+  margin-top: 0.3rem;
+  margin-bottom: 1.5rem;
+  color: var(--lg-muted);
+}
+
+.lg-erro {
+  margin-bottom: 1.1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 0.8rem;
+  background: rgba(239, 68, 68, 0.12);
+  color: #fca5a5;
+  font-size: 0.92rem;
+}
+
+.lg-campo {
+  margin-bottom: 1.1rem;
+}
+
+.lg-campo label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.lg-campo input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--lg-border);
+  border-radius: 0.8rem;
+  background: #0d0d0d;
+  color: var(--lg-text);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lg-campo input:focus {
+  outline: none;
+  border-color: var(--lg-orange);
+  box-shadow: 0 0 0 3px rgba(255, 106, 0, 0.25);
+}
+
+.lg-botao {
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.95rem;
+  border: none;
+  border-radius: 0.8rem;
+  background: var(--lg-orange);
+  color: #0a0a0a;
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.lg-botao:hover:not(:disabled) {
+  background: var(--lg-orange-2);
+  transform: translateY(-1px);
+}
+
+.lg-botao:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lg-voltar {
+  display: block;
+  margin-top: 1.4rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--lg-muted);
+}
+
+.lg-voltar:hover {
+  color: var(--lg-orange);
+}
+
+/* ---------- Celular e telas estreitas ---------- */
+@media (max-width: 900px) {
+  .lg {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  .lg-side {
+    padding-top: 1.25rem;
+    padding-bottom: 1.5rem;
+    gap: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--lg-border);
+  }
+
+  .lg-side-texto,
+  .lg-side-rodape {
+    display: none;
+  }
+
+  .lg-main {
+    align-items: flex-start;
+  }
+}
