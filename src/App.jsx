@@ -37,6 +37,7 @@ export default function App() {
       <AuthProvider>
         <AdminGateProvider>
           <Routes>
+            <Route path="/" element={<HomeRedirect />} />
             <Route path="/login" element={<Login />} />
 
             <Route
@@ -46,7 +47,6 @@ export default function App() {
                 </ProtectedRoute>
               }
             >
-              <Route path="/" element={<HomeRedirect />} />
 
               <Route
                 path="/superadmin"

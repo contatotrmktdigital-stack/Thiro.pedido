@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toLoginEmail } from "../lib/staffLogin";
 
@@ -62,6 +62,10 @@ export default function Login() {
             {submitting ? "Entrando..." : "Entrar"}
           </button>
         </form>
+
+        <p style={{ textAlign: "center", marginTop: 18, marginBottom: 0, fontSize: "0.85rem" }}>
+          <Link to="/">&larr; Voltar para o início</Link>
+        </p>
       </div>
     </div>
   );

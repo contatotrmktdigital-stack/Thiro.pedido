@@ -772,6 +772,27 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       comandas delivery antigas que ficaram sem nome nesse intervalo. **Rodar a migração 023 antes
       do deploy.**
 
+- [x] **Home pública da plataforma (laranja e preto) em `/`, antes do login.** Início de uma
+      série de mudanças maiores pedidas pelo usuário: (1) home com as cores dele (laranja/preto),
+      (2) app ocupando a tela inteira e adaptável a cada aparelho, (3) super admin cadastra e
+      gerencia todos os clientes, (4) **um único acesso por restaurante**, que entra num painel do
+      cliente com cozinha, pedidos, comandas, administração etc. — a área do cliente continua 100%
+      personalizável (logo/cores/foto do cliente); só a home é com a marca dele. Os itens 2–4
+      ainda dependem de referências visuais que o usuário vai mandar. Feito até aqui, só o
+      item 1: nova página `src/pages/Landing.jsx` + `Landing.css` (classes prefixadas `lp-`,
+      autocontida, não usa as variáveis de tema dos restaurantes) com topo fixo + menu
+      hambúrguer no celular, hero em tela cheia com mock do app, faixa de destaques,
+      funcionalidades, "como funciona", telas (garçom/cozinha/gestão), "sua marca, seu jeito",
+      chamada final e rodapé. `HomeRedirect` agora mostra a Landing quando NÃO há sessão (e
+      redireciona por papel quando há), e a rota `/` saiu de dentro da área protegida em
+      `App.jsx`. Login ganhou link "Voltar para o início". **Pendente:** (a) contato — a
+      constante `CONTATO` no topo de `Landing.jsx` está vazia (`whatsapp`/`email`); enquanto
+      estiver vazia os botões "Falar com a gente" não aparecem; (b) logo — o usuário mandou a
+      imagem pelo chat mas o arquivo não ficou salvo no disco; falta ele colocar em
+      `public/` pra eu usar no topo (a logo é fundo branco, texto escuro: precisa de um chip
+      branco ou só o símbolo no topo preto). Testado no navegador (desktop, 800px e celular
+      375px, sem rolagem lateral, menu abre/fecha).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
