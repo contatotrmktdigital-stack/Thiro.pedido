@@ -905,6 +905,31 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       (hoje não cabe bem no celular), e liberar a cozinha pro login único atualizar item de
       comanda já fechada (ajuste de RLS da `comanda_itens_update`: incluir `gestao`).
 
+- [x] **Telas do modelo aprovado: escolha de área, topo por área, Garçom e Cozinha novos.** O
+      usuário aprovou o modelo (sem responder 2 e 3 das perguntas; usei o que estava no modelo:
+      "Notinhas de hoje" tem botão no início do Garçom e bloco na Gestão; os 3 atalhos de área
+      aparecem pra todo mundo). Feito: (1) `GestaoHome.jsx` virou a tela **"Para onde vamos?"**
+      (3 cartões: Garçom, Cozinha, Gestão com "pede a senha"); (2) `AppLayout.jsx`: topo só com
+      nome do restaurante + Sair, e uma barra **sticky de atalhos Garçom | Cozinha | Gestão**
+      (`.area-nav`, vale pro login único = papel gestao; contas antigas de outros papéis não
+      veem os atalhos); os botões antigos "Fazer pedido/Administração/Notinhas" do topo saíram
+      (cabiam mal no celular); (3) `GarcomHome.jsx`: botão grande **+ Nova comanda** abre o
+      formulário (antes ficava sempre aberto) + botão "Notinhas de hoje", lista de comandas
+      vira cartões com **qtd de itens, total e situação** (N pendentes / N em preparo / tudo
+      entregue / sem itens) e atualiza sozinha por Realtime quando a cozinha avança; (4)
+      `ComandaGarcom.jsx`: **total no topo** e **barra fixa embaixo** (com itens a enviar:
+      "Enviar para a cozinha"; sem carrinho: "Total da comanda" + "Fechar comanda" que abre e
+      rola até o fechamento), categorias do cardápio viram **faixa horizontal no celular**;
+      (5) `CozinhaHome.jsx` reescrito: contadores, **abas Novos/Em preparo** no celular (duas
+      colunas lado a lado ≥900px), **tempo de espera** ("há 6 min", atualiza a cada 30s),
+      cartão com **borda vermelha após 10 min**, observação em destaque, botão grande por
+      pedido; passou a conferir 0 linhas atualizadas (aviso em vez de falhar calado);
+      (6) `029_cozinha_login_unico.sql`: política `comanda_itens_update` passa a deixar
+      `gestao` (login único) avançar item mesmo com comanda fechada — **rodar antes do
+      deploy**, senão a cozinha trava quando o cliente paga antes do pedido sair. Cores dos
+      botões novos seguem a cor do restaurante (variáveis `--color-blue-*`). Verificado no
+      navegador com dados de exemplo (desktop e celular 375px, sem rolagem lateral).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

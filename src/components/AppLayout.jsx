@@ -1,15 +1,25 @@
 import { useEffect } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { roleLabel } from "./ProtectedRoute";
 import { buildRestaurantThemeVars } from "../lib/theme";
 
-const PODE_VER_NOTINHAS = ["garcom", "caixa", "gestao"];
+// O login do restaurante (papel "gestao") entra numa área por vez: Garçom, Cozinha ou Gestão.
+// Os atalhos ficam sempre no topo, pra trocar sem passar pela tela inicial.
+function areaAtual(pathname) {
+  if (pathname.startsWith("/garcom")) return "garcom";
+  if (pathname.startsWith("/cozinha")) return "cozinha";
+  if (pathname.startsWith("/caixa")) return "garcom";
+  if (pathname.startsWith("/gestao") && pathname !== "/gestao") return "gestao";
+  return null;
+}
 
 export default function AppLayout() {
   const { profile, restaurant, signOut } = useAuth();
   const { pathname } = useLocation();
   const telaCheia = pathname === "/gestao/administracao";
+  const area = areaAtual(pathname);
+  const loginUnico = profile?.role === "gestao";
 
   useEffect(() => {
     document.title = restaurant?.name || "Thiro.pedido";
@@ -32,43 +42,53 @@ export default function AppLayout() {
     shellStyle.backgroundAttachment = "fixed";
   }
 
+  const brand = (
+    <>
+      {restaurant?.logo_url ? (
+        <div
+          className="brand-mark"
+          style={{ background: `url(${restaurant.logo_url}) center/cover`, padding: 0 }}
+        />
+      ) : (
+        <div className="brand-mark">TP</div>
+      )}
+      <span className="brand-nome">{restaurant ? restaurant.name : "Thiro.pedido"}</span>
+    </>
+  );
+
   return (
     <div className="app-shell" style={shellStyle}>
       <header className="topbar">
-        <div className="brand">
-          {restaurant?.logo_url ? (
-            <div
-              className="brand-mark"
-              style={{ background: `url(${restaurant.logo_url}) center/cover`, padding: 0 }}
-            />
-          ) : (
-            <div className="brand-mark">TP</div>
-          )}
-          <span>Thiro.pedido{restaurant ? ` · ${restaurant.name}` : ""}</span>
-        </div>
+        {loginUnico ? (
+          <Link to="/gestao" className="brand" style={{ textDecoration: "none", color: "inherit" }}>
+            {brand}
+          </Link>
+        ) : (
+          <div className="brand">{brand}</div>
+        )}
         <div className="topbar-user">
-          {profile?.role === "gestao" && (
-            <>
-              <Link to="/garcom" className="logout-btn" style={{ textDecoration: "none" }}>
-                Fazer pedido
-              </Link>
-              <Link to="/gestao/administracao" className="logout-btn" style={{ textDecoration: "none" }}>
-                Administração
-              </Link>
-            </>
-          )}
-          {profile?.role && PODE_VER_NOTINHAS.includes(profile.role) && (
-            <Link to="/caixa" className="logout-btn" style={{ textDecoration: "none" }}>
-              Notinhas de hoje
-            </Link>
-          )}
-          <span>{profile?.full_name}</span>
-          {profile?.role && <span className="role-badge">{roleLabel(profile.role)}</span>}
+          {!loginUnico && <span className="topbar-nome">{profile?.full_name}</span>}
+          {!loginUnico && profile?.role && <span className="role-badge">{roleLabel(profile.role)}</span>}
           <button className="logout-btn" onClick={signOut}>
             Sair
           </button>
         </div>
       </header>
+
+      {loginUnico && (
+        <nav className="area-nav" aria-label="Áreas do restaurante">
+          <NavLink to="/garcom" className={`area-chip${area === "garcom" ? " ativa" : ""}`}>
+            Garçom
+          </NavLink>
+          <NavLink to="/cozinha" className={`area-chip${area === "cozinha" ? " ativa" : ""}`}>
+            Cozinha
+          </NavLink>
+          <NavLink to="/gestao/administracao" className={`area-chip${area === "gestao" ? " ativa" : ""}`}>
+            Gestão
+          </NavLink>
+        </nav>
+      )}
+
       <main className={`page-content${telaCheia ? " page-content--cheia" : ""}`}>
         <Outlet />
       </main>

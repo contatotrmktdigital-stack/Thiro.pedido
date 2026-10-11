@@ -365,6 +365,12 @@ export default function ComandaGarcom() {
       {error && <div className="error-box">{error}</div>}
 
       <div className="card">
+        {comanda.status === "aberta" && (
+          <div className="comanda-total-topo">
+            <span>Total</span>
+            <strong>{formatMoeda(subtotal)}</strong>
+          </div>
+        )}
         {comanda.tipo === "mesa" && (
           <>
             <h2>Mesa {comanda.mesa_numero}</h2>
@@ -761,7 +767,7 @@ export default function ComandaGarcom() {
           </div>
 
           {itensValidos.length > 0 && (
-            <div className="card">
+            <div className="card" id="fechar-comanda">
               <h2>Fechar comanda</h2>
               <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
                 Cobre o cliente e registre o pagamento aqui mesmo, na mesa.
@@ -961,6 +967,49 @@ export default function ComandaGarcom() {
             </div>
           )}
         </>
+      )}
+
+      {comanda.status === "aberta" && (carrinho.length > 0 || itensValidos.length > 0) && (
+        <div className="comanda-barra">
+          <div className="comanda-barra-info">
+            {carrinho.length > 0 ? (
+              <>
+                <span>A enviar ({carrinho.length})</span>
+                <strong>
+                  {formatMoeda(carrinho.reduce((soma, l) => soma + l.preco_unitario * l.quantidade, 0))}
+                </strong>
+              </>
+            ) : (
+              <>
+                <span>Total da comanda</span>
+                <strong>{formatMoeda(subtotal)}</strong>
+              </>
+            )}
+          </div>
+          {carrinho.length > 0 ? (
+            <button
+              type="button"
+              className="btn-primary"
+              disabled={enviando}
+              onClick={handleEnviarParaCozinha}
+            >
+              {enviando ? "Enviando..." : "Enviar para a cozinha"}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => {
+                setRevisandoFechamento(true);
+                setTimeout(() => {
+                  document.getElementById("fechar-comanda")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }, 60);
+              }}
+            >
+              Fechar comanda
+            </button>
+          )}
+        </div>
       )}
 
       {notinhaTelaCheia && (

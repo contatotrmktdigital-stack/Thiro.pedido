@@ -506,3 +506,534 @@
   font-size: 1rem;
   line-height: 1.25;
 }
+/* ---------- Topo: nome do restaurante e navegação por área ---------- */
+.brand-nome {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar .brand {
+  min-width: 0;
+}
+
+.area-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+  padding: 10px clamp(0.75rem, 2vw, 2rem);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.area-chip {
+  flex: 1 1 0;
+  max-width: 14rem;
+  padding: 10px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.area-chip:hover {
+  border-color: var(--color-blue-700);
+  color: var(--color-blue-700);
+}
+
+.area-chip.ativa {
+  border-color: var(--color-blue-700);
+  background: var(--color-blue-700);
+  color: #fff;
+}
+
+/* ---------- Escolha da área (depois do login) ---------- */
+.areas {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.areas-titulo h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  color: var(--color-blue-900);
+}
+
+.areas-titulo p {
+  margin: 0.2rem 0 0;
+  color: var(--color-text-muted);
+}
+
+.areas-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 1fr));
+  gap: 1rem;
+}
+
+.area-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 1.4rem;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow);
+  color: var(--color-text);
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.area-card:hover {
+  border-color: var(--color-blue-700);
+  transform: translateY(-2px);
+}
+
+.area-card-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  margin-bottom: 0.4rem;
+  border-radius: 16px;
+  background: var(--color-blue-100);
+  color: var(--color-blue-700);
+}
+
+.area-card-icone svg {
+  width: 1.9rem;
+  height: 1.9rem;
+}
+
+.area-card-titulo {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.area-card-texto {
+  color: var(--color-text-muted);
+}
+
+.area-card-nota {
+  margin-top: 0.3rem;
+  color: var(--color-blue-700);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ---------- Garçom: início ---------- */
+.garcom-topo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.garcom-nova {
+  flex: 1;
+  width: auto;
+  padding: 14px 18px;
+  font-size: 1.05rem;
+}
+
+.garcom-notinhas {
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.garcom-secao {
+  margin: 4px 0 12px;
+  font-size: 1.05rem;
+  color: var(--color-blue-900);
+}
+
+.garcom-secao span {
+  margin-left: 6px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--color-blue-100);
+  color: var(--color-blue-700);
+  font-size: 0.85rem;
+}
+
+.garcom-comandas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
+  gap: 12px;
+}
+
+.garcom-comanda {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+  font: inherit;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.garcom-comanda:hover {
+  border-color: var(--color-blue-700);
+  transform: translateY(-1px);
+}
+
+.garcom-comanda-topo,
+.garcom-comanda-base {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.garcom-comanda-topo strong {
+  font-size: 1.05rem;
+}
+
+.garcom-comanda-sub,
+.garcom-comanda-base span {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+.garcom-comanda-base strong {
+  font-size: 1.05rem;
+}
+
+.garcom-situacao {
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.garcom-situacao.pendente {
+  background: var(--color-red-100);
+  color: var(--color-red-700);
+}
+
+.garcom-situacao.preparo {
+  background: #fdf0d3;
+  color: #8a5a00;
+}
+
+.garcom-situacao.entregue {
+  background: #e3f6e8;
+  color: #1c7a3c;
+}
+
+.garcom-situacao.neutro {
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+/* ---------- Garçom: dentro da comanda ---------- */
+.comanda-total-topo {
+  float: right;
+  text-align: right;
+}
+
+.comanda-total-topo span {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.comanda-total-topo strong {
+  font-size: 1.4rem;
+  color: var(--color-blue-900);
+}
+
+.comanda-barra {
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px -4px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.12);
+}
+
+.comanda-barra-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.comanda-barra-info span {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.comanda-barra-info strong {
+  font-size: 1.2rem;
+}
+
+.comanda-barra .btn-primary {
+  width: auto;
+  padding: 12px 20px;
+}
+
+@media (max-width: 700px) {
+  .cardapio-layout {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .categoria-sidebar {
+    flex-direction: row;
+    width: 100%;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: static;
+    padding: 0 0 6px;
+  }
+
+  .categoria-sidebar-item {
+    flex: 0 0 auto;
+    min-width: 6rem;
+  }
+
+  .garcom-notinhas {
+    padding: 12px;
+  }
+}
+
+/* ---------- Cozinha ---------- */
+.cozinha {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cozinha-resumo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.cozinha-resumo h1 {
+  margin: 0;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  color: var(--color-blue-900);
+}
+
+.cozinha-resumo p {
+  margin: 0.15rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.cozinha-contadores {
+  display: flex;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.cozinha-contadores span {
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+.cozinha-contadores .novos {
+  background: var(--color-red-100);
+  color: var(--color-red-700);
+}
+
+.cozinha-contadores .preparo {
+  background: #fdf0d3;
+  color: #8a5a00;
+}
+
+.cozinha-abas {
+  display: flex;
+  gap: 8px;
+}
+
+.cozinha-aba {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cozinha-aba.ativa {
+  border-color: var(--color-blue-700);
+  background: var(--color-blue-700);
+  color: #fff;
+}
+
+.cozinha-colunas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.cozinha-coluna.oculta {
+  display: none;
+}
+
+.cozinha-coluna-titulo {
+  display: none;
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  color: var(--color-blue-900);
+}
+
+.cozinha-coluna-titulo span {
+  margin-left: 6px;
+  padding: 1px 9px;
+  border-radius: 999px;
+  background: var(--color-blue-100);
+  color: var(--color-blue-700);
+  font-size: 0.85rem;
+}
+
+.cozinha-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(18rem, 100%), 1fr));
+  gap: 12px;
+}
+
+.cozinha-vazio {
+  margin: 0;
+  padding: 1.5rem 1rem;
+  border: 1px dashed var(--color-border);
+  border-radius: 14px;
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.cozinha-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--color-border);
+  border-left: 5px solid var(--color-blue-700);
+  border-radius: 0 14px 14px 0;
+  background: var(--color-surface);
+  box-shadow: var(--shadow);
+}
+
+.cozinha-card.atrasado {
+  border-left-color: var(--color-red-600);
+}
+
+.cozinha-card-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cozinha-tempo {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.cozinha-tempo.atrasado {
+  color: var(--color-red-700);
+  font-weight: 700;
+}
+
+.cozinha-card-item {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.cozinha-card-obs {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  background: var(--color-red-100);
+  color: var(--color-red-700);
+  font-weight: 700;
+}
+
+.cozinha-acao {
+  margin-top: 4px;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--color-blue-700);
+  color: #fff;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cozinha-acao:hover:not(:disabled) {
+  background: var(--color-blue-900);
+}
+
+.cozinha-acao:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Telas largas: Novos e Em preparo lado a lado, sem abas */
+@media (min-width: 900px) {
+  .cozinha-abas {
+    display: none;
+  }
+
+  .cozinha-colunas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .cozinha-coluna.oculta {
+    display: block;
+  }
+
+  .cozinha-coluna-titulo {
+    display: block;
+  }
+
+  .cozinha-lista {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

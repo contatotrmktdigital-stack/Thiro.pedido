@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import { useOrigem } from "../../lib/origem";
@@ -25,6 +25,30 @@ function labelComanda(comanda) {
   };
 }
 
+function formatMoeda(valor) {
+  return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+// Resumo de uma linha do que está acontecendo na comanda, pra o garçom bater o olho.
+function resumoComanda(comanda) {
+  const validos = (comanda.comanda_itens || []).filter((i) => i.status !== "cancelado");
+  const total = validos.reduce((s, i) => s + Number(i.preco_unitario) * i.quantidade, 0);
+  const pendentes = validos.filter((i) => i.status === "pendente").length;
+  const emPreparo = validos.filter((i) => i.status === "preparo").length;
+
+  let situacao = { texto: "sem itens", tipo: "neutro" };
+  if (validos.length > 0) {
+    if (pendentes > 0) {
+      situacao = { texto: `${pendentes} pendente${pendentes > 1 ? "s" : ""}`, tipo: "pendente" };
+    } else if (emPreparo > 0) {
+      situacao = { texto: `${emPreparo} em preparo`, tipo: "preparo" };
+    } else {
+      situacao = { texto: "tudo entregue", tipo: "entregue" };
+    }
+  }
+  return { qtdItens: validos.length, total, situacao };
+}
+
 export default function GarcomHome() {
   const { restaurant, profile } = useAuth();
   const navigate = useNavigate();
@@ -41,15 +65,18 @@ export default function GarcomHome() {
   const [clienteNome, setClienteNome] = useState("");
   const [taxaEntrega, setTaxaEntrega] = useState("");
   const [abrindo, setAbrindo] = useState(false);
+  const [mostrarForm, setMostrarForm] = useState(false);
 
-  const loadDados = async () => {
-    setLoading(true);
+  const loadDados = async (silencioso = false) => {
+    if (!silencioso) setLoading(true);
     setError("");
 
     const [comandasResult, comandasFisicasResult] = await Promise.all([
       supabase
         .from("comandas")
-        .select("id, tipo, mesa_numero, comanda_fisica_id, cliente_nome, created_at, comandas_fisicas(numero)")
+        .select(
+          "id, tipo, mesa_numero, comanda_fisica_id, cliente_nome, created_at, comandas_fisicas(numero), comanda_itens(preco_unitario, quantidade, status)"
+        )
         .eq("status", "aberta")
         .order("created_at"),
       supabase.from("comandas_fisicas").select("id, numero").order("numero"),
@@ -66,6 +93,22 @@ export default function GarcomHome() {
 
   useEffect(() => {
     loadDados();
+
+    // Atualiza o resumo das comandas sozinho quando a cozinha avança um pedido.
+    const channel = supabase
+      .channel("garcom-comandas")
+      .on("postgres_changes", { event: "*", schema: "public", table: "comanda_itens" }, () =>
+        loadDados(true)
+      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "comandas" }, () =>
+        loadDados(true)
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const idsComandaFisicaEmUso = new Set(comandasAbertas.map((c) => c.comanda_fisica_id));
@@ -145,6 +188,20 @@ export default function GarcomHome() {
     <div>
       {error && <div className="error-box">{error}</div>}
 
+      <div className="garcom-topo">
+        <button
+          type="button"
+          className="btn-primary garcom-nova"
+          onClick={() => setMostrarForm((v) => !v)}
+        >
+          {mostrarForm ? "Fechar" : "+ Nova comanda"}
+        </button>
+        <Link to="/caixa" className="garcom-notinhas">
+          Notinhas de hoje
+        </Link>
+      </div>
+
+      {mostrarForm && (
       <div className="card">
         <h2>Abrir nova comanda</h2>
 
@@ -245,37 +302,45 @@ export default function GarcomHome() {
           </form>
         )}
       </div>
+      )}
 
-      <div className="card">
-        <h2>Comandas em atendimento</h2>
-        {comandasAbertas.length === 0 ? (
-          <p style={{ color: "var(--color-text-muted)" }}>Nenhuma comanda aberta no momento.</p>
-        ) : (
-          <div className="role-grid">
-            {comandasAbertas.map((comanda) => {
-              const { titulo, subtitulo } = labelComanda(comanda);
-              return (
-                <button
-                  key={comanda.id}
-                  className="btn-secondary"
-                  onClick={() => navigate(`${basePedidos}/comanda/${comanda.id}`)}
-                  style={{
-                    width: "100%",
-                    padding: "16px",
-                    textAlign: "center",
-                    fontSize: "1rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  {titulo}
-                  <br />
-                  <span style={{ fontSize: "0.75rem", fontWeight: 600 }}>{subtitulo}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      <h2 className="garcom-secao">
+        Em atendimento <span>{comandasAbertas.length}</span>
+      </h2>
+      {comandasAbertas.length === 0 ? (
+        <div className="card">
+          <p style={{ color: "var(--color-text-muted)", margin: 0 }}>
+            Nenhuma comanda aberta no momento. Toque em "Nova comanda" para começar.
+          </p>
+        </div>
+      ) : (
+        <div className="garcom-comandas">
+          {comandasAbertas.map((comanda) => {
+            const { titulo, subtitulo } = labelComanda(comanda);
+            const { qtdItens, total, situacao } = resumoComanda(comanda);
+            return (
+              <button
+                key={comanda.id}
+                type="button"
+                className="garcom-comanda"
+                onClick={() => navigate(`${basePedidos}/comanda/${comanda.id}`)}
+              >
+                <span className="garcom-comanda-topo">
+                  <strong>{titulo}</strong>
+                  <span className={`garcom-situacao ${situacao.tipo}`}>{situacao.texto}</span>
+                </span>
+                <span className="garcom-comanda-sub">{subtitulo}</span>
+                <span className="garcom-comanda-base">
+                  <span>
+                    {qtdItens} {qtdItens === 1 ? "item" : "itens"}
+                  </span>
+                  <strong>{formatMoeda(total)}</strong>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
