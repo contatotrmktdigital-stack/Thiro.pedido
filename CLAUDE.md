@@ -935,6 +935,28 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       continua existindo no banco e nas telas de histórico/relatórios/notinha, então comandas
       antigas de balcão seguem aparecendo normalmente (só não dá mais pra abrir novas).
 
+- [x] **QR da comanda também para o cliente (sem login): consumo ao vivo + cardápio.** Pedido do
+      usuário: o QR deixa de ser só do garçom; o cliente escaneia e vê (1) tudo que foi lançado na
+      comanda dele, que **zera quando a comanda é paga/fechada**, e (2) uma aba Cardápio que leva
+      direto ao link do cardápio que o dono cadastra. Como funciona: o QR impresso continua o
+      mesmo (`/garcom/abrir/:comandaFisicaId`) — `QrEntrada.jsx` decide: com sessão (garçom)
+      redireciona pro fluxo antigo, agora em `/garcom/abrir-qr/:id`; sem sessão (cliente)
+      redireciona pra `/c/:id` (`pages/cliente/ComandaCliente.jsx`, página pública própria, usa a
+      cor do restaurante). **QR já impressos continuam valendo.** Segurança: nada é liberado nas
+      tabelas pro anônimo; `030_comanda_publica_cliente.sql` cria duas funções `security definer`
+      (`comanda_publica` e `cardapio_publico`, `grant execute` pra `anon`) que partem do UUID da
+      ficha física e devolvem só nome/logo/cor/link do restaurante, itens da comanda ABERTA
+      daquela ficha (sem cancelados) e o cardápio ativo. Restaurante inativo ou ficha inexistente
+      devolve nulo. Fechou/pagou = volta "Comanda livre". Atualiza sozinha a cada 15s (e ao voltar
+      pra aba); sem Realtime porque anônimo não lê as tabelas. Cardápio: se `restaurants.cardapio_url`
+      existir, a aba mostra botão "Abrir cardápio" (nova aba — muitos cardápios digitais bloqueiam
+      iframe); senão lista o cardápio do sistema (categorias e preços). Configuração: bloco
+      **"Cardápio digital"** na Gestão (`CardapioDigitalAdmin.jsx`, `/gestao/administracao/cardapio-digital`)
+      com salvar/testar/remover o link. Etiqueta do QR agora diz "para ver sua comanda e o cardápio".
+      Observação: quem tem o QR (ou a URL) vê o consumo daquela ficha — igual a alguém olhando a
+      comanda de papel; valor mostrado é parcial. **Rodar a 030 antes do deploy.** Verificado no
+      navegador com dados de exemplo (celular 375px, sem rolagem lateral, redirecionamento do QR antigo).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

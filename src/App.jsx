@@ -4,6 +4,9 @@ import { AdminGateProvider } from "./context/AdminGateContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppLayout from "./components/AppLayout";
 import HomeRedirect from "./components/HomeRedirect";
+import QrEntrada from "./components/QrEntrada";
+import ComandaCliente from "./pages/cliente/ComandaCliente";
+import CardapioDigitalAdmin from "./pages/gestao/CardapioDigitalAdmin";
 
 import Login from "./pages/Login";
 import SuperAdminLayout from "./components/SuperAdminLayout";
@@ -39,6 +42,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomeRedirect />} />
             <Route path="/login" element={<Login />} />
+
+            <Route path="/garcom/abrir/:comandaFisicaId" element={<QrEntrada />} />
+            <Route path="/c/:comandaFisicaId" element={<ComandaCliente />} />
 
             <Route
               element={
@@ -80,7 +86,7 @@ export default function App() {
               />
 
               <Route
-                path="/garcom/abrir/:comandaFisicaId"
+                path="/garcom/abrir-qr/:comandaFisicaId"
                 element={
                   <ProtectedRoute allowedRoles={["garcom", "gestao"]}>
                     <AbrirComandaPorQR />
@@ -147,6 +153,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["gestao"]}>
                     <ComandasFisicasAdmin />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/gestao/administracao/cardapio-digital"
+                element={
+                  <ProtectedRoute allowedRoles={["gestao"]}>
+                    <CardapioDigitalAdmin />
                   </ProtectedRoute>
                 }
               />

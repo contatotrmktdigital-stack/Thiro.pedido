@@ -31,7 +31,7 @@ export default function QrCodeComanda({ numero, url, restaurantName }) {
         </p>
         <canvas ref={canvasRef} />
         <p style={{ marginTop: 12, color: "var(--color-text-muted)", fontSize: "0.8rem" }}>
-          Aponte a câmera do celular pra abrir a comanda
+          Aponte a câmera do celular para ver sua comanda e o cardápio
         </p>
       </div>
       <button
