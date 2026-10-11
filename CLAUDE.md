@@ -858,6 +858,28 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       trocar também o "DB King" do aviso flutuante por "X Bacon", pra a home não exibir produto de
       um cliente específico. Só texto em `Landing.jsx`.
 
+- [x] **Painel do super admin totalmente redesenhado (laranja e preto, com logo) + novas funções.**
+      Layout próprio `src/components/SuperAdminLayout.jsx` (topo com logo, selo "Painel do dono",
+      nome e Sair) usado pelas rotas `/superadmin` e `/superadmin/restaurantes/:id/visual`, que
+      saíram de dentro do `AppLayout` azul (rotas movidas em `App.jsx`). Estilo todo em
+      `src/pages/superadmin/SuperAdmin.css` (classes `sa-`, rem escalável igual à home); dentro
+      dele as variáveis globais (`--color-*`) viram a versão escura/laranja, então a tela de
+      identidade visual do cliente também ficou no tema sem mexer nela. `SuperAdminDashboard.jsx`
+      reescrito: título + botão "+ Novo restaurante" (formulário recolhível), 4 cartões de resumo
+      (total, ativos, inativos, novos em 30 dias), **busca** (nome, login, e-mail, telefone) e
+      **filtro** Todos/Ativos/Inativos, cartões de cliente (avatar com logo ou inicial, login,
+      e-mail, telefone, cliente desde, status) com Gerenciar / Personalizar / Ativar-Desativar /
+      Apagar. **Funções novas:** (1) caixa "Dados de acesso para enviar ao cliente" com botão
+      *Copiar dados de acesso* (site + login + senha) logo após criar; (2) janela **Gerenciar**:
+      editar nome/e-mail/telefone, **redefinir a senha de login** do restaurante
+      (`supabase/sql/027_super_admin_redefinir_senha.sql`, função
+      `admin_reset_restaurant_password`, security definer, só super admin, mexe na conta de gestão
+      mais antiga — **rodar antes do deploy**, senão só esse botão falha) e **zerar a senha de
+      administração** (`admin_pin_hash = null`). Corrigido de carona: `AppLayout` voltava o
+      favicon pro `/favicon.svg` antigo (raio roxo do Vite) — agora usa `/logo-simbolo.png`.
+      Verificado no navegador com dados de exemplo (desktop 1280px e celular 375px, sem rolagem
+      lateral; formulário e janela Gerenciar abrem); a prévia temporária foi removida do código.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

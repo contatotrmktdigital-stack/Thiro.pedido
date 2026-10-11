@@ -13,11 +13,11 @@ export default function AppLayout() {
     document.title = restaurant?.name || "Thiro.pedido";
     const iconLink = document.querySelector('link[rel="icon"]');
     if (iconLink) {
-      iconLink.href = restaurant?.logo_url || "/favicon.svg";
+      iconLink.href = restaurant?.logo_url || "/logo-simbolo.png";
     }
     return () => {
       document.title = "Thiro.pedido";
-      if (iconLink) iconLink.href = "/favicon.svg";
+      if (iconLink) iconLink.href = "/logo-simbolo.png";
     };
   }, [restaurant?.name, restaurant?.logo_url]);
 

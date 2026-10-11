@@ -29,9 +29,9 @@ export default function SuperAdminRestauranteVisual() {
 
   return (
     <div>
-      <p>
-        <Link to="/superadmin">&larr; Voltar para restaurantes</Link>
-      </p>
+      <Link to="/superadmin" className="sa-voltar">
+        &larr; Voltar para restaurantes
+      </Link>
 
       {error && <div className="error-box">{error}</div>}
 

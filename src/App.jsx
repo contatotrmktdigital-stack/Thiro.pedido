@@ -6,6 +6,7 @@ import AppLayout from "./components/AppLayout";
 import HomeRedirect from "./components/HomeRedirect";
 
 import Login from "./pages/Login";
+import SuperAdminLayout from "./components/SuperAdminLayout";
 import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
 import SuperAdminRestauranteVisual from "./pages/superadmin/SuperAdminRestauranteVisual";
 import GarcomHome from "./pages/garcom/GarcomHome";
@@ -42,30 +43,25 @@ export default function App() {
 
             <Route
               element={
+                <ProtectedRoute allowedRoles={["super_admin"]}>
+                  <SuperAdminLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/superadmin" element={<SuperAdminDashboard />} />
+              <Route
+                path="/superadmin/restaurantes/:restaurantId/visual"
+                element={<SuperAdminRestauranteVisual />}
+              />
+            </Route>
+
+            <Route
+              element={
                 <ProtectedRoute>
                   <AppLayout />
                 </ProtectedRoute>
               }
             >
-
-              <Route
-                path="/superadmin"
-                element={
-                  <ProtectedRoute allowedRoles={["super_admin"]}>
-                    <SuperAdminDashboard />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/superadmin/restaurantes/:restaurantId/visual"
-                element={
-                  <ProtectedRoute allowedRoles={["super_admin"]}>
-                    <SuperAdminRestauranteVisual />
-                  </ProtectedRoute>
-                }
-              />
-
               <Route
                 path="/garcom"
                 element={
