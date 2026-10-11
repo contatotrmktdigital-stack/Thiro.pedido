@@ -6,7 +6,6 @@ import { useOrigem } from "../../lib/origem";
 
 const TIPOS = [
   { value: "mesa", label: "Mesa" },
-  { value: "balcao", label: "Balcão/retirada" },
   { value: "delivery", label: "Delivery" },
 ];
 
@@ -145,12 +144,6 @@ export default function GarcomHome() {
       }
       payload.mesa_numero = mesa;
       payload.comanda_fisica_id = comandaFisicaId;
-    } else if (tipo === "balcao") {
-      if (!clienteNome.trim()) {
-        setError("Informe o nome do cliente.");
-        return;
-      }
-      payload.cliente_nome = clienteNome.trim();
     } else {
       if (!clienteNome.trim()) {
         setError("Informe o nome do cliente.");
@@ -258,23 +251,6 @@ export default function GarcomHome() {
               </button>
             </form>
           ))}
-
-        {tipo === "balcao" && (
-          <form onSubmit={handleAbrirComanda} className="inline-form">
-            <div className="field">
-              <label>Nome do cliente</label>
-              <input
-                value={clienteNome}
-                onChange={(e) => setClienteNome(e.target.value)}
-                placeholder="Ex: João"
-                required
-              />
-            </div>
-            <button className="btn-primary" type="submit" disabled={abrindo}>
-              {abrindo ? "Abrindo..." : "Abrir comanda"}
-            </button>
-          </form>
-        )}
 
         {tipo === "delivery" && (
           <form onSubmit={handleAbrirComanda} className="inline-form">

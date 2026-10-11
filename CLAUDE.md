@@ -930,6 +930,11 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       botões novos seguem a cor do restaurante (variáveis `--color-blue-*`). Verificado no
       navegador com dados de exemplo (desktop e celular 375px, sem rolagem lateral).
 
+- [x] **Só Mesa e Delivery pra abrir comanda (Balcão/retirada saiu).** Pedido do usuário. Em
+      `GarcomHome.jsx` o tipo "balcao" saiu da lista, do formulário e da validação; o tipo
+      continua existindo no banco e nas telas de histórico/relatórios/notinha, então comandas
+      antigas de balcão seguem aparecendo normalmente (só não dá mais pra abrir novas).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
