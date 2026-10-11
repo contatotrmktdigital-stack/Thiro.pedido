@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import AdminPinGate from "./AdminPinGate";
 import { hojeString, diasAtras, inicioDoMes } from "../../lib/dateRanges";
+import { LABEL_ORIGEM } from "../../lib/origem";
 
 const LABEL_STATUS = {
   pendente: "Pendente",
@@ -39,7 +40,7 @@ function HistoricoContent() {
     const { data, error: fetchError } = await supabase
       .from("comanda_itens")
       .select(
-        "id, nome_produto, quantidade, preco_unitario, observacao, status, created_at, comandas(tipo, mesa_numero, cliente_nome, comandas_fisicas(numero))"
+        "id, nome_produto, quantidade, preco_unitario, observacao, status, origem, created_at, comandas(tipo, mesa_numero, cliente_nome, comandas_fisicas(numero))"
       )
       .gte("created_at", `${dataInicial}T00:00:00`)
       .lte("created_at", `${dataFinal}T23:59:59.999`)
@@ -135,6 +136,7 @@ function HistoricoContent() {
               <tr>
                 <th>Horário</th>
                 <th>Comanda</th>
+                <th>Lançado por</th>
                 <th>Item</th>
                 <th>Qtd.</th>
                 <th>Valor</th>
@@ -153,6 +155,7 @@ function HistoricoContent() {
                     })}
                   </td>
                   <td>{identificarComanda(item.comandas)}</td>
+                  <td>{LABEL_ORIGEM[item.origem] || "Atendente"}</td>
                   <td style={item.status === "cancelado" ? { textDecoration: "line-through" } : undefined}>
                     {item.nome_produto}
                     {item.observacao && (

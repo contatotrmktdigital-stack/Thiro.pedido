@@ -6,6 +6,7 @@ import ConfirmButton from "../../components/ConfirmButton";
 import Notinha from "../../components/Notinha";
 import PixQrCode from "../../components/PixQrCode";
 import { emojiDaCategoria } from "../../lib/categoriaEmoji";
+import { useOrigem } from "../../lib/origem";
 
 function formatMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -20,7 +21,8 @@ const LABEL_PAGAMENTO = {
 
 export default function ComandaGarcom() {
   const { comandaId } = useParams();
-  const { restaurant, profile } = useAuth();
+  const { restaurant } = useAuth();
+  const { origem, basePedidos } = useOrigem();
 
   const [comanda, setComanda] = useState(null);
   const [itens, setItens] = useState([]);
@@ -172,6 +174,7 @@ export default function ComandaGarcom() {
         preco_unitario: linha.preco_unitario,
         quantidade: linha.quantidade,
         observacao: linha.observacao,
+        origem,
       }))
     );
 
@@ -204,6 +207,7 @@ export default function ComandaGarcom() {
       quantidade: 1,
       observacao: descricaoAvulso.trim() || null,
       status: "entregue",
+      origem,
     });
 
     setLancandoAvulso(false);
@@ -355,7 +359,7 @@ export default function ComandaGarcom() {
   return (
     <div>
       <p>
-        <Link to="/garcom">&larr; Voltar</Link>
+        <Link to={basePedidos}>&larr; Voltar</Link>
       </p>
 
       {error && <div className="error-box">{error}</div>}
@@ -452,7 +456,7 @@ export default function ComandaGarcom() {
                         </ConfirmButton>
                       )}
                       {["pronto", "entregue"].includes(item.status) &&
-                        (profile?.role === "gestao" || item.nome_produto === "Valor avulso" ? (
+                        (origem === "gestao" || item.nome_produto === "Valor avulso" ? (
                           <ConfirmButton
                             disabled={busy}
                             onConfirm={() => handleCancelarItem(item)}

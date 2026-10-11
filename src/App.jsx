@@ -16,7 +16,6 @@ import GestaoHome from "./pages/gestao/GestaoHome";
 import AdministracaoHome from "./pages/gestao/AdministracaoHome";
 import CardapioAdmin from "./pages/gestao/CardapioAdmin";
 import ComandasFisicasAdmin from "./pages/gestao/ComandasFisicasAdmin";
-import UsuariosAdmin from "./pages/gestao/UsuariosAdmin";
 import InsumosAdmin from "./pages/gestao/InsumosAdmin";
 import ReceitasAdmin from "./pages/gestao/ReceitasAdmin";
 import ReceitaProdutoEditor from "./pages/gestao/ReceitaProdutoEditor";
@@ -153,10 +152,19 @@ export default function App() {
               />
 
               <Route
-                path="/gestao/administracao/usuarios"
+                path="/gestao/pedidos"
                 element={
                   <ProtectedRoute allowedRoles={["gestao"]}>
-                    <UsuariosAdmin />
+                    <GarcomHome />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/gestao/pedidos/comanda/:comandaId"
+                element={
+                  <ProtectedRoute allowedRoles={["gestao"]}>
+                    <ComandaGarcom />
                   </ProtectedRoute>
                 }
               />

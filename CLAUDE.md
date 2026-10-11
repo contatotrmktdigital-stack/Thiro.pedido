@@ -880,6 +880,31 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       Verificado no navegador com dados de exemplo (desktop 1280px e celular 375px, sem rolagem
       lateral; formulário e janela Gerenciar abrem); a prévia temporária foi removida do código.
 
+- [x] **Novo modelo de acesso (em andamento): 1 login por restaurante, áreas separadas.** Decisão
+      do usuário: cada restaurante passa a ter um único login; dentro dele ficam áreas separadas
+      (Garçom, Cozinha e Gestão) pra não misturar, e a Gestão é protegida pela senha de
+      administração que o dono cria no primeiro acesso (já existia: `AdminPinGate`). Sem nome por
+      garçom: o sistema só registra **se o pedido veio do atendente ou da gestão**. Feito nesta
+      etapa: (1) `028_origem_do_pedido.sql` — coluna `origem` ('atendente'|'gestao') em `comandas`
+      e `comanda_itens`; (2) `src/lib/origem.js` (`useOrigem`): a origem vem da rota — qualquer
+      coisa em `/gestao/...` é "gestao", o resto "atendente"; `GarcomHome`/`ComandaGarcom`
+      gravam `origem` e navegam relativo à área (`/garcom` ou `/gestao/pedidos`); (3) novas rotas
+      `/gestao/pedidos` e `/gestao/pedidos/comanda/:comandaId` reaproveitando as mesmas telas do
+      garçom, só que dentro da Gestão; (4) **regra de remover item já feito**: antes dependia de
+      `profile.role === "gestao"`, mas agora o login único é sempre gestao, então passou a
+      depender da `origem` — na área do atendente sempre pede a senha da gestão, na Gestão só
+      confirma; (5) módulo **Usuários removido** (página, rota e bloco); (6) Histórico de pedidos
+      ganhou a coluna "Lançado por"; (7) **tela da Gestão no estilo "blocos"** (referência: grade
+      de botões grandes de um sistema desktop): `AdministracaoHome.jsx` virou uma grade de blocos
+      (ícone + nome) que preenche a tela inteira (`.gestao-*` em `App.css`, `page-content--cheia`
+      no `AppLayout` só pra essa rota), 2 colunas no celular, ícones e destaque na cor do
+      restaurante; blocos: Lançar pedido, Comandas em aberto, Notinhas de hoje, Histórico,
+      Relatórios, Caixinha, Cardápio, Estoque, Comandas físicas, Pix, Identidade visual. **Rodar a
+      028 antes do deploy.** **Pendente (aguarda aprovação do usuário do modelo visual):** tela de
+      escolha de área depois do login, novas telas do Garçom e da Cozinha, e o menu do topo
+      (hoje não cabe bem no celular), e liberar a cozinha pro login único atualizar item de
+      comanda já fechada (ajuste de RLS da `comanda_itens_update`: incluir `gestao`).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

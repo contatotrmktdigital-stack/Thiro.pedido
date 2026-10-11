@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Outlet, Link } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { roleLabel } from "./ProtectedRoute";
 import { buildRestaurantThemeVars } from "../lib/theme";
@@ -8,6 +8,8 @@ const PODE_VER_NOTINHAS = ["garcom", "caixa", "gestao"];
 
 export default function AppLayout() {
   const { profile, restaurant, signOut } = useAuth();
+  const { pathname } = useLocation();
+  const telaCheia = pathname === "/gestao/administracao";
 
   useEffect(() => {
     document.title = restaurant?.name || "Thiro.pedido";
@@ -67,7 +69,7 @@ export default function AppLayout() {
           </button>
         </div>
       </header>
-      <main className="page-content">
+      <main className={`page-content${telaCheia ? " page-content--cheia" : ""}`}>
         <Outlet />
       </main>
     </div>

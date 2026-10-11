@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
+import { useOrigem } from "../../lib/origem";
 
 const TIPOS = [
   { value: "mesa", label: "Mesa" },
@@ -27,6 +28,7 @@ function labelComanda(comanda) {
 export default function GarcomHome() {
   const { restaurant, profile } = useAuth();
   const navigate = useNavigate();
+  const { origem, basePedidos } = useOrigem();
 
   const [comandasAbertas, setComandasAbertas] = useState([]);
   const [comandasFisicas, setComandasFisicas] = useState([]);
@@ -84,6 +86,7 @@ export default function GarcomHome() {
     const payload = {
       restaurant_id: restaurant.id,
       tipo,
+      origem,
       aberta_por: profile?.id,
     };
 
@@ -131,7 +134,7 @@ export default function GarcomHome() {
       return;
     }
     limparFormulario();
-    navigate(`/garcom/comanda/${novaComanda.id}`);
+    navigate(`${basePedidos}/comanda/${novaComanda.id}`);
   };
 
   if (loading) {
@@ -255,7 +258,7 @@ export default function GarcomHome() {
                 <button
                   key={comanda.id}
                   className="btn-secondary"
-                  onClick={() => navigate(`/garcom/comanda/${comanda.id}`)}
+                  onClick={() => navigate(`${basePedidos}/comanda/${comanda.id}`)}
                   style={{
                     width: "100%",
                     padding: "16px",

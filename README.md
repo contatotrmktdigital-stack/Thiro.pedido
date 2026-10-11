@@ -24,10 +24,10 @@ quando fizer sentido pra um restaurante específico).
   em "Área de administração" → "Comandas físicas"; o garçom, em `/garcom`, digita o número
   da mesa e escolhe uma ficha livre pra abrir a comanda, depois lança os itens do cardápio
   com controle de quantidade e total ao vivo
-- Usuários: gestão cria os logins da equipe (garçom, cozinha, caixa, outra gestão) em
-  "Área de administração" → "Usuários", e pode desativar/reativar acesso. Essa senha de
-  login é diferente da senha de administração (PIN) — a equipe não precisa do PIN pro
-  dia a dia
+- Acesso: cada restaurante tem um único login, criado pelo super admin. Dentro dele há
+  áreas separadas (garçom, cozinha e gestão); a gestão é protegida pela senha de
+  administração (PIN), que o dono cria no primeiro acesso. O sistema registra se cada
+  pedido foi lançado pelo atendente ou pela gestão
 - Cozinha em tempo real: a cozinha vê os itens pendentes/em preparo em `/cozinha` e avança
   o status (pendente → preparo → pronto) com um clique; a tela atualiza sozinha (Supabase
   Realtime) assim que o garçom lança um item novo, sem precisar recarregar a página. O

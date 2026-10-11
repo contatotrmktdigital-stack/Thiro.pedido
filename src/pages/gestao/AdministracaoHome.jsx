@@ -1,155 +1,69 @@
 import { Link } from "react-router-dom";
 import AdminPinGate from "./AdminPinGate";
 
+const ICONES = {
+  pedido: "M6 2h12v20l-3-2-3 2-3-2-3 2z M12 8v6 M9 11h6",
+  abertas: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z M12 7v5l3 2",
+  notinhas: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M8 13h8 M8 17h5",
+  historico: "M3 12a9 9 0 1 0 3-6.7 M3 4v5h5 M12 7v5l3 2",
+  relatorios: "M4 20V10 M10 20V4 M16 20v-7 M22 20H2",
+  caixinha: "M12 2v20 M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
+  cardapio: "M4 4a2 2 0 0 1 2-2h13v18H6a2 2 0 0 0-2 2z M4 4v18 M9 7h6 M9 11h6",
+  estoque: "M21 8l-9-5-9 5v8l9 5 9-5z M3 8l9 5 9-5 M12 13v8",
+  fisicas: "M3 3h7v7H3z M14 3h7v7h-7z M3 14h7v7H3z M14 14h7v7h-7z",
+  pix: "M12 2l10 10-10 10L2 12z M8 12l4-4 4 4-4 4z",
+  visual:
+    "M12 3a9 9 0 1 0 0 18c1.5 0 2-1 2-2 0-1.5-1-1.5-1-3s1-2 3-2h2a3 3 0 0 0 3-3c0-5-4-8-9-8z M7.5 11h.01 M10 7.5h.01 M14.5 7.5h.01",
+};
+
+// Ordem: o que se usa no dia a dia primeiro, configurações por último.
+const BLOCOS = [
+  { to: "/gestao/pedidos", icone: "pedido", titulo: "Lançar pedido" },
+  { to: "/gestao/administracao/comandas-abertas", icone: "abertas", titulo: "Comandas em aberto" },
+  { to: "/caixa", icone: "notinhas", titulo: "Notinhas de hoje" },
+  { to: "/gestao/administracao/historico", icone: "historico", titulo: "Histórico de pedidos" },
+  { to: "/gestao/administracao/relatorios", icone: "relatorios", titulo: "Relatórios" },
+  { to: "/gestao/administracao/caixinha", icone: "caixinha", titulo: "Caixinha da equipe" },
+  { to: "/gestao/administracao/cardapio", icone: "cardapio", titulo: "Cardápio" },
+  { to: "/gestao/administracao/estoque", icone: "estoque", titulo: "Estoque" },
+  { to: "/gestao/administracao/comandas-fisicas", icone: "fisicas", titulo: "Comandas físicas" },
+  { to: "/gestao/administracao/pix", icone: "pix", titulo: "Pagamento Pix" },
+  { to: "/gestao/administracao/identidade-visual", icone: "visual", titulo: "Identidade visual" },
+];
+
+function Icone({ nome }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={ICONES[nome]} />
+    </svg>
+  );
+}
+
 export default function AdministracaoHome() {
   return (
     <AdminPinGate>
-      <div className="card">
-        <h2>Área de administração</h2>
-        <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
-          Escolha o que deseja gerenciar.
-        </p>
-        <div className="role-grid">
-          <div className="role-grid-item">
-            <h3 style={{ marginTop: 0 }}>Cardápio</h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Categorias e produtos do restaurante.
-            </p>
-            <Link to="/gestao/administracao/cardapio">
-              <button
-                className="btn-primary btn-accent"
-                style={{ width: "auto", padding: "8px 16px" }}
-              >
-                Gerenciar cardápio
-              </button>
+      <div className="gestao">
+        <div className="gestao-titulo">
+          <h1>Gestão</h1>
+          <p>Escolha o que deseja fazer.</p>
+        </div>
+        <div className="gestao-grade">
+          {BLOCOS.map((b) => (
+            <Link key={b.to} to={b.to} className="gestao-bloco">
+              <span className="gestao-bloco-icone">
+                <Icone nome={b.icone} />
+              </span>
+              <span className="gestao-bloco-titulo">{b.titulo}</span>
             </Link>
-          </div>
-          <div className="role-grid-item">
-            <h3 style={{ marginTop: 0 }}>Comandas físicas</h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Números das fichas de comanda entregues ao cliente.
-            </p>
-            <Link to="/gestao/administracao/comandas-fisicas">
-              <button
-                className="btn-primary btn-accent"
-                style={{ width: "auto", padding: "8px 16px" }}
-              >
-                Gerenciar comandas
-              </button>
-            </Link>
-          </div>
-          <div className="role-grid-item">
-            <h3 style={{ marginTop: 0 }}>Usuários</h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Logins da equipe (garçom, cozinha, caixa, gestão).
-            </p>
-            <Link to="/gestao/administracao/usuarios">
-              <button
-                className="btn-primary btn-accent"
-                style={{ width: "auto", padding: "8px 16px" }}
-              >
-                Gerenciar usuários
-              </button>
-            </Link>
-          </div>
-          <div className="role-grid-item">
-            <h3 style={{ marginTop: 0 }}>Estoque</h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Insumos, quantidade em estoque e receita dos produtos.
-            </p>
-            <Link to="/gestao/administracao/estoque">
-              <button
-                className="btn-primary btn-accent"
-                style={{ width: "auto", padding: "8px 16px" }}
-              >
-                Gerenciar estoque
-              </button>
-            </Link>
-          </div>
-          <div className="role-grid-item">
-            <h3 style={{ marginTop: 0 }}>Identidade visual</h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Logo, cor principal e imagem de fundo do seu restaurante.
-            </p>
-            <Link to="/gestao/administracao/identidade-visual">
-              <button
-                className="btn-primary btn-accent"
-                style={{ width: "auto", padding: "8px 16px" }}
-              >
-                Personalizar
-              </button>
-            </Link>
-          </div>
-          <div className="role-grid-item">
-            <h3 style={{ marginTop: 0 }}>Pagamento Pix</h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Chave Pix usada pra gerar o QR code com o valor certo ao fechar a comanda.
-            </p>
-            <Link to="/gestao/administracao/pix">
-              <button
-                className="btn-primary btn-accent"
-                style={{ width: "auto", padding: "8px 16px" }}
-              >
-                Configurar
-              </button>
-            </Link>
-          </div>
-          <div className="role-grid-item">
-            <h3 style={{ marginTop: 0 }}>Caixinha da equipe</h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Total da taxa de serviço (10%) a repassar pros garçons — separado do faturamento.
-            </p>
-            <Link to="/gestao/administracao/caixinha">
-              <button
-                className="btn-primary btn-accent"
-                style={{ width: "auto", padding: "8px 16px" }}
-              >
-                Ver caixinha
-              </button>
-            </Link>
-          </div>
-          <div className="role-grid-item">
-            <h3 style={{ marginTop: 0 }}>Histórico de pedidos</h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Todos os pedidos lançados no dia ou período, pagos ou não.
-            </p>
-            <Link to="/gestao/administracao/historico">
-              <button
-                className="btn-primary btn-accent"
-                style={{ width: "auto", padding: "8px 16px" }}
-              >
-                Ver histórico
-              </button>
-            </Link>
-          </div>
-          <div className="role-grid-item">
-            <h3 style={{ marginTop: 0 }}>Comandas em aberto</h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Veja as comandas abertas e feche sem contar nos relatórios do dia.
-            </p>
-            <Link to="/gestao/administracao/comandas-abertas">
-              <button
-                className="btn-primary btn-accent"
-                style={{ width: "auto", padding: "8px 16px" }}
-              >
-                Ver comandas
-              </button>
-            </Link>
-          </div>
-          <div className="role-grid-item">
-            <h3 style={{ marginTop: 0 }}>Relatórios</h3>
-            <p style={{ color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Faturamento, formas de pagamento e produtos mais vendidos.
-            </p>
-            <Link to="/gestao/administracao/relatorios">
-              <button
-                className="btn-primary btn-accent"
-                style={{ width: "auto", padding: "8px 16px" }}
-              >
-                Ver relatórios
-              </button>
-            </Link>
-          </div>
+          ))}
         </div>
       </div>
     </AdminPinGate>
