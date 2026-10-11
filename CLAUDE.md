@@ -827,6 +827,26 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       original NÃO foi copiado pro repositório (só as versões leves). Se um dia quiser logo com
       fundo transparente (pra ficar direto sobre o preto), precisa de um arquivo novo do designer.
 
+- [x] **Cadastro de restaurante pelo super admin: login livre + e-mail/telefone opcionais.**
+      Pedido do usuário (parte das mudanças maiores em andamento): o acesso do restaurante deixa
+      de ser obrigatoriamente um e-mail — o super admin define um "Login de acesso" livre (nome da
+      hamburgueria, CPF, telefone ou e-mail) e, separado, pode preencher e-mail e telefone de
+      contato (opcionais, só pra cadastro, não servem pra entrar). `SuperAdminDashboard.jsx`:
+      formulário novo (Login de acesso, Senha, E-mail opcional, Telefone opcional), listagem com
+      colunas "Login de acesso" e "Contato", mensagem amigável se o login já existe. Por baixo, o
+      Supabase Auth continua exigindo e-mail, então `src/lib/staffLogin.js` ganhou
+      `normalizarLogin()` e `toLoginEmail()` agora gera `<login-normalizado>@equipe.thiropedido.app`
+      pra tudo que não tem "@": só números/separadores com ≥8 dígitos (CPF, telefone) viram só os
+      dígitos; texto vira minúsculo, sem acento, espaço→"-", só `a-z 0-9 . -`. Então "Dil's
+      Burguer", "dils burguer" e "DILS-BURGUER" são o mesmo login, e CPF/telefone valem com ou sem
+      pontuação. Logins antigos (`carlos.dils-burguer`, e-mails reais) continuam iguais — testado.
+      A tela de login usa a mesma função, então quem digita o login normal entra. **Não precisou
+      mexer na Edge Function `create-user`** (ela só recebe o e-mail técnico já pronto).
+      `supabase/sql/026_restaurante_contato_e_login.sql` adiciona `restaurants.email`,
+      `.telefone` e `.login_acesso` — **rodar ANTES do deploy** (a listagem seleciona essas
+      colunas). Fica pra depois, dentro das mudanças maiores: "um único acesso por restaurante"
+      (hoje a equipe ainda tem logins separados por papel).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

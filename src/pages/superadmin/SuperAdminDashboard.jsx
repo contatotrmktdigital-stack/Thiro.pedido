@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import ConfirmButton from "../../components/ConfirmButton";
 import { readFunctionErrorMessage } from "../../lib/functionError";
+import { normalizarLogin, toLoginEmail } from "../../lib/staffLogin";
 
 function slugify(name) {
   return name
@@ -19,12 +20,15 @@ export default function SuperAdminDashboard() {
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
 
-  const [form, setForm] = useState({
+  const emptyForm = {
     name: "",
     ownerName: "",
-    ownerEmail: "",
+    login: "",
     ownerPassword: "",
-  });
+    email: "",
+    telefone: "",
+  };
+  const [form, setForm] = useState(emptyForm);
   const [creating, setCreating] = useState(false);
 
   const [deletingId, setDeletingId] = useState(null);
@@ -33,7 +37,7 @@ export default function SuperAdminDashboard() {
     setLoading(true);
     const { data, error: fetchError } = await supabase
       .from("restaurants")
-      .select("id, name, slug, active, owner_email, created_at")
+      .select("id, name, slug, active, owner_email, login_acesso, email, telefone, created_at")
       .order("created_at", { ascending: false });
 
     if (fetchError) {
@@ -62,10 +66,20 @@ export default function SuperAdminDashboard() {
       if (form.ownerPassword.length < 6) {
         throw new Error("A senha precisa ter pelo menos 6 caracteres.");
       }
+      const login = form.login.trim();
+      if (!login.includes("@") && !normalizarLogin(login)) {
+        throw new Error("Informe um login válido (use letras ou números).");
+      }
 
       const { data: newRestaurant, error: insertError } = await supabase
         .from("restaurants")
-        .insert({ name: form.name.trim(), slug, owner_email: form.ownerEmail.trim() })
+        .insert({
+          name: form.name.trim(),
+          slug,
+          login_acesso: login,
+          email: form.email.trim() || null,
+          telefone: form.telefone.trim() || null,
+        })
         .select()
         .single();
 
@@ -73,7 +87,7 @@ export default function SuperAdminDashboard() {
 
       const { error: fnError } = await supabase.functions.invoke("create-user", {
         body: {
-          email: form.ownerEmail.trim(),
+          email: toLoginEmail(login),
           password: form.ownerPassword,
           full_name: form.ownerName.trim(),
           role: "gestao",
@@ -85,13 +99,18 @@ export default function SuperAdminDashboard() {
         // O restaurante já tinha sido criado, mas sem o login de gestão não serve pra nada —
         // desfaz pra não deixar restaurante órfão (mesma função usada no botão "Apagar").
         await supabase.rpc("delete_restaurant", { p_restaurant_id: newRestaurant.id });
-        throw new Error(await readFunctionErrorMessage(fnError));
+        const mensagem = await readFunctionErrorMessage(fnError);
+        throw new Error(
+          /already.*registered|already exists|duplicate/i.test(mensagem)
+            ? "Esse login já está em uso por outro restaurante. Escolha outro."
+            : mensagem
+        );
       }
 
       setSuccessMsg(
-        `Restaurante "${newRestaurant.name}" criado! Login da gestão: ${form.ownerEmail}`
+        `Restaurante "${newRestaurant.name}" criado! Login de acesso: ${login} (senha: ${form.ownerPassword})`
       );
-      setForm({ name: "", ownerName: "", ownerEmail: "", ownerPassword: "" });
+      setForm(emptyForm);
       await loadRestaurants();
     } catch (err) {
       setError(err.message || String(err));
@@ -138,8 +157,9 @@ export default function SuperAdminDashboard() {
       <div className="card">
         <h2>Novo restaurante</h2>
         <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
-          Cria a conta do restaurante e o primeiro login de gestão (o dono usa esse e-mail e senha
-          para entrar e depois pode trocar a senha).
+          Cria a conta do restaurante e o login de acesso dele. O login é livre: pode ser o nome da
+          hamburgueria, CPF, telefone ou e-mail. E-mail e telefone de contato são opcionais e
+          servem só para o cadastro no seu sistema.
         </p>
 
         {error && <div className="error-box">{error}</div>}
@@ -167,11 +187,12 @@ export default function SuperAdminDashboard() {
           </div>
           <div className="inline-form">
             <div className="field">
-              <label>E-mail de login</label>
+              <label>Login de acesso</label>
               <input
-                type="email"
-                value={form.ownerEmail}
-                onChange={(e) => setForm({ ...form, ownerEmail: e.target.value })}
+                value={form.login}
+                onChange={(e) => setForm({ ...form, login: e.target.value })}
+                placeholder="Ex: dilsburguer, CPF, telefone ou e-mail"
+                autoComplete="off"
                 required
               />
             </div>
@@ -182,8 +203,29 @@ export default function SuperAdminDashboard() {
                 value={form.ownerPassword}
                 onChange={(e) => setForm({ ...form, ownerPassword: e.target.value })}
                 placeholder="Ex: 123456"
+                autoComplete="off"
                 minLength={6}
                 required
+              />
+            </div>
+          </div>
+          <div className="inline-form">
+            <div className="field">
+              <label>E-mail de contato (opcional)</label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="Só para cadastro"
+              />
+            </div>
+            <div className="field">
+              <label>Telefone de contato (opcional)</label>
+              <input
+                value={form.telefone}
+                onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+                placeholder="Só para cadastro"
+                inputMode="tel"
               />
             </div>
             <button className="btn-primary" type="submit" disabled={creating}>
@@ -209,8 +251,8 @@ export default function SuperAdminDashboard() {
             <thead>
               <tr>
                 <th>Nome</th>
-                <th>Identificador</th>
-                <th>E-mail</th>
+                <th>Login de acesso</th>
+                <th>Contato</th>
                 <th>Status</th>
                 <th></th>
               </tr>
@@ -218,9 +260,21 @@ export default function SuperAdminDashboard() {
             <tbody>
               {restaurants.map((r) => (
                 <tr key={r.id}>
-                  <td>{r.name}</td>
-                  <td>{r.slug}</td>
-                  <td>{r.owner_email || "—"}</td>
+                  <td>
+                    {r.name}
+                    <div style={{ color: "var(--color-text-muted)", fontSize: "0.75rem" }}>{r.slug}</div>
+                  </td>
+                  <td>{r.login_acesso || r.owner_email || "—"}</td>
+                  <td>
+                    {r.email || r.telefone ? (
+                      <>
+                        {r.email && <div>{r.email}</div>}
+                        {r.telefone && <div>{r.telefone}</div>}
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td>
                     <span className={`status-pill ${r.active ? "active" : "inactive"}`}>
                       {r.active ? "Ativo" : "Inativo"}

@@ -87,7 +87,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit}>
             <div className="lg-campo">
-              <label htmlFor="email">E-mail ou usuário</label>
+              <label htmlFor="email">Login (e-mail, CPF, telefone ou usuário)</label>
               <input
                 id="email"
                 type="text"

@@ -22,10 +22,39 @@ export function slugifyUsername(text) {
     .replace(/(^-+|-+$)/g, "");
 }
 
+// O login do restaurante e livre (CPF, telefone, nome da hamburgueria, e-mail...).
+// Pra "Dil's Burguer", "dils burguer" e "DILS-BURGUER" valerem o mesmo login, e
+// CPF/telefone valerem com ou sem pontos e tracos, o texto digitado e normalizado:
+//  - so numeros e separadores (CPF, telefone) -> so os digitos
+//  - qualquer outro texto -> minusculo, sem acento, espacos viram "-", e so
+//    ficam letras, numeros, "." e "-" (continua igual pra logins ja existentes,
+//    tipo "carlos.dils-burguer")
+export function normalizarLogin(text) {
+  const base = Array.from((text || "").normalize("NFD"))
+    .filter((ch) => {
+      const code = ch.codePointAt(0);
+      return code < DIACRITIC_RANGE_START || code > DIACRITIC_RANGE_END;
+    })
+    .join("")
+    .toLowerCase()
+    .trim();
+
+  if (/^[\d\s.\-()/+]+$/.test(base) && base.replace(/\D/g, "").length >= 8) {
+    return base.replace(/\D/g, "");
+  }
+
+  return base
+    .replace(/[^a-z0-9.\-\s]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-{2,}/g, "-")
+    .replace(/\.{2,}/g, ".")
+    .replace(/^[-.]+|[-.]+$/g, "");
+}
+
 // Login.jsx aceita tanto um e-mail de verdade (gestao/super admin, que ja
-// tinham conta antes dessa mudanca) quanto um nome de usuario de funcionario.
+// tinham conta antes dessa mudanca) quanto qualquer outro login livre.
 export function toLoginEmail(identifier) {
   const trimmed = (identifier || "").trim();
-  if (trimmed.includes("@")) return trimmed;
-  return `${trimmed}@${STAFF_EMAIL_DOMAIN}`;
+  if (trimmed.includes("@")) return trimmed.toLowerCase();
+  return `${normalizarLogin(trimmed)}@${STAFF_EMAIL_DOMAIN}`;
 }
