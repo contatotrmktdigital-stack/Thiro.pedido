@@ -616,7 +616,7 @@
 /* ---------- Chamada final ---------- */
 .lp-cta {
   padding: clamp(3.5rem, 8vw, 7rem) 0;
-  background: var(--lp-orange);
+  background: #ffffff;
   color: #0a0a0a;
   text-align: center;
 }

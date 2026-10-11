@@ -847,6 +847,17 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       colunas). Fica pra depois, dentro das mudanças maiores: "um único acesso por restaurante"
       (hoje a equipe ainda tem logins separados por papel).
 
+- [x] **Chamada final da home com fundo branco e letras pretas.** Pedido do usuário: a faixa
+      "Quer o Thiro.pedido no seu restaurante?" estava toda laranja; agora `.lp-cta` em
+      `Landing.css` usa `background: #ffffff` (texto continua `#0a0a0a`). Os botões `lp-btn-escuro`
+      (preto com texto laranja) e `lp-btn-escuro-ghost` (contorno preto) seguem legíveis no branco.
+      Conferido no navegador. A faixa "Como funciona" continua laranja.
+
+- [x] **Nomes de exemplo do mock da home sem a marca "DB".** Pedido do usuário: no celular de
+      exemplo do hero, "DB Burger" (item real do Dil's Burguer) virou "X Burger"; aproveitei pra
+      trocar também o "DB King" do aviso flutuante por "X Bacon", pra a home não exibir produto de
+      um cliente específico. Só texto em `Landing.jsx`.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

@@ -99,7 +99,7 @@ function TelaDoApp() {
       </div>
       <div className="lp-phone-body">
         <div className="lp-phone-row">
-          <span>2x DB Burger</span>
+          <span>2x X Burger</span>
           <strong>R$ 50,00</strong>
         </div>
         <div className="lp-phone-pill lp-pill-orange">Em preparo</div>
@@ -128,7 +128,7 @@ function TelaDoApp() {
         <Icon name="flame" size={18} />
         <div>
           <strong>Novo pedido na cozinha</strong>
-          <span>Mesa 8 · 1x DB King</span>
+          <span>Mesa 8 · 1x X Bacon</span>
         </div>
       </div>
     </div>
