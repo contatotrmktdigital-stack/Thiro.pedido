@@ -957,6 +957,19 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       comanda de papel; valor mostrado é parcial. **Rodar a 030 antes do deploy.** Verificado no
       navegador com dados de exemplo (celular 375px, sem rolagem lateral, redirecionamento do QR antigo).
 
+- [x] **Cardápio digital liga/desliga por restaurante (e sempre é um link).** Pedido do usuário:
+      alguns clientes dele usam cardápio digital, outros físico. `restaurants.cardapio_ativo`
+      (padrão desligado; quem já tinha link fica ligado) — migração
+      `031_cardapio_digital_ativar_desativar.sql`, que também **redefine `comanda_publica`** (devolve
+      `cardapio_ativo` e só entrega o link quando ligado) e **remove `cardapio_publico`** (o
+      cardápio do sistema deixou de ser exposto ao cliente; ficou só o link, como ele definiu).
+      `CardapioDigitalAdmin.jsx` ganhou um **botão de liga/desliga** (`.troca` em `App.css`) +
+      campo do link; ligar exige link válido; botão Salvar só habilita quando algo mudou.
+      `ComandaCliente.jsx`: com o cardápio desligado (ou sem link) a barra de abas nem aparece —
+      o cliente vê só a comanda; ligado, a aba "Cardápio" abre o link em nova aba. Removidos a
+      lista interna de cardápio e o CSS dela. Está no bloco "Cardápio digital" da Gestão.
+      **Rodar a 031 antes do deploy** (a tela de configuração lê a coluna nova).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

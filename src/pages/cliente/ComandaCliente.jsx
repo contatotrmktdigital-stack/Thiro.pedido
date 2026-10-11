@@ -21,48 +21,6 @@ function horaAgora() {
   return new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
 
-function ListaCardapio({ comandaFisicaId }) {
-  const [categorias, setCategorias] = useState(null);
-
-  useEffect(() => {
-    let ativo = true;
-    supabase.rpc("cardapio_publico", { p_comanda_fisica_id: comandaFisicaId }).then(({ data }) => {
-      if (ativo) setCategorias(Array.isArray(data) ? data : []);
-    });
-    return () => {
-      ativo = false;
-    };
-  }, [comandaFisicaId]);
-
-  if (categorias === null) return <p className="cc-vazio">Carregando cardápio...</p>;
-
-  const comProdutos = categorias.filter((c) => c.produtos?.length > 0);
-  if (comProdutos.length === 0) {
-    return <p className="cc-vazio">O cardápio ainda não foi cadastrado. Peça ao garçom.</p>;
-  }
-
-  return (
-    <div className="cc-cardapio">
-      {comProdutos.map((categoria) => (
-        <section key={categoria.categoria} className="cc-categoria">
-          <h3>{categoria.categoria}</h3>
-          <ul>
-            {categoria.produtos.map((produto, i) => (
-              <li key={`${produto.nome}-${i}`}>
-                <div>
-                  <strong>{produto.nome}</strong>
-                  {produto.descricao && <p>{produto.descricao}</p>}
-                </div>
-                <span>{formatMoeda(produto.preco)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
-    </div>
-  );
-}
-
 export default function ComandaCliente() {
   const { comandaFisicaId } = useParams();
   const [dados, setDados] = useState(null);
@@ -121,7 +79,9 @@ export default function ComandaCliente() {
   const temaCss = restaurante.cor_primaria ? buildRestaurantThemeVars(restaurante.cor_primaria) : {};
   const subtotal = (itens || []).reduce((s, i) => s + Number(i.preco) * i.quantidade, 0);
   const taxa = comanda?.taxa_servico ? subtotal * 0.1 : 0;
-  const temLink = Boolean(restaurante.cardapio_url);
+  // A aba Cardápio só existe quando o restaurante liga o cardápio digital e informou o link.
+  const temCardapio = Boolean(restaurante.cardapio_url) && restaurante.cardapio_ativo !== false;
+  const abaAtual = temCardapio ? aba : "comanda";
 
   return (
     <div className="cc" style={temaCss}>
@@ -139,29 +99,31 @@ export default function ComandaCliente() {
         </div>
       </header>
 
-      <nav className="cc-abas" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={aba === "comanda"}
-          className={`cc-aba${aba === "comanda" ? " ativa" : ""}`}
-          onClick={() => setAba("comanda")}
-        >
-          Minha comanda
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={aba === "cardapio"}
-          className={`cc-aba${aba === "cardapio" ? " ativa" : ""}`}
-          onClick={() => setAba("cardapio")}
-        >
-          Cardápio
-        </button>
-      </nav>
+      {temCardapio && (
+        <nav className="cc-abas" role="tablist">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={abaAtual === "comanda"}
+            className={`cc-aba${abaAtual === "comanda" ? " ativa" : ""}`}
+            onClick={() => setAba("comanda")}
+          >
+            Minha comanda
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={abaAtual === "cardapio"}
+            className={`cc-aba${abaAtual === "cardapio" ? " ativa" : ""}`}
+            onClick={() => setAba("cardapio")}
+          >
+            Cardápio
+          </button>
+        </nav>
+      )}
 
       <main className="cc-main">
-        {aba === "comanda" ? (
+        {abaAtual === "comanda" ? (
           <>
             {!comanda || itens.length === 0 ? (
               <div className="cc-card cc-vazio-card">
@@ -225,7 +187,7 @@ export default function ComandaCliente() {
               </button>
             </p>
           </>
-        ) : temLink ? (
+        ) : (
           <div className="cc-card cc-link-cardapio">
             <h2>Cardápio</h2>
             <p>Veja o cardápio completo do {restaurante.nome}.</p>
@@ -238,8 +200,6 @@ export default function ComandaCliente() {
               Abrir cardápio
             </a>
           </div>
-        ) : (
-          <ListaCardapio comandaFisicaId={comandaFisicaId} />
         )}
       </main>
 

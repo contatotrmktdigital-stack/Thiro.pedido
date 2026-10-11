@@ -21,8 +21,9 @@ function linkValido(url) {
 
 function CardapioDigitalContent() {
   const { restaurant } = useAuth();
+  const [ativo, setAtivo] = useState(false);
   const [link, setLink] = useState("");
-  const [salvo, setSalvo] = useState("");
+  const [salvo, setSalvo] = useState({ ativo: false, link: "" });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -33,48 +34,62 @@ function CardapioDigitalContent() {
       if (!restaurant?.id) return;
       const { data, error: fetchError } = await supabase
         .from("restaurants")
-        .select("cardapio_url")
+        .select("cardapio_url, cardapio_ativo")
         .eq("id", restaurant.id)
         .single();
       if (fetchError) setError(fetchError.message);
       else {
-        setLink(data?.cardapio_url || "");
-        setSalvo(data?.cardapio_url || "");
+        const url = data?.cardapio_url || "";
+        const ligado = Boolean(data?.cardapio_ativo);
+        setLink(url);
+        setAtivo(ligado);
+        setSalvo({ ativo: ligado, link: url });
       }
       setLoading(false);
     };
     carregar();
   }, [restaurant?.id]);
 
-  const salvar = async (novoValor) => {
-    setSaving(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     setError("");
     setSuccessMsg("");
+
+    const url = normalizarLink(link);
+    if (ativo && !url) {
+      setError("Para ligar o cardápio digital, cole o link do cardápio.");
+      return;
+    }
+    if (url && !linkValido(url)) {
+      setError(
+        "Esse link não parece válido. Cole o endereço completo, por exemplo https://meucardapio.com/dils."
+      );
+      return;
+    }
+
+    setSaving(true);
     const { error: updateError } = await supabase
       .from("restaurants")
-      .update({ cardapio_url: novoValor || null })
+      .update({ cardapio_url: url || null, cardapio_ativo: ativo })
       .eq("id", restaurant.id);
     setSaving(false);
+
     if (updateError) {
       setError(updateError.message);
       return;
     }
-    setLink(novoValor);
-    setSalvo(novoValor);
-    setSuccessMsg(novoValor ? "Link salvo! Os clientes já veem o cardápio por ele." : "Link removido.");
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const url = normalizarLink(link);
-    if (url && !linkValido(url)) {
-      setError("Esse link não parece válido. Cole o endereço completo, por exemplo https://meucardapio.com/dils.");
-      return;
-    }
-    salvar(url);
+    setLink(url);
+    setSalvo({ ativo, link: url });
+    setSuccessMsg(
+      ativo
+        ? "Salvo! A aba Cardápio aparece para o cliente e abre o seu link."
+        : "Salvo! A aba Cardápio não aparece para o cliente."
+    );
   };
 
   if (loading) return <p>Carregando...</p>;
+
+  const mudou = ativo !== salvo.ativo || normalizarLink(link) !== salvo.link;
 
   return (
     <div>
@@ -88,13 +103,26 @@ function CardapioDigitalContent() {
       <div className="card">
         <h2>Cardápio digital</h2>
         <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
-          Quando o cliente escaneia o QR code da comanda, ele vê o consumo dele e uma aba
-          "Cardápio". Cole aqui o link do seu cardápio digital: a aba abre direto nele. Se deixar
-          em branco, o cliente vê o cardápio cadastrado no sistema (nomes e preços).
+          Quando o cliente escaneia o QR code da comanda, ele vê o consumo dele. Se o seu
+          cardápio é digital, ligue a opção abaixo e cole o link: aparece uma aba "Cardápio" que
+          abre direto nele. Se o seu cardápio é físico (impresso), deixe desligado.
         </p>
 
         <form onSubmit={handleSubmit}>
-          <div className="field">
+          <label className="troca">
+            <input type="checkbox" checked={ativo} onChange={(e) => setAtivo(e.target.checked)} />
+            <span className="troca-trilho" aria-hidden="true" />
+            <span className="troca-texto">
+              <strong>{ativo ? "Cardápio digital ligado" : "Cardápio digital desligado"}</strong>
+              <small>
+                {ativo
+                  ? "O cliente vê a aba Cardápio na tela da comanda."
+                  : "O cliente vê só a comanda dele, sem a aba Cardápio."}
+              </small>
+            </span>
+          </label>
+
+          <div className="field" style={{ marginTop: 16, opacity: ativo ? 1 : 0.6 }}>
             <label htmlFor="cardapio-link">Link do cardápio</label>
             <input
               id="cardapio-link"
@@ -105,32 +133,26 @@ function CardapioDigitalContent() {
               onChange={(e) => setLink(e.target.value)}
             />
           </div>
+
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button
               className="btn-primary"
               type="submit"
-              disabled={saving}
+              disabled={saving || !mudou}
               style={{ width: "auto", padding: "10px 20px" }}
             >
-              {saving ? "Salvando..." : "Salvar link"}
+              {saving ? "Salvando..." : "Salvar"}
             </button>
-            {salvo && (
-              <>
-                <a href={salvo} target="_blank" rel="noopener noreferrer">
-                  <button type="button" className="btn-secondary" style={{ width: "auto", padding: "10px 20px" }}>
-                    Testar o link
-                  </button>
-                </a>
+            {salvo.link && (
+              <a href={salvo.link} target="_blank" rel="noopener noreferrer">
                 <button
                   type="button"
                   className="btn-secondary"
-                  disabled={saving}
                   style={{ width: "auto", padding: "10px 20px" }}
-                  onClick={() => salvar("")}
                 >
-                  Remover link
+                  Testar o link
                 </button>
-              </>
+              </a>
             )}
           </div>
         </form>
@@ -141,13 +163,9 @@ function CardapioDigitalContent() {
         <ol style={{ paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
           <li>Escaneia o QR code impresso na comanda, sem precisar de login.</li>
           <li>Em "Minha comanda", vê tudo que foi lançado, com o status de cada item.</li>
-          <li>Em "Cardápio", abre o seu link (ou vê o cardápio do sistema).</li>
+          <li>Se o cardápio digital estiver ligado, a aba "Cardápio" abre o seu link.</li>
           <li>Quando a comanda é paga e fechada, o consumo some e a comanda volta a ficar livre.</li>
         </ol>
-        <p style={{ color: "var(--color-text-muted)", marginBottom: 0 }}>
-          Os QR codes já impressos continuam valendo: o garçom (logado) cai no atendimento de
-          sempre e o cliente cai nessa visão.
-        </p>
       </div>
     </div>
   );
