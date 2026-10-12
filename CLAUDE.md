@@ -977,6 +977,13 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       tudo na mesma tela assim que escaneia o QR. Desligado: só a comanda. CSS das abas removido;
       `.cc-botao-grande` novo. Sem mudança de banco. Verificado no navegador (celular 375px).
 
+- [x] **Cardápio atual do Dil's Burguer (lista nova do site dele).** Script
+      `supabase/sql/032_cardapio_dils_burguer_atualizado.sql`: 9 categorias e 69 produtos, achando o
+      restaurante por `ilike '%Dil%Burg%'` e SUBSTITUINDO o cardápio dele (idempotente). Mudanças
+      em relação à 018: fritas média e com bacon/cheddar em 500 g, DB Burguinho R$ 9,90, sem
+      Salsicha nos adicionais, sobremesas com Mousse R$ 12 (consulte sabores) no lugar de Brownie e
+      Taça de sorvete. O restaurante precisa existir (criar pelo painel do dono antes).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
