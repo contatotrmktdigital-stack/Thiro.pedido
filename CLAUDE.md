@@ -970,6 +970,13 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       lista interna de cardápio e o CSS dela. Está no bloco "Cardápio digital" da Gestão.
       **Rodar a 031 antes do deploy** (a tela de configuração lê a coluna nova).
 
+- [x] **Página do cliente simplificada: um botão "Abrir cardápio" direto, sem abas.** Pedido do
+      usuário (achou "muito botão"). `ComandaCliente.jsx`: removidas as abas "Minha comanda" /
+      "Cardápio" e o estado de aba; quando o cardápio digital está ligado e tem link, aparece **um
+      botão grande "Abrir cardápio" no topo** (abre o link em nova aba) e a comanda logo abaixo,
+      tudo na mesma tela assim que escaneia o QR. Desligado: só a comanda. CSS das abas removido;
+      `.cc-botao-grande` novo. Sem mudança de banco. Verificado no navegador (celular 375px).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
