@@ -27,6 +27,9 @@ export default function ComandaCliente() {
   const [carregando, setCarregando] = useState(true);
   const [naoEncontrada, setNaoEncontrada] = useState(false);
   const [atualizadoEm, setAtualizadoEm] = useState("");
+  // Animação de boas-vindas: aparece uma vez por visita (por comanda), assim que os dados chegam.
+  const [fase, setFase] = useState("espera"); // espera | mostrando | saindo | fim
+  const temDados = Boolean(dados);
 
   const carregar = useCallback(async () => {
     const { data, error } = await supabase.rpc("comanda_publica", {
@@ -55,6 +58,57 @@ export default function ComandaCliente() {
     };
   }, [carregar]);
 
+  useEffect(() => {
+    if (!temDados || fase !== "espera") return undefined;
+
+    const chave = `cc-boasvindas-${comandaFisicaId}`;
+    let jaViu = false;
+    try {
+      jaViu = sessionStorage.getItem(chave) === "1";
+    } catch {
+      jaViu = false;
+    }
+    const reduzirMovimento =
+      typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (jaViu || reduzirMovimento) {
+      setFase("fim");
+      return undefined;
+    }
+
+    setFase("mostrando");
+    return undefined;
+  }, [temDados, fase, comandaFisicaId]);
+
+  // Etapa separada: os temporizadores só nascem quando a fase vira "mostrando" (senão o próprio
+  // setFase acima cancelaria eles ao re-renderizar).
+  useEffect(() => {
+    if (fase === "mostrando") {
+      const sair = setTimeout(() => setFase("saindo"), 3300);
+      return () => clearTimeout(sair);
+    }
+    if (fase === "saindo") {
+      const fim = setTimeout(() => {
+        setFase("fim");
+        try {
+          sessionStorage.setItem(`cc-boasvindas-${comandaFisicaId}`, "1");
+        } catch {
+          /* sem armazenamento: a animação só repete se a página for aberta de novo */
+        }
+      }, 600);
+      return () => clearTimeout(fim);
+    }
+    return undefined;
+  }, [fase, comandaFisicaId]);
+
+  const pularBoasVindas = () => {
+    setFase("fim");
+    try {
+      sessionStorage.setItem(`cc-boasvindas-${comandaFisicaId}`, "1");
+    } catch {
+      /* ignora */
+    }
+  };
+
   if (carregando) {
     return (
       <div className="cc cc-centro">
@@ -80,9 +134,36 @@ export default function ComandaCliente() {
   const taxa = comanda?.taxa_servico ? subtotal * 0.1 : 0;
   // O botão do cardápio só existe quando o restaurante liga o cardápio digital e informou o link.
   const temCardapio = Boolean(restaurante.cardapio_url) && restaurante.cardapio_ativo !== false;
+  const primeiroNome = (comanda?.cliente_nome || "").trim().split(/\s+/)[0];
+  const saudacao = primeiroNome ? `Olá, ${primeiroNome}!` : "Olá, seja bem-vindo!";
 
   return (
     <div className="cc" style={temaCss}>
+      {(fase === "mostrando" || fase === "saindo") && (
+        <button
+          type="button"
+          className={`cc-boasvindas${fase === "saindo" ? " saindo" : ""}`}
+          onClick={pularBoasVindas}
+          aria-label="Boas-vindas. Toque para continuar"
+        >
+          <span className="cc-bv-aneis" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          <span className="cc-bv-logo">
+            {restaurante.logo_url ? (
+              <span style={{ backgroundImage: `url(${restaurante.logo_url})` }} />
+            ) : (
+              <b>{(restaurante.nome || "?").charAt(0)}</b>
+            )}
+          </span>
+          <span className="cc-bv-ola">{saudacao}</span>
+          <span className="cc-bv-texto">Seja bem-vindo ao {restaurante.nome}</span>
+          <span className="cc-bv-dica">Toque para continuar</span>
+        </button>
+      )}
+
       <header className="cc-topo">
         <div className="cc-marca">
           {restaurante.logo_url ? (
@@ -98,6 +179,11 @@ export default function ComandaCliente() {
       </header>
 
       <main className="cc-main">
+        <div className="cc-saudacao">
+          <h1>{saudacao}</h1>
+          <p>Bem-vindo ao {restaurante.nome}. Acompanhe sua comanda por aqui.</p>
+        </div>
+
         {temCardapio && (
           <a
             className="cc-botao cc-botao-grande"

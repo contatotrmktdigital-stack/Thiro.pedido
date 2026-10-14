@@ -30,7 +30,7 @@ function textoTempo(min) {
 function labelAtendimento(comanda) {
   if (!comanda) return "";
   if (comanda.tipo === "mesa") {
-    return `Mesa ${comanda.mesa_numero} · Comanda ${comanda.comandas_fisicas?.numero}`;
+    return `Mesa ${comanda.mesa_numero} · Comanda ${comanda.comandas_fisicas?.numero}${comanda.cliente_nome ? ` · ${comanda.cliente_nome}` : ""}`;
   }
   if (comanda.tipo === "balcao") {
     return `Balcão · ${comanda.cliente_nome}`;

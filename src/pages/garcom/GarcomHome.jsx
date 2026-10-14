@@ -11,7 +11,11 @@ const TIPOS = [
 
 function labelComanda(comanda) {
   if (comanda.tipo === "mesa") {
-    return { titulo: `Mesa ${comanda.mesa_numero}`, subtitulo: `Comanda ${comanda.comandas_fisicas?.numero}` };
+    const comandaNumero = `Comanda ${comanda.comandas_fisicas?.numero}`;
+    return {
+      titulo: `Mesa ${comanda.mesa_numero}`,
+      subtitulo: comanda.cliente_nome ? `${comandaNumero} · ${comanda.cliente_nome}` : comandaNumero,
+    };
   }
   if (comanda.tipo === "balcao") {
     return { titulo: "Balcão", subtitulo: comanda.cliente_nome };
@@ -144,6 +148,7 @@ export default function GarcomHome() {
       }
       payload.mesa_numero = mesa;
       payload.comanda_fisica_id = comandaFisicaId;
+      if (clienteNome.trim()) payload.cliente_nome = clienteNome.trim();
     } else {
       if (!clienteNome.trim()) {
         setError("Informe o nome do cliente.");
@@ -229,6 +234,15 @@ export default function GarcomHome() {
                   placeholder="Ex: 5"
                   inputMode="numeric"
                   required
+                />
+              </div>
+              <div className="field">
+                <label>Nome do cliente (opcional)</label>
+                <input
+                  value={clienteNome}
+                  onChange={(e) => setClienteNome(e.target.value)}
+                  placeholder="Para chamar pelo nome"
+                  maxLength={60}
                 />
               </div>
               <div className="field">

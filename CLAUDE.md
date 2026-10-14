@@ -984,6 +984,29 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       Salsicha nos adicionais, sobremesas com Mousse R$ 12 (consulte sabores) no lugar de Brownie e
       Taça de sorvete. O restaurante precisa existir (criar pelo painel do dono antes).
 
+- [x] **Nome do cliente opcional na comanda de mesa (pra chamar pelo nome na entrega).** Pedido do
+      usuário: campo opcional na abertura da comanda; número da comanda e da mesa continuam iguais.
+      `033_nome_cliente_opcional_na_mesa.sql` solta o CHECK `comandas_dados_por_tipo`, que
+      PROIBIA `cliente_nome` em mesa (delivery segue exigindo). Campo "Nome do cliente (opcional)"
+      no formulário de `GarcomHome.jsx` (mesa) e em `AbrirComandaPorQR.jsx`; vazio = não grava.
+      O nome aparece junto de "Mesa X · Comanda Y" no garçom (lista e cabeçalho), cozinha, notinha,
+      caixa, comandas em aberto, histórico e relatórios. Depois de aberta, o garçom pode **editar/adicionar o nome**
+      na própria comanda (link "Editar nome do cliente" em `ComandaGarcom.jsx`, só enquanto aberta;
+      mesa aceita vazio, delivery exige nome). Não há cadastro de clientes (fica só na comanda); o "Olá, Fulano" na página do QR do cliente não foi feito
+      (exigiria redefinir `comanda_publica`). **Rodar a 033 antes do deploy.**
+
+- [x] **Boas-vindas com o nome do cliente na página do QR (com animação).** Pedido do usuário.
+      `034_comanda_publica_nome_cliente.sql` redefine `comanda_publica` pra devolver também
+      `comanda.cliente_nome` (resto igual à 031). `ComandaCliente.jsx`: (1) **tela de boas-vindas em
+      tela cheia** ao escanear — logo do restaurante com "pop", ondas, "Olá, Maria!" (primeiro nome)
+      e "Seja bem-vindo ao <restaurante>", dura ~4s, sai sozinha ou ao tocar; aparece **uma vez por
+      visita/comanda** (flag em `sessionStorage`, não repete no refresh de 15s) e respeita
+      `prefers-reduced-motion` (pula); sem nome vira "Olá, seja bem-vindo!"; (2) saudação fixa no
+      topo da página ("Olá, Maria!" + frase). Fases `espera → mostrando → saindo → fim`, cada fase
+      agenda a próxima num effect próprio (um primeiro desenho cancelava os temporizadores na troca
+      de fase e a tela travava — pego na verificação). Verificado no navegador de teste (celular
+      375px). **Rodar a 034 antes do deploy.**
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

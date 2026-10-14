@@ -1101,3 +1101,41 @@
 .troca-texto small {
   color: var(--color-text-muted);
 }
+
+/* ---------- Nome do cliente na comanda ---------- */
+.comanda-nome {
+  margin: 4px 0 14px;
+}
+
+.comanda-nome-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-blue-700);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.comanda-nome-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.comanda-nome-form input {
+  flex: 1 1 12rem;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font: inherit;
+}
+
+.comanda-nome-form .btn-primary,
+.comanda-nome-form .btn-secondary {
+  width: auto;
+  padding: 10px 16px;
+}

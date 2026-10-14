@@ -116,6 +116,7 @@ export default function FechamentoCaixa() {
               <h2>Mesa {comanda.mesa_numero}</h2>
               <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
                 Comanda {comanda.comandas_fisicas?.numero}
+                {comanda.cliente_nome ? ` · ${comanda.cliente_nome}` : ""}
               </p>
             </>
           )}

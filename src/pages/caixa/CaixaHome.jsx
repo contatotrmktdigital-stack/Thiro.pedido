@@ -4,7 +4,11 @@ import { supabase } from "../../lib/supabaseClient";
 
 function labelComanda(comanda) {
   if (comanda.tipo === "mesa") {
-    return { titulo: `Mesa ${comanda.mesa_numero}`, subtitulo: `Comanda ${comanda.comandas_fisicas?.numero}` };
+    const comandaNumero = `Comanda ${comanda.comandas_fisicas?.numero}`;
+    return {
+      titulo: `Mesa ${comanda.mesa_numero}`,
+      subtitulo: comanda.cliente_nome ? `${comandaNumero} · ${comanda.cliente_nome}` : comandaNumero,
+    };
   }
   if (comanda.tipo === "balcao") {
     return { titulo: "Balcão", subtitulo: comanda.cliente_nome };

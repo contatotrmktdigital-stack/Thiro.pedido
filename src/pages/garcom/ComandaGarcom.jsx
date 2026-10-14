@@ -43,6 +43,9 @@ export default function ComandaGarcom() {
   const [fechando, setFechando] = useState(false);
   const [confirmandoPagamento, setConfirmandoPagamento] = useState(false);
   const [revisandoFechamento, setRevisandoFechamento] = useState(false);
+  const [editandoNome, setEditandoNome] = useState(false);
+  const [nomeEdit, setNomeEdit] = useState("");
+  const [salvandoNome, setSalvandoNome] = useState(false);
   const [notinhaTelaCheia, setNotinhaTelaCheia] = useState(false);
   const [valorAvulso, setValorAvulso] = useState("");
   const [descricaoAvulso, setDescricaoAvulso] = useState("");
@@ -271,6 +274,36 @@ export default function ComandaGarcom() {
     await handleCancelarItem(item);
   };
 
+  const handleSalvarNome = async (e) => {
+    e.preventDefault();
+    const nome = nomeEdit.trim();
+    // Na mesa o nome é opcional (vazio = sem nome); no delivery ele identifica o pedido.
+    if (comanda.tipo === "delivery" && !nome) {
+      setError("No delivery o nome do cliente é obrigatório.");
+      return;
+    }
+
+    setSalvandoNome(true);
+    setError("");
+    const { data, error: updateError } = await supabase
+      .from("comandas")
+      .update({ cliente_nome: nome || null })
+      .eq("id", comandaId)
+      .select("id");
+    setSalvandoNome(false);
+
+    if (updateError) {
+      setError(updateError.message);
+      return;
+    }
+    if (!data || data.length === 0) {
+      setError("Não foi possível salvar o nome (nenhuma alteração foi salva). Tente de novo.");
+      return;
+    }
+    setEditandoNome(false);
+    await loadTudo();
+  };
+
   const handleCancelarItem = async (item) => {
     setBusy(true);
     setError("");
@@ -376,6 +409,7 @@ export default function ComandaGarcom() {
             <h2>Mesa {comanda.mesa_numero}</h2>
             <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
               Comanda {comanda.comandas_fisicas?.numero}
+              {comanda.cliente_nome ? ` · ${comanda.cliente_nome}` : ""}
             </p>
           </>
         )}
@@ -394,6 +428,44 @@ export default function ComandaGarcom() {
               </p>
             )}
           </>
+        )}
+
+        {comanda.status === "aberta" && ["mesa", "delivery"].includes(comanda.tipo) && (
+          <div className="comanda-nome">
+            {editandoNome ? (
+              <form onSubmit={handleSalvarNome} className="comanda-nome-form">
+                <input
+                  value={nomeEdit}
+                  onChange={(e) => setNomeEdit(e.target.value)}
+                  placeholder="Nome do cliente"
+                  maxLength={60}
+                  autoFocus
+                />
+                <button className="btn-primary" type="submit" disabled={salvandoNome}>
+                  {salvandoNome ? "Salvando..." : "Salvar"}
+                </button>
+                <button
+                  className="btn-secondary"
+                  type="button"
+                  disabled={salvandoNome}
+                  onClick={() => setEditandoNome(false)}
+                >
+                  Cancelar
+                </button>
+              </form>
+            ) : (
+              <button
+                type="button"
+                className="comanda-nome-link"
+                onClick={() => {
+                  setNomeEdit(comanda.cliente_nome || "");
+                  setEditandoNome(true);
+                }}
+              >
+                {comanda.cliente_nome ? "Editar nome do cliente" : "+ Adicionar nome do cliente"}
+              </button>
+            )}
+          </div>
         )}
 
         {itens.length === 0 ? (

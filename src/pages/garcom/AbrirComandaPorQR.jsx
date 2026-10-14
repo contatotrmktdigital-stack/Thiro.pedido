@@ -12,6 +12,7 @@ export default function AbrirComandaPorQR() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [mesaNumero, setMesaNumero] = useState("");
+  const [clienteNome, setClienteNome] = useState("");
   const [abrindo, setAbrindo] = useState(false);
 
   useEffect(() => {
@@ -70,6 +71,7 @@ export default function AbrirComandaPorQR() {
         mesa_numero: mesa,
         comanda_fisica_id: comandaFisicaId,
         aberta_por: profile?.id,
+        ...(clienteNome.trim() ? { cliente_nome: clienteNome.trim() } : {}),
       })
       .select()
       .single();
@@ -118,6 +120,15 @@ export default function AbrirComandaPorQR() {
             inputMode="numeric"
             autoFocus
             required
+          />
+        </div>
+        <div className="field">
+          <label>Nome do cliente (opcional)</label>
+          <input
+            value={clienteNome}
+            onChange={(e) => setClienteNome(e.target.value)}
+            placeholder="Para chamar pelo nome"
+            maxLength={60}
           />
         </div>
         <button className="btn-primary" type="submit" disabled={abrindo}>
