@@ -1007,6 +1007,24 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       de fase e a tela travava — pego na verificação). Verificado no navegador de teste (celular
       375px). **Rodar a 034 antes do deploy.**
 
+- [x] **Cliente chama o garçom / pede a conta pelo QR; equipe vê num sininho.** Pedido do
+      usuário; entre as opções mostradas ele escolheu a **2 (sininho com número + lista, sem faixa)**.
+      Cliente (`ComandaCliente.jsx`): botões "Chamar garçom" e "Pedir a conta" (este só aparece com
+      consumo na comanda); ao tocar viram "Garçom avisado ✓"/"Conta solicitada ✓" até a equipe
+      atender. Equipe: `components/SinoChamados.jsx` no topo de `AppLayout` (vale pras 3 áreas — o
+      login é único): sino amarelo (garçom) ou verde (conta), contador vermelho, painel com
+      "Mesa 5 · Maria — chamou o garçom / pediu a conta · há N min" e botão **Atender** (qualquer um
+      da equipe). Atualiza por Realtime + sondagem de 30s; **som** (Web Audio, bipe simples pra
+      garçom, duplo e mais agudo pra conta) e vibração — só com o app aberto e depois do primeiro
+      toque na página (limite dos navegadores; push com tela bloqueada NÃO foi feito). Banco:
+      `035_chamados_cliente.sql` — tabela `chamados` (RLS: equipe do restaurante lê e atualiza),
+      índice único = no máximo 1 pendente por ficha+tipo, Realtime ligado, função
+      `chamar_atendimento` (security definer, `anon`; valida ficha/restaurante ativo; conta exige
+      consumo; não duplica), trigger que marca os chamados como atendidos quando a comanda
+      fecha, e `comanda_publica` redefinida pra devolver `chamados` (cliente vê o estado). Pego na
+      verificação: o painel do sino saía da tela no celular — corrigido ancorando no topo.
+      Verificado no navegador de teste. **Rodar a 035 antes do deploy.**
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

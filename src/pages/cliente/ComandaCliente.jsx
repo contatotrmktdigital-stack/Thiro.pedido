@@ -30,6 +30,8 @@ export default function ComandaCliente() {
   // Animação de boas-vindas: aparece uma vez por visita (por comanda), assim que os dados chegam.
   const [fase, setFase] = useState("espera"); // espera | mostrando | saindo | fim
   const temDados = Boolean(dados);
+  const [enviando, setEnviando] = useState(""); // "garcom" | "conta" | ""
+  const [aviso, setAviso] = useState("");
 
   const carregar = useCallback(async () => {
     const { data, error } = await supabase.rpc("comanda_publica", {
@@ -44,6 +46,25 @@ export default function ComandaCliente() {
     }
     setCarregando(false);
   }, [comandaFisicaId]);
+
+  const chamar = async (tipo) => {
+    setEnviando(tipo);
+    setAviso("");
+    const { data, error } = await supabase.rpc("chamar_atendimento", {
+      p_comanda_fisica_id: comandaFisicaId,
+      p_tipo: tipo,
+    });
+    setEnviando("");
+    if (error || !data?.ok) {
+      setAviso(
+        data?.erro === "sem_consumo"
+          ? "Ainda não há pedidos para fechar a conta."
+          : "Não conseguimos avisar agora. Tente de novo ou chame o garçom."
+      );
+      return;
+    }
+    await carregar();
+  };
 
   useEffect(() => {
     carregar();
@@ -134,6 +155,9 @@ export default function ComandaCliente() {
   const taxa = comanda?.taxa_servico ? subtotal * 0.1 : 0;
   // O botão do cardápio só existe quando o restaurante liga o cardápio digital e informou o link.
   const temCardapio = Boolean(restaurante.cardapio_url) && restaurante.cardapio_ativo !== false;
+  const temConsumo = Boolean(comanda) && (itens || []).length > 0;
+  const garcomPendente = (dados.chamados || []).includes("garcom");
+  const contaPendente = (dados.chamados || []).includes("conta");
   const primeiroNome = (comanda?.cliente_nome || "").trim().split(/\s+/)[0];
   const saudacao = primeiroNome ? `Olá, ${primeiroNome}!` : "Olá, seja bem-vindo!";
 
@@ -193,6 +217,35 @@ export default function ComandaCliente() {
           >
             Abrir cardápio
           </a>
+        )}
+
+        <div className="cc-acoes">
+          <button
+            type="button"
+            className="cc-acao"
+            disabled={garcomPendente || enviando === "garcom"}
+            onClick={() => chamar("garcom")}
+          >
+            {garcomPendente ? "Garçom avisado ✓" : enviando === "garcom" ? "Avisando..." : "Chamar garçom"}
+          </button>
+          {temConsumo && (
+            <button
+              type="button"
+              className="cc-acao cc-acao-conta"
+              disabled={contaPendente || enviando === "conta"}
+              onClick={() => chamar("conta")}
+            >
+              {contaPendente ? "Conta solicitada ✓" : enviando === "conta" ? "Avisando..." : "Pedir a conta"}
+            </button>
+          )}
+        </div>
+        {(garcomPendente || contaPendente || aviso) && (
+          <p className={`cc-aviso${aviso && !garcomPendente && !contaPendente ? " erro" : ""}`}>
+            {aviso ||
+              (contaPendente
+                ? "Pedimos ao garçom que traga sua conta. Já já ele chega."
+                : "O garçom foi avisado e já está a caminho.")}
+          </p>
         )}
 
         <>

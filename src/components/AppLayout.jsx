@@ -3,6 +3,7 @@ import { Outlet, Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { roleLabel } from "./ProtectedRoute";
 import { buildRestaurantThemeVars } from "../lib/theme";
+import SinoChamados from "./SinoChamados";
 
 // O login do restaurante (papel "gestao") entra numa área por vez: Garçom, Cozinha ou Gestão.
 // Os atalhos ficam sempre no topo, pra trocar sem passar pela tela inicial.
@@ -67,6 +68,7 @@ export default function AppLayout() {
           <div className="brand">{brand}</div>
         )}
         <div className="topbar-user">
+          <SinoChamados />
           {!loginUnico && <span className="topbar-nome">{profile?.full_name}</span>}
           {!loginUnico && profile?.role && <span className="role-badge">{roleLabel(profile.role)}</span>}
           <button className="logout-btn" onClick={signOut}>
