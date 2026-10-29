@@ -86,7 +86,7 @@ const TELAS = [
   },
   {
     titulo: "Gestão",
-    itens: ["Cardápio, estoque e equipe", "Relatórios e caixinha", "Identidade visual do restaurante"],
+    itens: ["Cardápio, estoque e equipe", "Relatórios e 10% da casa", "Identidade visual do restaurante"],
   },
 ];
 
@@ -115,7 +115,7 @@ function TelaDoApp() {
         <div className="lp-phone-pill lp-pill-green">Entregue</div>
         <div className="lp-phone-sep" />
         <div className="lp-phone-row">
-          <span>Taxa de serviço (10%)</span>
+          <span>10% da casa</span>
           <strong>R$ 8,90</strong>
         </div>
         <div className="lp-phone-total">

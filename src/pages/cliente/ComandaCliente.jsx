@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { buildRestaurantThemeVars } from "../../lib/theme";
+import { calcularFechamento } from "../../lib/fechamento";
+import FidelidadeCliente from "./FidelidadeCliente";
 import "./ComandaCliente.css";
 
 const INTERVALO_ATUALIZACAO_MS = 15000;
@@ -152,7 +154,11 @@ export default function ComandaCliente() {
   const { restaurante, comanda, itens } = dados;
   const temaCss = restaurante.cor_primaria ? buildRestaurantThemeVars(restaurante.cor_primaria) : {};
   const subtotal = (itens || []).reduce((s, i) => s + Number(i.preco) * i.quantidade, 0);
-  const taxa = comanda?.taxa_servico ? subtotal * 0.1 : 0;
+  const fechamento = calcularFechamento({
+    subtotal,
+    dezPorCentoDaCasa: Boolean(comanda?.taxa_servico),
+    descontoPct: comanda?.desconto_pct,
+  });
   // O botão do cardápio só existe quando o restaurante liga o cardápio digital e informou o link.
   const temCardapio = Boolean(restaurante.cardapio_url) && restaurante.cardapio_ativo !== false;
   const temConsumo = Boolean(comanda) && (itens || []).length > 0;
@@ -249,6 +255,14 @@ export default function ComandaCliente() {
         )}
 
         <>
+            <FidelidadeCliente
+              comandaFisicaId={comandaFisicaId}
+              restaurante={restaurante}
+              comanda={comanda}
+              fidelidade={dados.fidelidade}
+              aoAtualizar={carregar}
+            />
+
             {!comanda || itens.length === 0 ? (
               <div className="cc-card cc-vazio-card">
                 <h2>{comanda ? "Nada pedido ainda" : "Comanda livre"}</h2>
@@ -283,17 +297,23 @@ export default function ComandaCliente() {
                 <div className="cc-totais">
                   <div>
                     <span>Subtotal</span>
-                    <span>{formatMoeda(subtotal)}</span>
+                    <span>{formatMoeda(fechamento.subtotal)}</span>
                   </div>
-                  {taxa > 0 && (
+                  {fechamento.desconto > 0 && (
                     <div>
-                      <span>Taxa de serviço (10%)</span>
-                      <span>{formatMoeda(taxa)}</span>
+                      <span>Desconto de fidelidade ({Number(comanda.desconto_pct)}%)</span>
+                      <span>−{formatMoeda(fechamento.desconto)}</span>
+                    </div>
+                  )}
+                  {fechamento.dezPorCento > 0 && (
+                    <div>
+                      <span>10% da casa</span>
+                      <span>{formatMoeda(fechamento.dezPorCento)}</span>
                     </div>
                   )}
                   <div className="cc-total">
                     <span>Total</span>
-                    <strong>{formatMoeda(subtotal + taxa)}</strong>
+                    <strong>{formatMoeda(fechamento.total)}</strong>
                   </div>
                 </div>
                 <p className="cc-nota">

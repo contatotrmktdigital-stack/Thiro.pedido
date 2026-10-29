@@ -7,6 +7,8 @@ import Notinha from "../../components/Notinha";
 import PixQrCode from "../../components/PixQrCode";
 import { emojiDaCategoria } from "../../lib/categoriaEmoji";
 import { useOrigem } from "../../lib/origem";
+import { calcularFechamento } from "../../lib/fechamento";
+import VisitaFidelidade from "../../components/VisitaFidelidade";
 
 function formatMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -63,7 +65,7 @@ export default function ComandaGarcom() {
       supabase
         .from("comandas")
         .select(
-          "id, status, tipo, mesa_numero, cliente_nome, cliente_telefone, endereco_entrega, taxa_entrega, taxa_servico, forma_pagamento, valor_total, fechada_at, comandas_fisicas(numero)"
+          "id, status, tipo, mesa_numero, cliente_nome, cliente_telefone, endereco_entrega, taxa_entrega, taxa_servico, desconto_pct, valor_desconto, forma_pagamento, valor_total, fechada_at, comandas_fisicas(numero)"
         )
         .eq("id", comandaId)
         .single(),
@@ -337,10 +339,15 @@ export default function ComandaGarcom() {
 
   const itensValidos = itens.filter((item) => item.status !== "cancelado");
   const subtotal = itensValidos.reduce((soma, item) => soma + item.preco_unitario * item.quantidade, 0);
-  const totalComTaxa = subtotal * 1.1;
-  const taxaEntrega = comanda.tipo === "delivery" ? Number(comanda.taxa_entrega) || 0 : 0;
-  const totalPrevisto = (taxaServico ? totalComTaxa : subtotal) + taxaEntrega;
-  const valorTaxaServico = taxaServico ? subtotal * 0.1 : 0;
+  const fechamento = calcularFechamento({
+    subtotal,
+    dezPorCentoDaCasa: taxaServico,
+    descontoPct: comanda.status === "fechada" ? 0 : comanda.desconto_pct,
+    taxaEntrega: comanda.tipo === "delivery" ? Number(comanda.taxa_entrega) || 0 : 0,
+  });
+  const { desconto: valorDesconto, base: baseComDesconto, taxaEntrega } = fechamento;
+  const totalPrevisto = fechamento.total;
+  const valorTaxaServico = fechamento.dezPorCento;
 
   const notinhaComanda =
     comanda.status === "fechada"
@@ -348,6 +355,7 @@ export default function ComandaGarcom() {
       : {
           ...comanda,
           taxa_servico: taxaServico,
+          valor_desconto: valorDesconto,
           valor_total: totalPrevisto,
           forma_pagamento: formaPagamento || null,
           fechada_at: null,
@@ -368,6 +376,7 @@ export default function ComandaGarcom() {
         status: "fechada",
         taxa_servico: taxaServico,
         forma_pagamento: formaPagamento,
+        valor_desconto: valorDesconto,
         valor_total: totalPrevisto,
         valor_taxa_servico: valorTaxaServico,
         fechada_at: new Date().toISOString(),
@@ -853,16 +862,22 @@ export default function ComandaGarcom() {
                     onChange={(e) => setTaxaServico(e.target.checked)}
                     style={{ marginRight: 8 }}
                   />
-                  Cobrar taxa de serviço (10%)
+                  Cobrar 10% da casa
                 </label>
               </div>
 
               <p style={{ margin: "8px 0 4px" }}>
                 Subtotal: <strong>{formatMoeda(subtotal)}</strong>
               </p>
+              {valorDesconto > 0 && (
+                <p style={{ margin: "0 0 4px", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
+                  Desconto de fidelidade ({Number(comanda.desconto_pct)}% nos produtos): −{formatMoeda(valorDesconto)}{" "}
+                  → {formatMoeda(baseComDesconto)}
+                </p>
+              )}
               {taxaServico && (
                 <p style={{ margin: "0 0 4px", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                  Com taxa de serviço: {formatMoeda(totalComTaxa)}
+                  10% da casa: {formatMoeda(valorTaxaServico)}
                 </p>
               )}
               {comanda.tipo === "delivery" && (
@@ -873,6 +888,7 @@ export default function ComandaGarcom() {
               <p style={{ fontWeight: 700, fontSize: "1.2rem", margin: "8px 0 16px" }}>
                 Total a cobrar: {formatMoeda(totalPrevisto)}
               </p>
+              <VisitaFidelidade origem={origem} />
 
               {carrinho.length > 0 ? (
                 <p style={{ color: "var(--color-red-700)", fontWeight: 600 }}>

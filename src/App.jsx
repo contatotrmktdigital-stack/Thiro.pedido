@@ -25,6 +25,7 @@ import ReceitaProdutoEditor from "./pages/gestao/ReceitaProdutoEditor";
 import RelatoriosAdmin from "./pages/gestao/RelatoriosAdmin";
 import IdentidadeVisualAdmin from "./pages/gestao/IdentidadeVisualAdmin";
 import CaixinhaAdmin from "./pages/gestao/CaixinhaAdmin";
+import FidelidadeAdmin from "./pages/gestao/FidelidadeAdmin";
 import ComandasAbertasAdmin from "./pages/gestao/ComandasAbertasAdmin";
 import PagamentoPixAdmin from "./pages/gestao/PagamentoPixAdmin";
 import HistoricoPedidosAdmin from "./pages/gestao/HistoricoPedidosAdmin";
@@ -243,6 +244,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["gestao"]}>
                     <CaixinhaAdmin />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/gestao/administracao/fidelidade"
+                element={
+                  <ProtectedRoute allowedRoles={["gestao"]}>
+                    <FidelidadeAdmin />
                   </ProtectedRoute>
                 }
               />

@@ -1046,6 +1046,35 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       separa relatórios e “pedidos de hoje”; fila única) — fica para a fase dos extras.
       **Rodar a 036 e depois a 036b antes de testar.**
 
+- [x] **Fase 2 — "10% da casa" + desconto + Fidelidade por CPF.** SQL `037_fidelidade_10_da_casa.sql`
+      (aditivo, re-executável; testado num Postgres em memória com 30+ cenários).
+      **Conta do fechamento** (`src/lib/fechamento.js`, usada por garçom, caixa, notinha e tela do
+      cliente): produtos − desconto → **10% da casa sobre o valor já com desconto** → + entrega.
+      Ex.: R$ 50 → desconto R$ 5 → R$ 45 → 10% da casa R$ 4,50 → **R$ 49,50**. Só os **rótulos**
+      mudaram de "taxa de serviço/Caixinha" para **"10% da casa"** (colunas `taxa_servico` e
+      `valor_taxa_servico` continuam; a rota interna `/gestao/administracao/caixinha` também; o
+      faturamento dos relatórios continua = total − 10% da casa).
+      **Fidelidade** (DESLIGADA por padrão em cada restaurante; liga em Gestão › Fidelidade):
+      cliente se cadastra no QR (`/c/:id`, `FidelidadeCliente.jsx`) com nome completo, CPF validado,
+      telefone, e-mail e aceite LGPD (versão `v1-2026-10` + data/hora gravadas). 1º cadastro no
+      restaurante = **10% de desconto só nos produtos, uma vez por CPF**, e conta como **visita nº 1**.
+      CPF **nunca em texto puro**: carimbo HMAC (`cpf_hash`, único por restaurante), CPF criptografado
+      (`cpf_cifrado`) e máscara `***.123.456-**` (chave em `fidelidade_config`, que o app não lê).
+      Tabelas `fidelidade_clientes/visitas/premios/resgates` — clientes/visitas/resgates só por funções
+      `security definer` (sem policies). Visitas seguintes: **garçom** lança pelo link discreto
+      "Cliente de fidelidade? Lançar visita" no fechamento (`VisitaFidelidade.jsx`; fica **pendente**,
+      grava nome do garçom); **Gestão** lança já aprovada; máx. **1 visita por cliente por dia**.
+      Gestão (`FidelidadeAdmin.jsx`): ligar/desligar, link do Google (convite opcional; desconto não
+      depende e o sistema não confere), visitas pendentes (aprovar/recusar uma a uma ou todas, com
+      histórico de quem decidiu), prêmios por nº de visitas (só desativa, nunca apaga), busca por
+      CPF/nome/telefone/e-mail, ficha completa, resgates (1 por prêmio por cliente). Cliente consulta
+      suas visitas informando o CPF. `comanda_publica` só **ganhou** campos (`fidelidade`,
+      `comanda.desconto_pct`) — QR/rotas intactos. Novas colunas em `comandas`:
+      `cliente_fidelidade_id`, `desconto_pct`, `valor_desconto`. **LGPD:** anonimizar só sob pedido,
+      com aprovação, nunca automático — `select public.fidelidade_anonimizar('ID-DO-CLIENTE')` no SQL
+      Editor (ID aparece na ficha); apaga nome/CPF/telefone/e-mail e mantém só as contagens.
+      **Rodar a 037 ANTES do deploy** (o app passa a ler as colunas novas).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

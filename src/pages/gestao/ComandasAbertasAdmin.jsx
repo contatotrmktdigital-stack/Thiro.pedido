@@ -87,7 +87,7 @@ function ComandasAbertasContent() {
         <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
           Feche aqui uma comanda que ficou aberta sem passar pelo pagamento (consumo da casa,
           cortesia, teste, esquecimento). Ela sai da lista de abertas e <strong>não conta</strong> no
-          faturamento, na caixinha nem nos relatórios do dia. Os itens continuam no Histórico de
+          faturamento, no 10% da casa nem nos relatórios do dia. Os itens continuam no Histórico de
           pedidos.
         </p>
 

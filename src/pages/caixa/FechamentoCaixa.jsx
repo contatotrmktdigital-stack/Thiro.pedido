@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import Notinha from "../../components/Notinha";
+import { calcularFechamento } from "../../lib/fechamento";
 
 function formatMoeda(valor) {
   return Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -29,7 +30,7 @@ export default function FechamentoCaixa() {
       supabase
         .from("comandas")
         .select(
-          "id, status, tipo, mesa_numero, cliente_nome, cliente_telefone, endereco_entrega, taxa_entrega, taxa_servico, forma_pagamento, valor_total, fechada_at, comandas_fisicas(numero)"
+          "id, status, tipo, mesa_numero, cliente_nome, cliente_telefone, endereco_entrega, taxa_entrega, taxa_servico, desconto_pct, valor_desconto, forma_pagamento, valor_total, fechada_at, comandas_fisicas(numero)"
         )
         .eq("id", comandaId)
         .single(),
@@ -65,9 +66,14 @@ export default function FechamentoCaixa() {
 
   const itensValidos = itens.filter((item) => item.status !== "cancelado");
   const subtotal = itensValidos.reduce((soma, item) => soma + item.preco_unitario * item.quantidade, 0);
-  const totalComTaxa = subtotal * 1.1;
-  const taxaEntrega = comanda.tipo === "delivery" ? Number(comanda.taxa_entrega) || 0 : 0;
-  const totalPrevisto = (taxaServico ? totalComTaxa : subtotal) + taxaEntrega;
+  const fechamento = calcularFechamento({
+    subtotal,
+    dezPorCentoDaCasa: taxaServico,
+    descontoPct: comanda.status === "fechada" ? 0 : comanda.desconto_pct,
+    taxaEntrega: comanda.tipo === "delivery" ? Number(comanda.taxa_entrega) || 0 : 0,
+  });
+  const { desconto: valorDesconto, base: baseComDesconto, taxaEntrega } = fechamento;
+  const totalPrevisto = fechamento.total;
 
   const handleFechar = async () => {
     if (!formaPagamento) {
@@ -84,6 +90,8 @@ export default function FechamentoCaixa() {
         status: "fechada",
         taxa_servico: taxaServico,
         forma_pagamento: formaPagamento,
+        valor_desconto: valorDesconto,
+        valor_taxa_servico: fechamento.dezPorCento,
         valor_total: totalPrevisto,
         fechada_at: new Date().toISOString(),
       })
@@ -175,16 +183,22 @@ export default function FechamentoCaixa() {
                 onChange={(e) => setTaxaServico(e.target.checked)}
                 style={{ marginRight: 8 }}
               />
-              Cobrar taxa de serviço (10%)
+              Cobrar 10% da casa
             </label>
           </div>
 
           <p style={{ margin: "8px 0 4px" }}>
             Subtotal: <strong>{formatMoeda(subtotal)}</strong>
           </p>
+          {valorDesconto > 0 && (
+            <p style={{ margin: "0 0 4px", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
+              Desconto de fidelidade ({Number(comanda.desconto_pct)}% nos produtos): −{formatMoeda(valorDesconto)}{" "}
+              → {formatMoeda(baseComDesconto)}
+            </p>
+          )}
           {taxaServico && (
             <p style={{ margin: "0 0 4px", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-              Com taxa de serviço: {formatMoeda(totalComTaxa)}
+              10% da casa: {formatMoeda(fechamento.dezPorCento)}
             </p>
           )}
           {comanda.tipo === "delivery" && (

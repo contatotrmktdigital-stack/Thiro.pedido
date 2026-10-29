@@ -106,9 +106,8 @@ function RelatoriosContent() {
     return <p>Carregando relatório...</p>;
   }
 
-  // A taxa de serviço (10%) é dinheiro dos garçons, não do estabelecimento — por isso o
-  // faturamento aqui é sempre valor_total MENOS a taxa. Ver "Caixinha da equipe" para o valor
-  // da taxa separado.
+  // O faturamento aqui é sempre valor_total MENOS o "10% da casa" (valor_taxa_servico no banco).
+  // Ver a tela "10% da casa" para o valor separado.
   const faturamentoDe = (c) => Number(c.valor_total || 0) - Number(c.valor_taxa_servico || 0);
 
   const totalFaturado = comandas.reduce((soma, c) => soma + faturamentoDe(c), 0);
@@ -189,8 +188,8 @@ function RelatoriosContent() {
       </div>
 
       <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem" }}>
-        O faturamento abaixo não inclui a taxa de serviço (10%) — esse valor é da equipe, veja em{" "}
-        <Link to="/gestao/administracao/caixinha">Caixinha da equipe</Link>.
+        O faturamento abaixo não inclui o 10% da casa — veja o total dele em{" "}
+        <Link to="/gestao/administracao/caixinha">10% da casa</Link>.
       </p>
 
       <div className="role-grid" style={{ marginBottom: 18 }}>

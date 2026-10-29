@@ -469,3 +469,129 @@
   background: #fde8e8;
   color: #b42318;
 }
+
+/* ---------- Fidelidade (cadastro por CPF, desconto e consulta de visitas) ---------- */
+.cc-fid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.cc-fid-convite,
+.cc-fid-ok {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+  border-color: var(--cc-cor);
+}
+
+.cc-fid-convite strong,
+.cc-fid-ok strong {
+  font-size: 1.1rem;
+  color: var(--cc-cor-escura);
+}
+
+.cc-fid-convite p,
+.cc-fid-ok p {
+  color: var(--cc-muted);
+}
+
+.cc-fid-convite .cc-botao {
+  border: none;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cc-fid-form,
+.cc-fid-consulta form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cc-fid-form h2,
+.cc-fid-consulta h2 {
+  font-size: 1.15rem;
+}
+
+.cc-fid label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.cc-fid input:not([type="checkbox"]) {
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--cc-border);
+  border-radius: 0.6rem;
+  font: inherit;
+  font-weight: 400;
+}
+
+.cc-fid label.cc-fid-aceite {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-weight: 400;
+  font-size: 0.82rem;
+  color: var(--cc-muted);
+}
+
+.cc-fid-aceite input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.cc-fid-botoes {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cc-fid-botoes .cc-botao {
+  border: none;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.cc-fid-botoes .cc-botao:disabled {
+  opacity: 0.7;
+}
+
+.cc-fid-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--cc-cor);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.cc-fid-google {
+  align-self: flex-start;
+  color: var(--cc-cor-escura);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.cc-fid-resultado {
+  padding: 0.7rem 0.9rem;
+  border-radius: 0.8rem;
+  background: var(--cc-cor-clara);
+  color: var(--cc-cor-escura);
+  font-size: 0.95rem;
+}
+
+.cc-fid-resultado p + p {
+  margin-top: 0.3rem;
+}

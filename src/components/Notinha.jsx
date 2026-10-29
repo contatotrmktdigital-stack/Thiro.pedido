@@ -13,6 +13,9 @@ export default function Notinha({ restaurantName, comanda, itens }) {
   const itensValidos = itens.filter((item) => item.status !== "cancelado");
   const subtotal = itensValidos.reduce((soma, item) => soma + item.preco_unitario * item.quantidade, 0);
   const taxaEntrega = comanda.tipo === "delivery" ? Number(comanda.taxa_entrega) || 0 : 0;
+  // Desconto de fidelidade (só sobre produtos); o "10% da casa" é calculado em cima do valor já com desconto.
+  const desconto = Number(comanda.valor_desconto) || 0;
+  const dezPorCento = comanda.taxa_servico ? Math.round((subtotal - desconto) * 10) / 100 : 0;
 
   let atendimento = "";
   if (comanda.tipo === "mesa") {
@@ -103,10 +106,16 @@ export default function Notinha({ restaurantName, comanda, itens }) {
             <span>Subtotal</span>
             <span>{formatMoeda(subtotal)}</span>
           </div>
+          {desconto > 0 && (
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+              <span>Desconto de fidelidade</span>
+              <span>−{formatMoeda(desconto)}</span>
+            </div>
+          )}
           {comanda.taxa_servico && (
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-              <span>Taxa de serviço (10%)</span>
-              <span>{formatMoeda(subtotal * 0.1)}</span>
+              <span>10% da casa</span>
+              <span>{formatMoeda(dezPorCento)}</span>
             </div>
           )}
           {taxaEntrega > 0 && (

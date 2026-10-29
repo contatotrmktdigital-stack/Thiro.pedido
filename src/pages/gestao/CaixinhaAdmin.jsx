@@ -58,11 +58,11 @@ function CaixinhaContent() {
       {error && <div className="error-box">{error}</div>}
 
       <div className="card">
-        <h2>Caixinha da equipe</h2>
+        <h2>10% da casa</h2>
         <p style={{ color: "var(--color-text-muted)", marginTop: -8 }}>
-          Total da taxa de serviço (10%) cobrada dos clientes no período — é dinheiro da equipe,
-          não entra no faturamento do estabelecimento. Como dividir isso entre os garçons é um
-          acerto de vocês.
+          Total do 10% da casa cobrado dos clientes no período. Ele é calculado sobre o valor dos
+          produtos já com o desconto de fidelidade e fica separado do faturamento dos produtos nos
+          relatórios.
         </p>
 
         <div className="inline-form">
@@ -94,7 +94,7 @@ function CaixinhaContent() {
       <div className="role-grid">
         <div className="role-grid-item">
           <p style={{ margin: 0, color: "var(--color-text-muted)", fontSize: "0.8rem" }}>
-            Caixinha no período
+            10% da casa no período
           </p>
           <p style={{ margin: "4px 0 0", fontSize: "1.6rem", fontWeight: 700, color: "var(--color-blue-900)" }}>
             {formatMoeda(totalCaixinha)}
@@ -102,7 +102,7 @@ function CaixinhaContent() {
         </div>
         <div className="role-grid-item">
           <p style={{ margin: 0, color: "var(--color-text-muted)", fontSize: "0.8rem" }}>
-            Comandas com taxa cobrada
+            Comandas com 10% da casa cobrado
           </p>
           <p style={{ margin: "4px 0 0", fontSize: "1.6rem", fontWeight: 700, color: "var(--color-blue-900)" }}>
             {comandas.length}
