@@ -361,6 +361,20 @@ export default function ComandaGarcom() {
           fechada_at: null,
         };
 
+  const alternarTaxaServico = async (ligado) => {
+    setTaxaServico(ligado);
+    if (comanda.status !== "aberta") return;
+    const { data, error: updateError } = await supabase
+      .from("comandas")
+      .update({ taxa_servico: ligado })
+      .eq("id", comandaId)
+      .select("id");
+    if (updateError || !data || data.length === 0) {
+      setTaxaServico(!ligado);
+      setError("Não foi possível atualizar o 10% da casa. Tente de novo.");
+    }
+  };
+
   const handleFecharComanda = async () => {
     if (!formaPagamento) {
       setError("Escolha a forma de pagamento.");
@@ -859,7 +873,7 @@ export default function ComandaGarcom() {
                   <input
                     type="checkbox"
                     checked={taxaServico}
-                    onChange={(e) => setTaxaServico(e.target.checked)}
+                    onChange={(e) => alternarTaxaServico(e.target.checked)}
                     style={{ marginRight: 8 }}
                   />
                   Cobrar 10% da casa
