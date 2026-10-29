@@ -1586,3 +1586,34 @@
     top: 72px;
   }
 }
+
+/* ---------- Setor Cozinha / Bar ---------- */
+.setor-pill {
+  display: inline-block;
+  padding: 1px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.setor-pill.cozinha {
+  background: #fdf0d3;
+  color: #8a5a00;
+}
+
+.setor-pill.bar {
+  background: #e4e9fb;
+  color: #2a3f9a;
+}
+
+.cozinha-bar-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #e4e9fb;
+  color: #2a3f9a;
+  font-size: 0.75rem;
+  font-weight: 700;
+  vertical-align: middle;
+}

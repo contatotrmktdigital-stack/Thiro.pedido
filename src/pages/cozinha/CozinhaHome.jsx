@@ -61,6 +61,7 @@ function Coluna({ titulo, itens, agora, busyId, onAvancar, vazio, visivel }) {
                 </div>
                 <p className="cozinha-card-item">
                   {item.quantidade}x {item.nome_produto}
+                  {item.setor === "bar" && <span className="cozinha-bar-tag">🍹 Bar</span>}
                 </p>
                 {item.observacao && <p className="cozinha-card-obs">⚠ {item.observacao}</p>}
                 <button
@@ -98,7 +99,7 @@ export default function CozinhaHome() {
     const { data, error: fetchError } = await supabase
       .from("comanda_itens")
       .select(
-        "id, nome_produto, quantidade, observacao, status, created_at, comandas!inner(tipo, mesa_numero, cliente_nome, comandas_fisicas(numero))"
+        "id, nome_produto, setor, quantidade, observacao, status, created_at, comandas!inner(tipo, mesa_numero, cliente_nome, comandas_fisicas(numero))"
       )
       .in("status", ["pendente", "preparo"])
       .order("created_at");

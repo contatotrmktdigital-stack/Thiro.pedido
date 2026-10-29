@@ -5,7 +5,9 @@ import { useAuth } from "../../context/AuthContext";
 import AdminPinGate from "./AdminPinGate";
 import ConfirmButton from "../../components/ConfirmButton";
 
-const emptyProdutoForm = { id: null, nome: "", descricao: "", preco: "", categoria_id: "" };
+import { LABEL_SETOR, sugerirSetor } from "../../lib/setor";
+
+const emptyProdutoForm = { id: null, nome: "", descricao: "", preco: "", categoria_id: "", setor: "cozinha", setorEditado: false };
 
 function CardapioContent() {
   const { restaurant } = useAuth();
@@ -28,7 +30,7 @@ function CardapioContent() {
       supabase.from("categorias").select("id, nome").order("created_at"),
       supabase
         .from("produtos")
-        .select("id, nome, descricao, preco, ativo, categoria_id")
+        .select("id, nome, descricao, preco, ativo, categoria_id, setor")
         .order("created_at"),
     ]);
 
@@ -80,6 +82,8 @@ function CardapioContent() {
       descricao: produto.descricao || "",
       preco: String(produto.preco).replace(".", ","),
       categoria_id: produto.categoria_id,
+      setor: produto.setor || "cozinha",
+      setorEditado: true,
     });
   };
 
@@ -107,6 +111,7 @@ function CardapioContent() {
       descricao: produtoForm.descricao.trim() || null,
       preco: precoNumero,
       categoria_id: produtoForm.categoria_id,
+      setor: produtoForm.setor,
       restaurant_id: restaurant.id,
     };
 
@@ -217,7 +222,15 @@ function CardapioContent() {
                 <label>Categoria</label>
                 <select
                   value={produtoForm.categoria_id}
-                  onChange={(e) => setProdutoForm({ ...produtoForm, categoria_id: e.target.value })}
+                  onChange={(e) => {
+                    const nomeCat = categorias.find((c) => c.id === e.target.value)?.nome;
+                    // sugere o setor pela categoria, a não ser que você já tenha escolhido um à mão
+                    setProdutoForm({
+                      ...produtoForm,
+                      categoria_id: e.target.value,
+                      ...(produtoForm.setorEditado ? {} : { setor: sugerirSetor(nomeCat) }),
+                    });
+                  }}
                   required
                 >
                   <option value="">Selecione...</option>
@@ -226,6 +239,16 @@ function CardapioContent() {
                       {categoria.nome}
                     </option>
                   ))}
+                </select>
+              </div>
+              <div className="field">
+                <label>Setor</label>
+                <select
+                  value={produtoForm.setor}
+                  onChange={(e) => setProdutoForm({ ...produtoForm, setor: e.target.value, setorEditado: true })}
+                >
+                  <option value="cozinha">{LABEL_SETOR.cozinha}</option>
+                  <option value="bar">{LABEL_SETOR.bar}</option>
                 </select>
               </div>
               <div className="field">
@@ -281,6 +304,7 @@ function CardapioContent() {
               <tr>
                 <th>Nome</th>
                 <th>Categoria</th>
+                <th>Setor</th>
                 <th>Preço</th>
                 <th>Status</th>
                 <th></th>
@@ -291,6 +315,9 @@ function CardapioContent() {
                 <tr key={produto.id}>
                   <td>{produto.nome}</td>
                   <td>{nomeCategoria(produto.categoria_id)}</td>
+                  <td>
+                    <span className={`setor-pill ${produto.setor || "cozinha"}`}>{LABEL_SETOR[produto.setor] || "Cozinha"}</span>
+                  </td>
                   <td>
                     {Number(produto.preco).toLocaleString("pt-BR", {
                       style: "currency",

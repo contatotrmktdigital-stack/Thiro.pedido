@@ -6,6 +6,7 @@ import BarList from "../../components/charts/BarList";
 import VerticalBars from "../../components/charts/VerticalBars";
 import ConfirmButton from "../../components/ConfirmButton";
 import { hojeString, diasAtras, inicioDoMes, toDateInputValue } from "../../lib/dateRanges";
+import { LABEL_SETOR, totaisPorSetor } from "../../lib/setor";
 
 const COR_PAGAMENTO = { dinheiro: "#2a78d6", debito: "#eb6834", credito: "#1baf7a", pix: "#eda100" };
 const LABEL_PAGAMENTO = { dinheiro: "Dinheiro", debito: "Débito", credito: "Crédito", pix: "Pix" };
@@ -63,7 +64,7 @@ function RelatoriosContent() {
     if (comandaIds.length > 0) {
       const { data, error: itensError } = await supabase
         .from("comanda_itens")
-        .select("nome_produto, quantidade, preco_unitario, comanda_id")
+        .select("nome_produto, quantidade, preco_unitario, comanda_id, setor")
         .in("comanda_id", comandaIds)
         .neq("status", "cancelado");
 
@@ -167,17 +168,22 @@ function RelatoriosContent() {
     return { label: `${diaNum}/${mes}`, value: total };
   });
 
-  const produtosMap = new Map();
-  for (const item of itens) {
-    const atual = produtosMap.get(item.nome_produto) || { quantidade: 0, faturamento: 0 };
-    atual.quantidade += item.quantidade;
-    atual.faturamento += item.preco_unitario * item.quantidade;
-    produtosMap.set(item.nome_produto, atual);
-  }
-  const produtosRanking = Array.from(produtosMap.entries())
-    .map(([nome, dados]) => ({ label: nome, value: dados.quantidade, faturamento: dados.faturamento }))
-    .sort((a, b) => b.value - a.value)
-    .slice(0, 10);
+  // Produtos mais vendidos, separados por setor (Cozinha / Bar). Valores dos produtos, antes do
+  // desconto de fidelidade e do 10% da casa.
+  const rankingDoSetor = (setor) => {
+    const mapa = new Map();
+    for (const item of itens) {
+      if ((item.setor || "outros") !== setor) continue;
+      const atual = mapa.get(item.nome_produto) || { quantidade: 0 };
+      atual.quantidade += item.quantidade;
+      mapa.set(item.nome_produto, atual);
+    }
+    return Array.from(mapa.entries())
+      .map(([nome, dados]) => ({ label: nome, value: dados.quantidade }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 10);
+  };
+  const porSetor = totaisPorSetor(itens);
 
   return (
     <div>
@@ -333,13 +339,40 @@ function RelatoriosContent() {
         )}
       </div>
 
-      <div className="card">
-        <h2>Produtos mais vendidos</h2>
-        <p style={{ color: "var(--color-text-muted)", marginTop: -8, fontSize: "0.85rem" }}>
-          Por quantidade vendida no período.
-        </p>
-        <BarList items={produtosRanking} valueFormatter={(v) => `${v} un`} />
+      <div className="role-grid" style={{ marginBottom: 18 }}>
+        {["cozinha", "bar"].map((s) => (
+          <div className="role-grid-item" key={s}>
+            <p style={{ margin: 0, color: "var(--color-text-muted)", fontSize: "0.8rem" }}>Vendas {LABEL_SETOR[s]}</p>
+            <p style={{ margin: "4px 0 0", fontSize: "1.4rem", fontWeight: 700, color: "var(--color-blue-900)" }}>
+              {formatMoeda(porSetor[s].valor)}
+            </p>
+            <p style={{ margin: "2px 0 0", color: "var(--color-text-muted)", fontSize: "0.8rem" }}>
+              {porSetor[s].quantidade} un
+            </p>
+          </div>
+        ))}
       </div>
+
+      {["cozinha", "bar"].map((s) => (
+        <div className="card" key={s}>
+          <h2>
+            Mais vendidos · {LABEL_SETOR[s]}{" "}
+            <small style={{ fontWeight: 400, color: "var(--color-text-muted)" }}>
+              {porSetor[s].quantidade} un · {formatMoeda(porSetor[s].valor)}
+            </small>
+          </h2>
+          <p style={{ color: "var(--color-text-muted)", marginTop: -8, fontSize: "0.85rem" }}>
+            Por quantidade vendida no período (valores dos produtos, sem o 10% da casa nem descontos).
+          </p>
+          <BarList items={rankingDoSetor(s)} valueFormatter={(v) => `${v} un`} />
+        </div>
+      ))}
+
+      {porSetor.outros.quantidade > 0 && (
+        <p style={{ color: "var(--color-text-muted)", fontSize: "0.85rem" }}>
+          Outros (valor avulso, sem produto): {porSetor.outros.quantidade} item(ns) · {formatMoeda(porSetor.outros.valor)}
+        </p>
+      )}
     </div>
   );
 }

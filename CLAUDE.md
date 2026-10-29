@@ -1108,6 +1108,20 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       largura, a **notinha fica de um lado e o pagamento do outro** (`.fechamento-grade`; a notinha
       acompanha a rolagem). No celular nada muda. Só CSS/layout, sem SQL.
 
+- [x] **Extra B — Setor Cozinha / Bar (Opção A: fila única, setor só separa números).** SQL
+      `040_setor_cozinha_bar.sql` (aditivo, re-executável, testado num Postgres em memória): `produtos.setor`
+      (`cozinha`|`bar`, padrão cozinha; nos produtos existentes sugerido pela categoria — Bebidas/Drinks/Doses →
+      bar — **só na 1ª execução**, rodar de novo não desfaz o que foi mudado) e `comanda_itens.setor`
+      (cópia do setor do produto **no momento do pedido**, via gatilho `comanda_itens_setor`; histórico não muda
+      se o produto trocar de setor; itens sem produto = valor avulso ficam sem setor; o backfill não aciona a
+      baixa de estoque porque o gatilho de estoque só dispara em `quantidade`/`status`). Cardápio (Gestão):
+      campo **Setor** no produto, sugerido ao escolher a categoria (editável) e etiqueta na lista.
+      **Relatórios:** cards "Vendas Cozinha/Bar" e duas listas "Mais vendidos · Cozinha/Bar" com subtotal
+      (valores dos produtos, sem 10% da casa nem desconto); "Outros (valor avulso)" só aparece se existir.
+      **Histórico de pedidos:** itens em dois grupos (Cozinha, Bar, + Outros) com subtotal. **Cozinha:** fila
+      continua única; itens de bar ganham a etiqueta "🍹 Bar". Helpers em `src/lib/setor.js`.
+      **Rodar a 040 antes do deploy.**
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabaseClient";
 import AdminPinGate from "./AdminPinGate";
 import { hojeString, diasAtras, inicioDoMes } from "../../lib/dateRanges";
 import { LABEL_ORIGEM } from "../../lib/origem";
+import { LABEL_SETOR, totaisPorSetor } from "../../lib/setor";
 
 const LABEL_STATUS = {
   pendente: "Pendente",
@@ -24,6 +25,55 @@ function identificarComanda(c) {
   return c.cliente_nome ? `Delivery · ${c.cliente_nome}` : "Delivery";
 }
 
+function TabelaItens({ itens }) {
+  return (
+          <table className="table-list">
+            <thead>
+              <tr>
+                <th>Horário</th>
+                <th>Comanda</th>
+                <th>Lançado por</th>
+                <th>Item</th>
+                <th>Qtd.</th>
+                <th>Valor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {itens.map((item) => (
+                <tr key={item.id} style={item.status === "cancelado" ? { opacity: 0.55 } : undefined}>
+                  <td>
+                    {new Date(item.created_at).toLocaleString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </td>
+                  <td>{identificarComanda(item.comandas)}</td>
+                  <td>{LABEL_ORIGEM[item.origem] || "Atendente"}</td>
+                  <td style={item.status === "cancelado" ? { textDecoration: "line-through" } : undefined}>
+                    {item.nome_produto}
+                    {item.observacao && (
+                      <div style={{ color: "var(--color-red-700)", fontWeight: 700, fontSize: "0.8rem" }}>
+                        Obs: {item.observacao}
+                      </div>
+                    )}
+                  </td>
+                  <td>{item.quantidade}</td>
+                  <td>{formatMoeda(item.preco_unitario * item.quantidade)}</td>
+                  <td>
+                    <span className={`status-pill ${item.status === "entregue" ? "active" : "inactive"}`}>
+                      {LABEL_STATUS[item.status] || item.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+  );
+}
+
 function HistoricoContent() {
   const [dataInicial, setDataInicial] = useState(hojeString());
   const [dataFinal, setDataFinal] = useState(hojeString());
@@ -40,7 +90,7 @@ function HistoricoContent() {
     const { data, error: fetchError } = await supabase
       .from("comanda_itens")
       .select(
-        "id, nome_produto, quantidade, preco_unitario, observacao, status, origem, created_at, comandas(tipo, mesa_numero, cliente_nome, comandas_fisicas(numero))"
+        "id, nome_produto, setor, quantidade, preco_unitario, observacao, status, origem, created_at, comandas(tipo, mesa_numero, cliente_nome, comandas_fisicas(numero))"
       )
       .gte("created_at", `${dataInicial}T00:00:00`)
       .lte("created_at", `${dataFinal}T23:59:59.999`)
@@ -69,6 +119,7 @@ function HistoricoContent() {
   const totalValor = itens
     .filter((i) => i.status !== "cancelado")
     .reduce((soma, i) => soma + i.preco_unitario * i.quantidade, 0);
+  const porSetor = totaisPorSetor(itens);
 
   return (
     <div>
@@ -121,6 +172,17 @@ function HistoricoContent() {
             {formatMoeda(totalValor)}
           </p>
         </div>
+        {["cozinha", "bar"].map((s) => (
+          <div className="role-grid-item" key={s}>
+            <p style={{ margin: 0, color: "var(--color-text-muted)", fontSize: "0.8rem" }}>{LABEL_SETOR[s]}</p>
+            <p style={{ margin: "4px 0 0", fontSize: "1.4rem", fontWeight: 700, color: "var(--color-blue-900)" }}>
+              {formatMoeda(porSetor[s].valor)}
+            </p>
+            <p style={{ margin: "2px 0 0", color: "var(--color-text-muted)", fontSize: "0.8rem" }}>
+              {porSetor[s].quantidade} un
+            </p>
+          </div>
+        ))}
       </div>
 
       <div className="card">
@@ -131,50 +193,22 @@ function HistoricoContent() {
         {itens.length === 0 ? (
           <p style={{ color: "var(--color-text-muted)" }}>Nenhum pedido lançado no período.</p>
         ) : (
-          <table className="table-list">
-            <thead>
-              <tr>
-                <th>Horário</th>
-                <th>Comanda</th>
-                <th>Lançado por</th>
-                <th>Item</th>
-                <th>Qtd.</th>
-                <th>Valor</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {itens.map((item) => (
-                <tr key={item.id} style={item.status === "cancelado" ? { opacity: 0.55 } : undefined}>
-                  <td>
-                    {new Date(item.created_at).toLocaleString("pt-BR", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </td>
-                  <td>{identificarComanda(item.comandas)}</td>
-                  <td>{LABEL_ORIGEM[item.origem] || "Atendente"}</td>
-                  <td style={item.status === "cancelado" ? { textDecoration: "line-through" } : undefined}>
-                    {item.nome_produto}
-                    {item.observacao && (
-                      <div style={{ color: "var(--color-red-700)", fontWeight: 700, fontSize: "0.8rem" }}>
-                        Obs: {item.observacao}
-                      </div>
-                    )}
-                  </td>
-                  <td>{item.quantidade}</td>
-                  <td>{formatMoeda(item.preco_unitario * item.quantidade)}</td>
-                  <td>
-                    <span className={`status-pill ${item.status === "entregue" ? "active" : "inactive"}`}>
-                      {LABEL_STATUS[item.status] || item.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          ["cozinha", "bar", "outros"].map((s) => {
+            const grupo = itens.filter((i) => (i.setor || "outros") === s);
+            if (grupo.length === 0) return null;
+            const tot = porSetor[s];
+            return (
+              <div key={s} style={{ marginBottom: 18 }}>
+                <h3 style={{ margin: "0 0 6px" }}>
+                  {s === "outros" ? "Outros (valor avulso)" : LABEL_SETOR[s]}{" "}
+                  <small style={{ fontWeight: 400, color: "var(--color-text-muted)" }}>
+                    {tot.quantidade} un · {formatMoeda(tot.valor)}
+                  </small>
+                </h3>
+                <TabelaItens itens={grupo} />
+              </div>
+            );
+          })
         )}
       </div>
     </div>
