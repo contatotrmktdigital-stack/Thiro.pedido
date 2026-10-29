@@ -9,6 +9,8 @@ import { emojiDaCategoria } from "../../lib/categoriaEmoji";
 import { useOrigem } from "../../lib/origem";
 import { calcularFechamento } from "../../lib/fechamento";
 import VisitaFidelidade from "../../components/VisitaFidelidade";
+import ValorRecebido from "../../components/ValorRecebido";
+import { situacaoDinheiro } from "../../lib/dinheiro";
 
 function formatMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -42,6 +44,7 @@ export default function ComandaGarcom() {
 
   const [taxaServico, setTaxaServico] = useState(true);
   const [formaPagamento, setFormaPagamento] = useState("");
+  const [valorRecebido, setValorRecebido] = useState("");
   const [fechando, setFechando] = useState(false);
   const [confirmandoPagamento, setConfirmandoPagamento] = useState(false);
   const [revisandoFechamento, setRevisandoFechamento] = useState(false);
@@ -348,6 +351,10 @@ export default function ComandaGarcom() {
   const { desconto: valorDesconto, taxaEntrega } = fechamento;
   const totalPrevisto = fechamento.total;
   const valorTaxaServico = fechamento.dezPorCento;
+  // Pagamento em dinheiro: valor recebido -> troco (ou quanto falta).
+  const dinheiro = formaPagamento === "dinheiro";
+  const sd = situacaoDinheiro(valorRecebido, totalPrevisto);
+  const msgDinheiro = "Informe o valor recebido em dinheiro (igual ou maior que o total).";
 
   const notinhaComanda =
     comanda.status === "fechada"
@@ -358,6 +365,8 @@ export default function ComandaGarcom() {
           valor_desconto: valorDesconto,
           valor_total: totalPrevisto,
           forma_pagamento: formaPagamento || null,
+          valor_recebido: dinheiro && sd.ok ? sd.recebido : null,
+          troco: dinheiro && sd.ok ? sd.troco : null,
           fechada_at: null,
         };
 
@@ -380,6 +389,10 @@ export default function ComandaGarcom() {
       setError("Escolha a forma de pagamento.");
       return;
     }
+    if (dinheiro && !sd.ok) {
+      setError(msgDinheiro);
+      return;
+    }
 
     setFechando(true);
     setError("");
@@ -390,6 +403,8 @@ export default function ComandaGarcom() {
         status: "fechada",
         taxa_servico: taxaServico,
         forma_pagamento: formaPagamento,
+        valor_recebido: dinheiro ? sd.recebido : null,
+        troco: dinheiro ? sd.troco : null,
         valor_desconto: valorDesconto,
         valor_total: totalPrevisto,
         valor_taxa_servico: valorTaxaServico,
@@ -939,6 +954,7 @@ export default function ComandaGarcom() {
                       value={formaPagamento}
                       onChange={(e) => {
                         setFormaPagamento(e.target.value);
+                        setValorRecebido("");
                         setConfirmandoPagamento(false);
                       }}
                     >
@@ -949,6 +965,17 @@ export default function ComandaGarcom() {
                       <option value="pix">Pix</option>
                     </select>
                   </div>
+
+                  {dinheiro && (
+                    <ValorRecebido
+                      total={totalPrevisto}
+                      valor={valorRecebido}
+                      onChange={(v) => {
+                        setValorRecebido(v);
+                        setConfirmandoPagamento(false);
+                      }}
+                    />
+                  )}
 
                   {formaPagamento === "pix" && (
                     <div className="card" style={{ background: "var(--color-bg)" }}>
@@ -977,6 +1004,11 @@ export default function ComandaGarcom() {
                       >
                         {LABEL_PAGAMENTO[formaPagamento]}
                       </p>
+                      {dinheiro && sd.ok && (
+                        <p style={{ margin: "-8px 0 14px", fontSize: "1rem" }}>
+                          Recebido {formatMoeda(sd.recebido)} · <strong>Troco {formatMoeda(sd.troco)}</strong>
+                        </p>
+                      )}
                       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                         <button
                           className="btn-primary btn-accent"
@@ -1004,6 +1036,10 @@ export default function ComandaGarcom() {
                         onClick={() => {
                           if (!formaPagamento) {
                             setError("Escolha a forma de pagamento.");
+                            return;
+                          }
+                          if (dinheiro && !sd.ok) {
+                            setError(msgDinheiro);
                             return;
                           }
                           setError("");

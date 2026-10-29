@@ -4,6 +4,8 @@ import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import Notinha from "../../components/Notinha";
 import { calcularFechamento } from "../../lib/fechamento";
+import ValorRecebido from "../../components/ValorRecebido";
+import { situacaoDinheiro } from "../../lib/dinheiro";
 
 function formatMoeda(valor) {
   return Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -21,6 +23,7 @@ export default function FechamentoCaixa() {
 
   const [taxaServico, setTaxaServico] = useState(true);
   const [formaPagamento, setFormaPagamento] = useState("");
+  const [valorRecebido, setValorRecebido] = useState("");
 
   const loadTudo = async () => {
     setLoading(true);
@@ -74,6 +77,8 @@ export default function FechamentoCaixa() {
   });
   const { desconto: valorDesconto, taxaEntrega } = fechamento;
   const totalPrevisto = fechamento.total;
+  const dinheiro = formaPagamento === "dinheiro";
+  const sd = situacaoDinheiro(valorRecebido, totalPrevisto);
 
   const alternarTaxaServico = async (ligado) => {
     setTaxaServico(ligado);
@@ -94,6 +99,10 @@ export default function FechamentoCaixa() {
       setError("Escolha a forma de pagamento.");
       return;
     }
+    if (dinheiro && !sd.ok) {
+      setError("Informe o valor recebido em dinheiro (igual ou maior que o total).");
+      return;
+    }
 
     setFechando(true);
     setError("");
@@ -104,6 +113,8 @@ export default function FechamentoCaixa() {
         status: "fechada",
         taxa_servico: taxaServico,
         forma_pagamento: formaPagamento,
+        valor_recebido: dinheiro ? sd.recebido : null,
+        troco: dinheiro ? sd.troco : null,
         valor_desconto: valorDesconto,
         valor_taxa_servico: fechamento.dezPorCento,
         valor_total: totalPrevisto,
@@ -225,7 +236,13 @@ export default function FechamentoCaixa() {
 
           <div className="field">
             <label>Forma de pagamento (cobrada separadamente na maquininha)</label>
-            <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)}>
+            <select
+              value={formaPagamento}
+              onChange={(e) => {
+                setFormaPagamento(e.target.value);
+                setValorRecebido("");
+              }}
+            >
               <option value="">Selecione...</option>
               <option value="dinheiro">Dinheiro</option>
               <option value="debito">Cartão de débito</option>
@@ -233,6 +250,8 @@ export default function FechamentoCaixa() {
               <option value="pix">Pix</option>
             </select>
           </div>
+
+          {dinheiro && <ValorRecebido total={totalPrevisto} valor={valorRecebido} onChange={setValorRecebido} />}
 
           <button
             className="btn-primary btn-accent"

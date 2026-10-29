@@ -1455,3 +1455,26 @@
 .fid-selo.aprovada { background: #e3f6e8; color: #1c7a3c; }
 .fid-selo.pendente { background: #fdf0d3; color: #8a5a00; }
 .fid-selo.recusada { background: #fde8e8; color: #b42318; }
+
+/* ---------- Troco (pagamento em dinheiro) ---------- */
+.troco-destaque {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #e3f6e8;
+  color: #1c7a3c;
+  font-size: 1.1rem;
+}
+
+.troco-destaque strong {
+  font-size: 1.6rem;
+}
+
+.troco-destaque.falta {
+  background: #fde8e8;
+  color: #b42318;
+}
+
+.troco-destaque.falta strong {
+  font-size: 1.3rem;
+}

@@ -43,7 +43,7 @@ function RelatoriosContent() {
     const { data: comandasData, error: comandasError } = await supabase
       .from("comandas")
       .select(
-        "id, tipo, mesa_numero, cliente_nome, forma_pagamento, valor_total, valor_taxa_servico, fechada_at, comandas_fisicas(numero)"
+        "id, tipo, mesa_numero, cliente_nome, forma_pagamento, valor_total, valor_taxa_servico, valor_recebido, troco, fechada_at, comandas_fisicas(numero)"
       )
       .eq("status", "fechada")
       .eq("fora_dos_relatorios", false)
@@ -112,6 +112,7 @@ function RelatoriosContent() {
 
   const totalFaturado = comandas.reduce((soma, c) => soma + faturamentoDe(c), 0);
   const numeroComandas = comandas.length;
+  const totalTroco = comandas.reduce((soma, c) => soma + Number(c.troco || 0), 0);
   const ticketMedio = numeroComandas > 0 ? totalFaturado / numeroComandas : 0;
 
   const porFormaPagamento = Object.keys(LABEL_PAGAMENTO)
@@ -211,6 +212,14 @@ function RelatoriosContent() {
             {formatMoeda(ticketMedio)}
           </p>
         </div>
+        {totalTroco > 0 && (
+          <div className="role-grid-item">
+            <p style={{ margin: 0, color: "var(--color-text-muted)", fontSize: "0.8rem" }}>Troco dado (dinheiro)</p>
+            <p style={{ margin: "4px 0 0", fontSize: "1.4rem", fontWeight: 700, color: "var(--color-blue-900)" }}>
+              {formatMoeda(totalTroco)}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="card">
@@ -274,7 +283,14 @@ function RelatoriosContent() {
                     })}
                   </td>
                   <td>{identificarComanda(c)}</td>
-                  <td>{LABEL_PAGAMENTO[c.forma_pagamento] || "-"}</td>
+                  <td>
+                    {LABEL_PAGAMENTO[c.forma_pagamento] || "-"}
+                    {c.forma_pagamento === "dinheiro" && c.valor_recebido != null && (
+                      <small style={{ display: "block", color: "var(--color-text-muted)" }}>
+                        recebido {formatMoeda(c.valor_recebido)} · troco {formatMoeda(c.troco)}
+                      </small>
+                    )}
+                  </td>
                   <td>{formatMoeda(faturamentoDe(c))}</td>
                   <td>
                     <ConfirmButton onConfirm={() => handleApagarComanda(c)} confirmLabel="Apagar de vez?">

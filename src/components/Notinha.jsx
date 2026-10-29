@@ -148,6 +148,12 @@ export default function Notinha({ restaurantName, comanda, itens }) {
           </p>
         )}
 
+        {comanda.forma_pagamento === "dinheiro" && comanda.valor_recebido != null && (
+          <p style={{ textAlign: "center", marginTop: 4, marginBottom: 0, fontSize: "0.85rem" }}>
+            Recebido {formatMoeda(comanda.valor_recebido)} · <strong>Troco {formatMoeda(comanda.troco)}</strong>
+          </p>
+        )}
+
         {comanda.fechada_at && (
           <p style={{ textAlign: "center", marginTop: 4, marginBottom: 0, fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
             {new Date(comanda.fechada_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}

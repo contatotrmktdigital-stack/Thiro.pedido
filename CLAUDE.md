@@ -1075,6 +1075,18 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       Editor (ID aparece na ficha); apaga nome/CPF/telefone/e-mail e mantém só as contagens.
       **Rodar a 037 ANTES do deploy** (o app passa a ler as colunas novas).
 
+- [x] **Extra A (parte 1) — Troco no pagamento em dinheiro.** SQL `038_troco_pagamento_em_dinheiro.sql`
+      (só 2 colunas novas em `comandas`: `valor_recebido`, `troco`; vazias nas antigas). Quando a forma
+      de pagamento é **Dinheiro** (garçom/Gestão em `ComandaGarcom.jsx` e caixa em `FechamentoCaixa.jsx`)
+      aparece o campo **"Valor recebido"** (`ValorRecebido.jsx`, contas em `src/lib/dinheiro.js`) com
+      botão "Valor exato", **troco em destaque** (verde) ou "Faltam R$ X" (vermelho). **Não deixa fechar**
+      se o valor for menor que o total ou estiver vazio. Troco acompanha mudanças no total (ex.: desmarcar
+      10% da casa). Grava `valor_recebido` e `troco`; aparecem na **notinha** ("Recebido X · Troco Y") e
+      nos **relatórios** (por comanda e card "Troco dado"). Outras formas de pagamento gravam os dois
+      campos como vazios. **Pagamento dividido** fica para a próxima etapa (vai ganhar uma tabela de
+      pagamentos; as colunas `forma_pagamento/valor_recebido/troco` seguem valendo para o pagamento único).
+      **Rodar a 038 antes do deploy.**
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
