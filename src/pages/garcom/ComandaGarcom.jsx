@@ -345,7 +345,7 @@ export default function ComandaGarcom() {
     descontoPct: comanda.status === "fechada" ? 0 : comanda.desconto_pct,
     taxaEntrega: comanda.tipo === "delivery" ? Number(comanda.taxa_entrega) || 0 : 0,
   });
-  const { desconto: valorDesconto, base: baseComDesconto, taxaEntrega } = fechamento;
+  const { desconto: valorDesconto, taxaEntrega } = fechamento;
   const totalPrevisto = fechamento.total;
   const valorTaxaServico = fechamento.dezPorCento;
 
@@ -867,17 +867,16 @@ export default function ComandaGarcom() {
               </div>
 
               <p style={{ margin: "8px 0 4px" }}>
-                Subtotal: <strong>{formatMoeda(subtotal)}</strong>
+                Total da compra: <strong>{formatMoeda(subtotal)}</strong>
               </p>
               {valorDesconto > 0 && (
                 <p style={{ margin: "0 0 4px", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                  Desconto de fidelidade ({Number(comanda.desconto_pct)}% nos produtos): −{formatMoeda(valorDesconto)}{" "}
-                  → {formatMoeda(baseComDesconto)}
+                  Desconto de fidelidade ({Number(comanda.desconto_pct)}% nos produtos): −{formatMoeda(valorDesconto)}
                 </p>
               )}
               {taxaServico && (
                 <p style={{ margin: "0 0 4px", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                  10% da casa: {formatMoeda(valorTaxaServico)}
+                  10% da casa: +{formatMoeda(valorTaxaServico)}
                 </p>
               )}
               {comanda.tipo === "delivery" && (
@@ -886,8 +885,13 @@ export default function ComandaGarcom() {
                 </p>
               )}
               <p style={{ fontWeight: 700, fontSize: "1.2rem", margin: "8px 0 16px" }}>
-                Total a cobrar: {formatMoeda(totalPrevisto)}
+                {taxaServico ? "Total a ser pago com 10% da casa" : "Total a ser pago"}: {formatMoeda(totalPrevisto)}
               </p>
+              {taxaServico && (
+                <p style={{ margin: "-8px 0 16px", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
+                  Total a ser pago sem 10% da casa: {formatMoeda(totalPrevisto - valorTaxaServico)}
+                </p>
+              )}
               <VisitaFidelidade origem={origem} />
 
               {carrinho.length > 0 ? (
