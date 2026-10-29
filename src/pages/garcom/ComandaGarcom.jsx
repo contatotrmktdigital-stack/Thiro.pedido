@@ -982,8 +982,8 @@ export default function ComandaGarcom() {
                   Fechar comanda
                 </button>
               ) : (
-                <>
-                  <div style={{ margin: "16px 0" }}>
+                <div className="fechamento-grade">
+                  <div className="fechamento-notinha" style={{ margin: "16px 0" }}>
                     <p style={{ textAlign: "center", color: "var(--color-text-muted)", marginBottom: 10 }}>
                       Mostre essa notinha pro cliente conferir os itens antes de pagar.
                     </p>
@@ -997,6 +997,7 @@ export default function ComandaGarcom() {
                     </button>
                   </div>
 
+                  <div className="fechamento-pagamento">
                   {!dividindo && (
                   <>
                   <div className="field">
@@ -1173,7 +1174,8 @@ export default function ComandaGarcom() {
                       </button>
                     </div>
                   )}
-                </>
+                  </div>
+                </div>
               )}
 
               <div

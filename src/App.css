@@ -68,8 +68,8 @@
 
 .page-content {
   flex: 1;
-  padding: 24px;
-  max-width: 1100px;
+  padding: 24px clamp(0.75rem, 2vw, 2rem);
+  max-width: none;
   width: 100%;
   margin: 0 auto;
 }
@@ -1566,4 +1566,23 @@
   margin: 4px 0 0;
   color: #b42318;
   font-size: 0.85rem;
+}
+
+/* ---------- Fechamento no notebook: notinha de um lado, pagamento do outro ---------- */
+.fechamento-pagamento {
+  min-width: 0;
+}
+
+@media (min-width: 1000px) {
+  .fechamento-grade {
+    display: grid;
+    grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+
+  .fechamento-grade .fechamento-notinha {
+    position: sticky;
+    top: 72px;
+  }
 }

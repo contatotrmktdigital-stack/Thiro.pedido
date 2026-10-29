@@ -1102,6 +1102,12 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       bate com o faturamento) e mostram "Dinheiro R$ X + Pix R$ Y" na tabela. Contas em `src/lib/dinheiro.js`
       (`validarPartes`, `dividirIgualmente`). **Rodar a 039 antes do deploy.**
 
+- [x] **Telas ocupam a largura toda no notebook.** O conteúdo (`.page-content`) não tem mais limite de
+      1100px: usa a largura inteira com o mesmo respiro lateral do menu do topo
+      (`padding: 24px clamp(0.75rem, 2vw, 2rem)`). No **fechamento do garçom**, a partir de 1000px de
+      largura, a **notinha fica de um lado e o pagamento do outro** (`.fechamento-grade`; a notinha
+      acompanha a rolagem). No celular nada muda. Só CSS/layout, sem SQL.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
