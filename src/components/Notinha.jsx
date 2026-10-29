@@ -9,7 +9,7 @@ function formatMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export default function Notinha({ restaurantName, comanda, itens }) {
+export default function Notinha({ restaurantName, comanda, itens, pagamentos }) {
   const itensValidos = itens.filter((item) => item.status !== "cancelado");
   const subtotal = itensValidos.reduce((soma, item) => soma + item.preco_unitario * item.quantidade, 0);
   const taxaEntrega = comanda.tipo === "delivery" ? Number(comanda.taxa_entrega) || 0 : 0;
@@ -142,7 +142,26 @@ export default function Notinha({ restaurantName, comanda, itens }) {
           </span>
         </div>
 
-        {comanda.forma_pagamento && (
+        {comanda.forma_pagamento === "dividido" && pagamentos?.length > 0 && (
+          <div style={{ marginTop: 10, fontSize: "0.85rem", textAlign: "center" }}>
+            <p style={{ margin: "0 0 4px" }}>
+              <strong>Pagamento dividido</strong>
+            </p>
+            {pagamentos.map((p, i) => (
+              <p key={i} style={{ margin: "0 0 2px" }}>
+                {LABEL_PAGAMENTO[p.forma] || p.forma}: {formatMoeda(p.valor)}
+                {p.forma === "dinheiro" && p.valor_recebido != null && (
+                  <span style={{ color: "var(--color-text-muted)" }}>
+                    {" "}
+                    (recebido {formatMoeda(p.valor_recebido)} · troco {formatMoeda(p.troco)})
+                  </span>
+                )}
+              </p>
+            ))}
+          </div>
+        )}
+
+        {comanda.forma_pagamento && comanda.forma_pagamento !== "dividido" && (
           <p style={{ textAlign: "center", marginTop: 10, marginBottom: 0, fontSize: "0.85rem" }}>
             Pago em <strong>{LABEL_PAGAMENTO[comanda.forma_pagamento] || comanda.forma_pagamento}</strong>
           </p>

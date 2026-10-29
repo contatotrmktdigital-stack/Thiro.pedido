@@ -10,7 +10,8 @@ import { useOrigem } from "../../lib/origem";
 import { calcularFechamento } from "../../lib/fechamento";
 import VisitaFidelidade from "../../components/VisitaFidelidade";
 import ValorRecebido from "../../components/ValorRecebido";
-import { situacaoDinheiro } from "../../lib/dinheiro";
+import PagamentoDividido from "../../components/PagamentoDividido";
+import { mensagemErroDividido, novaParte, situacaoDinheiro, validarPartes } from "../../lib/dinheiro";
 
 function formatMoeda(valor) {
   return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -45,6 +46,9 @@ export default function ComandaGarcom() {
   const [taxaServico, setTaxaServico] = useState(true);
   const [formaPagamento, setFormaPagamento] = useState("");
   const [valorRecebido, setValorRecebido] = useState("");
+  const [dividindo, setDividindo] = useState(false);
+  const [partes, setPartes] = useState([]);
+  const [pagamentos, setPagamentos] = useState([]);
   const [fechando, setFechando] = useState(false);
   const [confirmandoPagamento, setConfirmandoPagamento] = useState(false);
   const [revisandoFechamento, setRevisandoFechamento] = useState(false);
@@ -332,6 +336,20 @@ export default function ComandaGarcom() {
     cancelado: "Cancelado",
   };
 
+  // Pagamento dividido já fechado: busca as partes pra mostrar na notinha.
+  useEffect(() => {
+    if (comanda?.status !== "fechada" || comanda?.forma_pagamento !== "dividido") {
+      setPagamentos([]);
+      return;
+    }
+    supabase
+      .from("comanda_pagamentos")
+      .select("forma, valor, valor_recebido, troco")
+      .eq("comanda_id", comandaId)
+      .order("created_at")
+      .then(({ data }) => setPagamentos(data || []));
+  }, [comanda?.status, comanda?.forma_pagamento, comandaId]);
+
   if (loading) {
     return <p>Carregando comanda...</p>;
   }
@@ -355,6 +373,10 @@ export default function ComandaGarcom() {
   const dinheiro = formaPagamento === "dinheiro";
   const sd = situacaoDinheiro(valorRecebido, totalPrevisto);
   const msgDinheiro = "Informe o valor recebido em dinheiro (igual ou maior que o total).";
+  // Pagamento dividido: várias partes que precisam somar o total.
+  const vp = dividindo ? validarPartes(partes, totalPrevisto) : null;
+  const msgDividido = "Confira as partes: cada uma precisa de forma e valor, e a soma tem de ser igual ao total.";
+  const pagamentosNotinha = comanda.status === "fechada" ? pagamentos : dividindo && vp.ok ? vp.linhas : null;
 
   const notinhaComanda =
     comanda.status === "fechada"
@@ -364,7 +386,7 @@ export default function ComandaGarcom() {
           taxa_servico: taxaServico,
           valor_desconto: valorDesconto,
           valor_total: totalPrevisto,
-          forma_pagamento: formaPagamento || null,
+          forma_pagamento: dividindo && vp.ok ? "dividido" : formaPagamento || null,
           valor_recebido: dinheiro && sd.ok ? sd.recebido : null,
           troco: dinheiro && sd.ok ? sd.troco : null,
           fechada_at: null,
@@ -385,6 +407,33 @@ export default function ComandaGarcom() {
   };
 
   const handleFecharComanda = async () => {
+    if (dividindo) {
+      if (!vp.ok) {
+        setError(msgDividido);
+        return;
+      }
+      setFechando(true);
+      setError("");
+      const { error: rpcError } = await supabase.rpc("fechar_comanda_dividida", {
+        p_comanda_id: comandaId,
+        p_taxa_servico: taxaServico,
+        p_valor_desconto: valorDesconto,
+        p_valor_taxa_servico: valorTaxaServico,
+        p_valor_total: totalPrevisto,
+        p_partes: vp.linhas.map((l) => ({ forma: l.forma, valor: l.valor, valor_recebido: l.valor_recebido })),
+      });
+      setFechando(false);
+      if (rpcError) {
+        setError(mensagemErroDividido(rpcError.message));
+        return;
+      }
+      setDividindo(false);
+      setPartes([]);
+      setConfirmandoPagamento(false);
+      await loadTudo();
+      return;
+    }
+
     if (!formaPagamento) {
       setError("Escolha a forma de pagamento.");
       return;
@@ -665,7 +714,7 @@ export default function ComandaGarcom() {
           <p style={{ textAlign: "center", color: "var(--color-text-muted)", marginTop: -4 }}>
             Mostre essa notinha pro cliente, ou leia os itens em voz alta.
           </p>
-          <Notinha restaurantName={restaurant?.name} comanda={notinhaComanda} itens={itens} />
+          <Notinha restaurantName={restaurant?.name} comanda={notinhaComanda} itens={itens} pagamentos={pagamentosNotinha} />
           <button
             className="btn-secondary"
             onClick={() => setNotinhaTelaCheia(true)}
@@ -938,7 +987,7 @@ export default function ComandaGarcom() {
                     <p style={{ textAlign: "center", color: "var(--color-text-muted)", marginBottom: 10 }}>
                       Mostre essa notinha pro cliente conferir os itens antes de pagar.
                     </p>
-                    <Notinha restaurantName={restaurant?.name} comanda={notinhaComanda} itens={itens} />
+                    <Notinha restaurantName={restaurant?.name} comanda={notinhaComanda} itens={itens} pagamentos={pagamentosNotinha} />
                     <button
                       className="btn-secondary"
                       onClick={() => setNotinhaTelaCheia(true)}
@@ -948,6 +997,8 @@ export default function ComandaGarcom() {
                     </button>
                   </div>
 
+                  {!dividindo && (
+                  <>
                   <div className="field">
                     <label>Forma de pagamento</label>
                     <select
@@ -989,6 +1040,49 @@ export default function ComandaGarcom() {
                     </div>
                   )}
 
+                  <button
+                    type="button"
+                    className="fid-link"
+                    onClick={() => {
+                      setDividindo(true);
+                      setPartes([novaParte(), novaParte()]);
+                      setFormaPagamento("");
+                      setValorRecebido("");
+                      setConfirmandoPagamento(false);
+                    }}
+                  >
+                    Dividir pagamento
+                  </button>
+                  </>
+                  )}
+
+                  {dividindo && (
+                    <>
+                      <PagamentoDividido
+                        total={totalPrevisto}
+                        partes={partes}
+                        onChange={(p) => {
+                          setPartes(p);
+                          setConfirmandoPagamento(false);
+                        }}
+                        restaurant={restaurant}
+                        comandaId={comandaId}
+                        disabled={fechando}
+                      />
+                      <button
+                        type="button"
+                        className="fid-link"
+                        onClick={() => {
+                          setDividindo(false);
+                          setPartes([]);
+                          setConfirmandoPagamento(false);
+                        }}
+                      >
+                        Voltar para pagamento único
+                      </button>
+                    </>
+                  )}
+
                   {confirmandoPagamento ? (
                     <div className="card" style={{ background: "var(--color-red-100)" }}>
                       <p style={{ margin: "0 0 4px", fontSize: "0.9rem" }}>
@@ -1002,8 +1096,19 @@ export default function ComandaGarcom() {
                           color: "var(--color-red-700)",
                         }}
                       >
-                        {LABEL_PAGAMENTO[formaPagamento]}
+                        {dividindo ? "Pagamento dividido" : LABEL_PAGAMENTO[formaPagamento]}
                       </p>
+                      {dividindo && vp.ok && (
+                        <ul style={{ margin: "-8px 0 14px", paddingLeft: 18 }}>
+                          {vp.linhas.map((l, i) => (
+                            <li key={i}>
+                              {LABEL_PAGAMENTO[l.forma]}: {formatMoeda(l.valor)}
+                              {l.forma === "dinheiro" &&
+                                ` (recebido ${formatMoeda(l.valor_recebido)} · troco ${formatMoeda(l.troco)})`}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                       {dinheiro && sd.ok && (
                         <p style={{ margin: "-8px 0 14px", fontSize: "1rem" }}>
                           Recebido {formatMoeda(sd.recebido)} · <strong>Troco {formatMoeda(sd.troco)}</strong>
@@ -1034,6 +1139,15 @@ export default function ComandaGarcom() {
                         className="btn-primary btn-accent"
                         disabled={fechando}
                         onClick={() => {
+                          if (dividindo) {
+                            if (!vp.ok) {
+                              setError(msgDividido);
+                              return;
+                            }
+                            setError("");
+                            setConfirmandoPagamento(true);
+                            return;
+                          }
                           if (!formaPagamento) {
                             setError("Escolha a forma de pagamento.");
                             return;
@@ -1159,7 +1273,7 @@ export default function ComandaGarcom() {
             Fechar
           </button>
           <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 460 }}>
-            <Notinha restaurantName={restaurant?.name} comanda={notinhaComanda} itens={itens} />
+            <Notinha restaurantName={restaurant?.name} comanda={notinhaComanda} itens={itens} pagamentos={pagamentosNotinha} />
           </div>
         </div>
       )}

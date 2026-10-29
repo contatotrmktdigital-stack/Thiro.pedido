@@ -33,6 +33,7 @@ function RelatoriosContent() {
   const [dataFinal, setDataFinal] = useState(hojeString());
   const [comandas, setComandas] = useState([]);
   const [itens, setItens] = useState([]);
+  const [partesPorComanda, setPartesPorComanda] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -74,7 +75,21 @@ function RelatoriosContent() {
       itensData = data || [];
     }
 
+    // Pagamentos divididos: busca as partes (cada parte conta na sua forma de pagamento).
+    const divididas = (comandasData || []).filter((c) => c.forma_pagamento === "dividido").map((c) => c.id);
+    const partes = {};
+    for (let i = 0; i < divididas.length; i += 100) {
+      const { data: partesData } = await supabase
+        .from("comanda_pagamentos")
+        .select("comanda_id, forma, valor, valor_recebido, troco")
+        .in("comanda_id", divididas.slice(i, i + 100));
+      (partesData || []).forEach((p) => {
+        (partes[p.comanda_id] = partes[p.comanda_id] || []).push(p);
+      });
+    }
+
     setComandas(comandasData || []);
+    setPartesPorComanda(partes);
     setItens(itensData);
     setLoading(false);
   };
@@ -119,7 +134,19 @@ function RelatoriosContent() {
     .map((chave) => ({
       chave,
       label: LABEL_PAGAMENTO[chave],
-      value: comandas.filter((c) => c.forma_pagamento === chave).reduce((soma, c) => soma + faturamentoDe(c), 0),
+      // pagamento único: o faturamento inteiro; dividido: cada parte, proporcional ao faturamento da comanda
+      value:
+        comandas.filter((c) => c.forma_pagamento === chave).reduce((soma, c) => soma + faturamentoDe(c), 0) +
+        comandas
+          .filter((c) => c.forma_pagamento === "dividido" && Number(c.valor_total) > 0)
+          .reduce(
+            (soma, c) =>
+              soma +
+              (partesPorComanda[c.id] || [])
+                .filter((p) => p.forma === chave)
+                .reduce((s, p) => s + (Number(p.valor) * faturamentoDe(c)) / Number(c.valor_total), 0),
+            0
+          ),
     }))
     .filter((item) => item.value > 0);
 
@@ -284,7 +311,9 @@ function RelatoriosContent() {
                   </td>
                   <td>{identificarComanda(c)}</td>
                   <td>
-                    {LABEL_PAGAMENTO[c.forma_pagamento] || "-"}
+                    {c.forma_pagamento === "dividido"
+                      ? (partesPorComanda[c.id] || []).map((p) => `${LABEL_PAGAMENTO[p.forma]} ${formatMoeda(p.valor)}`).join(" + ") || "Dividido"
+                      : LABEL_PAGAMENTO[c.forma_pagamento] || "-"}
                     {c.forma_pagamento === "dinheiro" && c.valor_recebido != null && (
                       <small style={{ display: "block", color: "var(--color-text-muted)" }}>
                         recebido {formatMoeda(c.valor_recebido)} · troco {formatMoeda(c.troco)}

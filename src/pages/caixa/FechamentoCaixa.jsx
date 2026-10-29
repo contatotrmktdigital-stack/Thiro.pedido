@@ -5,7 +5,8 @@ import { useAuth } from "../../context/AuthContext";
 import Notinha from "../../components/Notinha";
 import { calcularFechamento } from "../../lib/fechamento";
 import ValorRecebido from "../../components/ValorRecebido";
-import { situacaoDinheiro } from "../../lib/dinheiro";
+import PagamentoDividido from "../../components/PagamentoDividido";
+import { mensagemErroDividido, novaParte, situacaoDinheiro, validarPartes } from "../../lib/dinheiro";
 
 function formatMoeda(valor) {
   return Number(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -24,6 +25,9 @@ export default function FechamentoCaixa() {
   const [taxaServico, setTaxaServico] = useState(true);
   const [formaPagamento, setFormaPagamento] = useState("");
   const [valorRecebido, setValorRecebido] = useState("");
+  const [dividindo, setDividindo] = useState(false);
+  const [partes, setPartes] = useState([]);
+  const [pagamentos, setPagamentos] = useState([]);
 
   const loadTudo = async () => {
     setLoading(true);
@@ -59,6 +63,20 @@ export default function FechamentoCaixa() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comandaId]);
 
+  // Pagamento dividido já fechado: busca as partes pra mostrar na notinha.
+  useEffect(() => {
+    if (comanda?.status !== "fechada" || comanda?.forma_pagamento !== "dividido") {
+      setPagamentos([]);
+      return;
+    }
+    supabase
+      .from("comanda_pagamentos")
+      .select("forma, valor, valor_recebido, troco")
+      .eq("comanda_id", comandaId)
+      .order("created_at")
+      .then(({ data }) => setPagamentos(data || []));
+  }, [comanda?.status, comanda?.forma_pagamento, comandaId]);
+
   if (loading) {
     return <p>Carregando comanda...</p>;
   }
@@ -79,6 +97,7 @@ export default function FechamentoCaixa() {
   const totalPrevisto = fechamento.total;
   const dinheiro = formaPagamento === "dinheiro";
   const sd = situacaoDinheiro(valorRecebido, totalPrevisto);
+  const vp = dividindo ? validarPartes(partes, totalPrevisto) : null;
 
   const alternarTaxaServico = async (ligado) => {
     setTaxaServico(ligado);
@@ -95,6 +114,32 @@ export default function FechamentoCaixa() {
   };
 
   const handleFechar = async () => {
+    if (dividindo) {
+      if (!vp.ok) {
+        setError("Confira as partes: cada uma precisa de forma e valor, e a soma tem de ser igual ao total.");
+        return;
+      }
+      setFechando(true);
+      setError("");
+      const { error: rpcError } = await supabase.rpc("fechar_comanda_dividida", {
+        p_comanda_id: comandaId,
+        p_taxa_servico: taxaServico,
+        p_valor_desconto: valorDesconto,
+        p_valor_taxa_servico: fechamento.dezPorCento,
+        p_valor_total: totalPrevisto,
+        p_partes: vp.linhas.map((l) => ({ forma: l.forma, valor: l.valor, valor_recebido: l.valor_recebido })),
+      });
+      setFechando(false);
+      if (rpcError) {
+        setError(mensagemErroDividido(rpcError.message));
+        return;
+      }
+      setDividindo(false);
+      setPartes([]);
+      await loadTudo();
+      return;
+    }
+
     if (!formaPagamento) {
       setError("Escolha a forma de pagamento.");
       return;
@@ -140,7 +185,7 @@ export default function FechamentoCaixa() {
 
       {comanda.status === "fechada" ? (
         <div className="card">
-          <Notinha restaurantName={restaurant?.name} comanda={comanda} itens={itens} />
+          <Notinha restaurantName={restaurant?.name} comanda={comanda} itens={itens} pagamentos={pagamentos} />
         </div>
       ) : (
         <div className="card">
@@ -234,6 +279,8 @@ export default function FechamentoCaixa() {
             {taxaServico ? "Total a ser pago" : "Total a ser pago sem 10%"}: {formatMoeda(totalPrevisto)}
           </p>
 
+          {!dividindo && (
+          <>
           <div className="field">
             <label>Forma de pagamento (cobrada separadamente na maquininha)</label>
             <select
@@ -252,6 +299,44 @@ export default function FechamentoCaixa() {
           </div>
 
           {dinheiro && <ValorRecebido total={totalPrevisto} valor={valorRecebido} onChange={setValorRecebido} />}
+
+          <button
+            type="button"
+            className="fid-link"
+            onClick={() => {
+              setDividindo(true);
+              setPartes([novaParte(), novaParte()]);
+              setFormaPagamento("");
+              setValorRecebido("");
+            }}
+          >
+            Dividir pagamento
+          </button>
+          </>
+          )}
+
+          {dividindo && (
+            <>
+              <PagamentoDividido
+                total={totalPrevisto}
+                partes={partes}
+                onChange={setPartes}
+                restaurant={restaurant}
+                comandaId={comandaId}
+                disabled={fechando}
+              />
+              <button
+                type="button"
+                className="fid-link"
+                onClick={() => {
+                  setDividindo(false);
+                  setPartes([]);
+                }}
+              >
+                Voltar para pagamento único
+              </button>
+            </>
+          )}
 
           <button
             className="btn-primary btn-accent"

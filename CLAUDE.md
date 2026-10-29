@@ -1087,6 +1087,21 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       pagamentos; as colunas `forma_pagamento/valor_recebido/troco` seguem valendo para o pagamento único).
       **Rodar a 038 antes do deploy.**
 
+- [x] **Extra A (parte 2) — Pagamento dividido.** SQL `039_pagamento_dividido.sql` (aditivo, re-executável,
+      testado num Postgres em memória): valor novo `dividido` no enum `forma_pagamento`, tabela
+      `comanda_pagamentos` (uma linha por parte: forma, valor, valor_recebido, troco; RLS por restaurante;
+      sem UPDATE/DELETE) e função `fechar_comanda_dividida(...)` que confere soma = total, grava as partes e
+      fecha a comanda **tudo ou nada** (se algo falhar nada é salvo). Pagamento único segue como antes
+      (colunas da própria comanda). No fechamento (garçom/Gestão e caixa) há o link discreto **"Dividir
+      pagamento"** abaixo da forma de pagamento → painel `PagamentoDividido.jsx`: partes com forma + valor,
+      botão "Restante", **"Dividir igualmente entre N pessoas"**, dinheiro com valor recebido/troco só da
+      parte, Pix com QR do valor da parte, remover parte, aviso "Falta lançar / Passou" e **só fecha com a
+      soma exata**. Comanda dividida grava `forma_pagamento='dividido'` e `troco` = soma dos trocos.
+      **Notinha** lista as partes; **relatórios** contam cada parte na sua forma, **proporcionalmente ao
+      faturamento da comanda** (desconta 10% da casa e desconto de fidelidade, assim a soma por forma
+      bate com o faturamento) e mostram "Dinheiro R$ X + Pix R$ Y" na tabela. Contas em `src/lib/dinheiro.js`
+      (`validarPartes`, `dividirIgualmente`). **Rodar a 039 antes do deploy.**
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
