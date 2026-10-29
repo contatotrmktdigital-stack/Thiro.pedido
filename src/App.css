@@ -1617,3 +1617,112 @@
   font-weight: 700;
   vertical-align: middle;
 }
+
+/* ---------- Dividir / transferir item ---------- */
+.di-card {
+  max-width: 460px;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.di-modos {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.di-modo {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #e2e6ee;
+  border-radius: 10px;
+  background: var(--color-bg, #f4f6fb);
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.di-modo.ativo {
+  border-color: var(--color-blue-700, #1d4ed8);
+  background: var(--color-blue-100, #dbe6ff);
+  color: var(--color-blue-900, #0b2559);
+}
+
+.di-modo:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.di-dica {
+  margin: 4px 0 10px;
+  color: #5b6472;
+  font-size: 0.82rem;
+}
+
+.di-inclui {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+.di-busca {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.di-confirma {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #e3f6e8;
+  color: #1c7a3c;
+}
+
+.di-destinos {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.di-destinos li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid #e2e6ee;
+  border-radius: 10px;
+}
+
+.di-resumo {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--color-blue-100, #dbe6ff);
+  color: var(--color-blue-900, #0b2559);
+  font-size: 0.9rem;
+}
+
+.di-registro {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  color: #5b6472;
+  font-size: 0.9rem;
+}
+
+.di-registro li {
+  padding: 4px 0;
+}

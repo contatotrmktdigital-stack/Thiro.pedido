@@ -11,6 +11,7 @@ import { calcularFechamento } from "../../lib/fechamento";
 import VisitaFidelidade from "../../components/VisitaFidelidade";
 import ValorRecebido from "../../components/ValorRecebido";
 import PagamentoDividido from "../../components/PagamentoDividido";
+import DividirItem from "../../components/DividirItem";
 import { mensagemErroDividido, novaParte, situacaoDinheiro, validarPartes } from "../../lib/dinheiro";
 
 function formatMoeda(valor) {
@@ -49,6 +50,8 @@ export default function ComandaGarcom() {
   const [dividindo, setDividindo] = useState(false);
   const [partes, setPartes] = useState([]);
   const [pagamentos, setPagamentos] = useState([]);
+  const [itemParaDividir, setItemParaDividir] = useState(null);
+  const [divisoes, setDivisoes] = useState([]);
   const [fechando, setFechando] = useState(false);
   const [confirmandoPagamento, setConfirmandoPagamento] = useState(false);
   const [revisandoFechamento, setRevisandoFechamento] = useState(false);
@@ -350,6 +353,16 @@ export default function ComandaGarcom() {
       .then(({ data }) => setPagamentos(data || []));
   }, [comanda?.status, comanda?.forma_pagamento, comandaId]);
 
+  // Registro dos itens movidos/divididos que entraram ou saíram desta comanda.
+  useEffect(() => {
+    supabase
+      .from("comanda_item_divisoes")
+      .select("id, tipo, nome_produto, quantidade, valor, origem_rotulo, destino_rotulo, comanda_origem_id, garcom_nome, created_at")
+      .or(`comanda_origem_id.eq.${comandaId},comanda_destino_id.eq.${comandaId}`)
+      .order("created_at")
+      .then(({ data }) => setDivisoes(data || []));
+  }, [comandaId, itens]);
+
   if (loading) {
     return <p>Carregando comanda...</p>;
   }
@@ -610,6 +623,16 @@ export default function ComandaGarcom() {
                           </button>
                         </>
                       )}
+                      {item.status !== "cancelado" && (
+                        <button
+                          className="btn-secondary"
+                          disabled={busy}
+                          onClick={() => setItemParaDividir(item)}
+                          style={{ padding: "4px 10px" }}
+                        >
+                          Dividir / transferir
+                        </button>
+                      )}
                       {["pendente", "preparo"].includes(item.status) && (
                         <ConfirmButton
                           disabled={busy}
@@ -662,6 +685,38 @@ export default function ComandaGarcom() {
           </p>
         )}
       </div>
+
+      {divisoes.length > 0 && (
+        <div className="card">
+          <h2>Itens divididos ou transferidos</h2>
+          <ul className="di-registro">
+            {divisoes.map((d) => {
+              const saiu = d.comanda_origem_id === comandaId;
+              return (
+                <li key={d.id}>
+                  {saiu ? "↪" : "↩"} {d.quantidade}x {d.nome_produto}
+                  {d.tipo === "igual" ? " (parte)" : ""} {saiu ? "→" : "←"} {saiu ? d.destino_rotulo : d.origem_rotulo} ·{" "}
+                  {formatMoeda(d.valor)}
+                  {d.garcom_nome ? ` · por ${d.garcom_nome}` : ""} ·{" "}
+                  {new Date(d.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {itemParaDividir && (
+        <DividirItem
+          item={itemParaDividir}
+          comandaId={comandaId}
+          onClose={() => setItemParaDividir(null)}
+          onDone={async () => {
+            setItemParaDividir(null);
+            await loadTudo();
+          }}
+        />
+      )}
 
       {itemParaRemover && (
         <div className="modal-backdrop" onClick={() => setItemParaRemover(null)}>

@@ -54,6 +54,7 @@ function TabelaItens({ itens }) {
                   <td>{LABEL_ORIGEM[item.origem] || "Atendente"}</td>
                   <td style={item.status === "cancelado" ? { textDecoration: "line-through" } : undefined}>
                     {item.nome_produto}
+                    {item.divisao_de && <small style={{ color: "var(--color-text-muted)" }}> (parte de divisão)</small>}
                     {item.observacao && (
                       <div style={{ color: "var(--color-red-700)", fontWeight: 700, fontSize: "0.8rem" }}>
                         Obs: {item.observacao}
@@ -90,7 +91,7 @@ function HistoricoContent() {
     const { data, error: fetchError } = await supabase
       .from("comanda_itens")
       .select(
-        "id, nome_produto, setor, quantidade, preco_unitario, observacao, status, origem, created_at, comandas(tipo, mesa_numero, cliente_nome, comandas_fisicas(numero))"
+        "id, nome_produto, setor, divisao_de, quantidade, preco_unitario, observacao, status, origem, created_at, comandas(tipo, mesa_numero, cliente_nome, comandas_fisicas(numero))"
       )
       .gte("created_at", `${dataInicial}T00:00:00`)
       .lte("created_at", `${dataFinal}T23:59:59.999`)
@@ -115,7 +116,7 @@ function HistoricoContent() {
     return <p>Carregando histórico...</p>;
   }
 
-  const totalItens = itens.length;
+  const totalItens = itens.filter((i) => !i.divisao_de).length;
   const totalValor = itens
     .filter((i) => i.status !== "cancelado")
     .reduce((soma, i) => soma + i.preco_unitario * i.quantidade, 0);

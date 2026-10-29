@@ -1122,6 +1122,22 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       continua única; itens de bar ganham a etiqueta "🍹 Bar". Helpers em `src/lib/setor.js`.
       **Rodar a 040 antes do deploy.**
 
+- [x] **Extra C — Dividir / transferir item entre comandas.** SQL `041_dividir_item_entre_comandas.sql`
+      (aditivo, re-executável, testado num Postgres em memória **com o gatilho real de estoque**): coluna
+      `comanda_itens.divisao_de`, tabela de registro `comanda_item_divisoes` (quem, quando, de/para, valor;
+      sem UPDATE/DELETE) e funções `dividir_item_unidades` e `dividir_item_igual` (tudo ou nada, rodam com as
+      permissões de quem chama). No item da comanda aberta há o botão **"Dividir / transferir"** (`DividirItem.jsx`):
+      **Mover unidades** (para 1 comanda; item inteiro vale em qualquer status; só PARTE das unidades vale para
+      item pronto/entregue — item na cozinha só vai inteiro) e **Dividir igualmente** (1 unidade já entregue,
+      entre N comandas, com a opção "Esta comanda também paga uma parte" marcada por padrão; centavos que sobram
+      vão para as primeiras partes e a soma fecha no valor original). Destino: comanda de **mesa, aberta, do mesmo
+      restaurante**, achada pelo **número da comanda** com confirmação "Mesa X · Comanda Y · Nome". Nome do garçom
+      pedido e lembrado no aparelho. **Estoque não muda** (reduzir devolve, a cópia tira; nas partes da divisão
+      igual a cópia não tem produto). **Cozinha:** cópias entram como `entregue` → não vão para a fila nem geram
+      push. Partes da divisão igual ficam marcadas (`divisao_de`) e **não contam como unidades extras** nos
+      relatórios/histórico (valor conta). A comanda mostra o card "Itens divididos ou transferidos".
+      **Rodar a 041 antes do deploy.**
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

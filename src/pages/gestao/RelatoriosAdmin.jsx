@@ -64,7 +64,7 @@ function RelatoriosContent() {
     if (comandaIds.length > 0) {
       const { data, error: itensError } = await supabase
         .from("comanda_itens")
-        .select("nome_produto, quantidade, preco_unitario, comanda_id, setor")
+        .select("nome_produto, quantidade, preco_unitario, comanda_id, setor, divisao_de")
         .in("comanda_id", comandaIds)
         .neq("status", "cancelado");
 
@@ -174,6 +174,7 @@ function RelatoriosContent() {
     const mapa = new Map();
     for (const item of itens) {
       if ((item.setor || "outros") !== setor) continue;
+      if (item.divisao_de) continue; // parte de divisão igual: não é unidade a mais
       const atual = mapa.get(item.nome_produto) || { quantidade: 0 };
       atual.quantidade += item.quantidade;
       mapa.set(item.nome_produto, atual);

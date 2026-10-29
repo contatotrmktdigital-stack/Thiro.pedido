@@ -16,7 +16,8 @@ export function totaisPorSetor(itens) {
   for (const i of itens) {
     if (i.status === "cancelado") continue;
     const chave = i.setor === "bar" || i.setor === "cozinha" ? i.setor : "outros";
-    totais[chave].quantidade += Number(i.quantidade) || 0;
+    // partes de uma divisão igual valem dinheiro, mas não são unidades a mais
+    if (!i.divisao_de) totais[chave].quantidade += Number(i.quantidade) || 0;
     totais[chave].valor += Number(i.preco_unitario) * (Number(i.quantidade) || 0);
   }
   return totais;
