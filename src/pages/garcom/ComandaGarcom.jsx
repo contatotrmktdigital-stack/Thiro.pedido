@@ -885,13 +885,8 @@ export default function ComandaGarcom() {
                 </p>
               )}
               <p style={{ fontWeight: 700, fontSize: "1.2rem", margin: "8px 0 16px" }}>
-                {taxaServico ? "Total a ser pago com 10%" : "Total a ser pago"}: {formatMoeda(totalPrevisto)}
+                {taxaServico ? "Total a ser pago" : "Total a ser pago sem 10%"}: {formatMoeda(totalPrevisto)}
               </p>
-              {taxaServico && (
-                <p style={{ margin: "-8px 0 16px", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                  Total a ser pago sem 10%: {formatMoeda(totalPrevisto - valorTaxaServico)}
-                </p>
-              )}
               <VisitaFidelidade origem={origem} />
 
               {carrinho.length > 0 ? (

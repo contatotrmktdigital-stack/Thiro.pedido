@@ -312,15 +312,9 @@ export default function ComandaCliente() {
                     </div>
                   )}
                   <div className="cc-total">
-                    <span>{fechamento.dezPorCento > 0 ? "Total a ser pago com 10%" : "Total a ser pago"}</span>
+                    <span>Total a ser pago</span>
                     <strong>{formatMoeda(fechamento.total)}</strong>
                   </div>
-                  {fechamento.dezPorCento > 0 && (
-                    <div className="cc-total-sem">
-                      <span>Total a ser pago sem 10%</span>
-                      <span>{formatMoeda(fechamento.total - fechamento.dezPorCento)}</span>
-                    </div>
-                  )}
                 </div>
                 <p className="cc-nota">
                   Valor parcial: pode mudar se novos itens forem pedidos. O fechamento é feito pelo

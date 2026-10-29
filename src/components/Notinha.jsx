@@ -136,19 +136,11 @@ export default function Notinha({ restaurantName, comanda, itens }) {
             borderTop: "2px solid var(--color-blue-900)",
           }}
         >
-          <span style={{ fontWeight: 700, color: "var(--color-blue-900)" }}>
-            {comanda.taxa_servico ? "Total a ser pago com 10%" : "Total a ser pago"}
-          </span>
+          <span style={{ fontWeight: 700, color: "var(--color-blue-900)" }}>Total a ser pago</span>
           <span style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--color-blue-900)" }}>
             {formatMoeda(comanda.valor_total ?? subtotal)}
           </span>
         </div>
-        {comanda.taxa_servico && (
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
-            <span>Total a ser pago sem 10%</span>
-            <span>{formatMoeda((comanda.valor_total ?? subtotal) - dezPorCento)}</span>
-          </div>
-        )}
 
         {comanda.forma_pagamento && (
           <p style={{ textAlign: "center", marginTop: 10, marginBottom: 0, fontSize: "0.85rem" }}>
