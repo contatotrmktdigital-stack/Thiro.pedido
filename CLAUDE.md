@@ -1025,6 +1025,27 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       verificação: o painel do sino saía da tela no celular — corrigido ancorando no topo.
       Verificado no navegador de teste. **Rodar a 035 antes do deploy.**
 
+- [x] **Fase 1 — Notificações push (web push) para pedidos novos e chamados do cliente.**
+      Equipe recebe aviso no celular/computador mesmo com o site fechado: **pedido novo → aparelhos
+      da área Cozinha**; **cliente chamou o garçom / pediu a conta → Garçom, Cozinha e Gestão**.
+      Peças: `public/sw.js` (service worker só para push, sem cache — não toca nas telas do QR);
+      tabela `push_subscriptions` (aparelho por restaurante e área, RLS por restaurante);
+      `api/push.js` (função serverless da Vercel com `web-push`; só aceita chamada com o
+      cabeçalho `x-push-secret`); SQL `036_notificacoes_push.sql` (pg_net + gatilhos em
+      `comanda_itens` — um aviso por lançamento — e `chamados`; nunca derrubam o pedido se o
+      aviso falhar). O banco manda a lista de aparelhos junto, então a função não precisa de chave
+      do Supabase. Botão **“Ativar avisos neste aparelho”** fica escondido: dentro do painel do
+      sininho e como link discreto na tela da Cozinha (permissão pedida só no toque). iPhone só recebe
+      com o site adicionado à Tela de Início (iOS 16.4+) — a tela explica. Bipe com a aba aberta
+      agora também na Cozinha (`src/lib/som.js`, compartilhado com o sininho). `vercel.json`:
+      o rewrite do SPA ignora `/api/`. **Segredos:** chaves VAPID + `PUSH_SECRET` só no `.env`
+      e nas Environment Variables da Vercel (Production/Preview/Development); a chave pública vai
+      como `VITE_VAPID_PUBLIC_KEY`. O SQL que liga os avisos com o segredo
+      (`036b_ligar_avisos.sql.local`) é ignorado pelo Git. Aparelhos antigos/expirados ficam na
+      tabela até a pessoa reativar (não atrapalha). **Decisão Bar/Cozinha: Opção A** (setor só
+      separa relatórios e “pedidos de hoje”; fila única) — fica para a fase dos extras.
+      **Rodar a 036 e depois a 036b antes de testar.**
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

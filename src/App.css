@@ -1316,3 +1316,46 @@
     width: auto;
   }
 }
+
+/* ---------- Avisos push (ativar notificações neste aparelho) ---------- */
+.avisos-push-botao {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 1px dashed var(--color-blue-700, #1d4ed8);
+  border-radius: 0.7rem;
+  background: transparent;
+  color: var(--color-blue-900, #0b2559);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.avisos-push-botao:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.avisos-push-dica {
+  margin: 0.4rem 0 0;
+  color: #5b6472;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.avisos-push-dica.erro {
+  color: #b42318;
+}
+
+.sino-rodape {
+  padding: 0.6rem 0.75rem 0.75rem;
+  border-top: 1px solid #e2e6ee;
+}
+
+.cozinha-resumo .avisos-push {
+  margin-top: 0.5rem;
+}
+
+.cozinha-resumo .avisos-push-botao {
+  width: auto;
+}

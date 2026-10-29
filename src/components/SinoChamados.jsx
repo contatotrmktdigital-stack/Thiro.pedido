@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAuth } from "../context/AuthContext";
+import { liberarSomNoPrimeiroToque, tocarSom } from "../lib/som";
+import AvisosPush from "./AvisosPush";
 
 const LABEL_TIPO = {
   garcom: "chamou o garçom",
@@ -21,33 +23,6 @@ function tempoDesde(iso, agora) {
   if (min < 1) return "agora";
   if (min < 60) return `há ${min} min`;
   return `há ${Math.floor(min / 60)} h`;
-}
-
-// Bipe curto pelo Web Audio (sem arquivo de áudio). "conta" toca duas vezes, pra diferenciar.
-function tocarSom(audioRef, tipo) {
-  try {
-    const Contexto = window.AudioContext || window.webkitAudioContext;
-    if (!Contexto) return;
-    if (!audioRef.current) audioRef.current = new Contexto();
-    const ctx = audioRef.current;
-    if (ctx.state === "suspended") ctx.resume();
-    const bipes = tipo === "conta" ? [0, 0.28] : [0];
-    bipes.forEach((atraso) => {
-      const osc = ctx.createOscillator();
-      const ganho = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = tipo === "conta" ? 880 : 660;
-      const inicio = ctx.currentTime + atraso;
-      ganho.gain.setValueAtTime(0.0001, inicio);
-      ganho.gain.exponentialRampToValueAtTime(0.25, inicio + 0.02);
-      ganho.gain.exponentialRampToValueAtTime(0.0001, inicio + 0.22);
-      osc.connect(ganho).connect(ctx.destination);
-      osc.start(inicio);
-      osc.stop(inicio + 0.25);
-    });
-  } catch {
-    /* sem áudio: o aviso visual continua */
-  }
 }
 
 export default function SinoChamados() {
@@ -96,22 +71,12 @@ export default function SinoChamados() {
     // Rede de segurança caso o tempo real caia.
     const poll = setInterval(carregar, 30000);
 
-    // Navegadores só liberam som depois de um toque na página.
-    const liberarSom = () => {
-      try {
-        const Contexto = window.AudioContext || window.webkitAudioContext;
-        if (Contexto && !audioRef.current) audioRef.current = new Contexto();
-        if (audioRef.current?.state === "suspended") audioRef.current.resume();
-      } catch {
-        /* ignora */
-      }
-    };
-    window.addEventListener("pointerdown", liberarSom, { once: true });
+    const soltarSom = liberarSomNoPrimeiroToque(audioRef);
 
     return () => {
       supabase.removeChannel(canal);
       clearInterval(poll);
-      window.removeEventListener("pointerdown", liberarSom);
+      soltarSom();
     };
   }, [restaurant?.id, carregar]);
 
@@ -207,6 +172,10 @@ export default function SinoChamados() {
               ))}
             </ul>
           )}
+
+          <div className="sino-rodape">
+            <AvisosPush />
+          </div>
         </div>
       )}
     </div>

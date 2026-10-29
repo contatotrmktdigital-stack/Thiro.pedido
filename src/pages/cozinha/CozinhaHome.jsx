@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
+import { liberarSomNoPrimeiroToque, tocarSom } from "../../lib/som";
+import AvisosPush from "../../components/AvisosPush";
 
 // "Marcar pronto" já grava direto como "entregue" — o garçom não confirma entrega à parte.
 const PROXIMO_STATUS = {
@@ -85,6 +87,8 @@ export default function CozinhaHome() {
   const [busyId, setBusyId] = useState(null);
   const [aba, setAba] = useState("novos");
   const [agora, setAgora] = useState(() => Date.now());
+  const conhecidos = useRef(null);
+  const audioRef = useRef(null);
 
   const loadItens = useCallback(async () => {
     setError("");
@@ -100,7 +104,19 @@ export default function CozinhaHome() {
       .order("created_at");
 
     if (fetchError) setError(fetchError.message);
-    else setItens(data || []);
+    else {
+      const lista = data || [];
+      // Bipe com a página aberta quando chega item novo (o aviso com o site fechado é o push).
+      const pendentes = lista.filter((i) => i.status === "pendente");
+      if (conhecidos.current === null) {
+        conhecidos.current = new Set(pendentes.map((i) => i.id));
+      } else if (pendentes.some((i) => !conhecidos.current.has(i.id))) {
+        pendentes.forEach((i) => conhecidos.current.add(i.id));
+        tocarSom(audioRef, "pedido");
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+      }
+      setItens(lista);
+    }
     setLoading(false);
   }, []);
 
@@ -114,8 +130,11 @@ export default function CozinhaHome() {
       })
       .subscribe();
 
+    const soltarSom = liberarSomNoPrimeiroToque(audioRef);
+
     return () => {
       supabase.removeChannel(channel);
+      soltarSom();
     };
   }, [loadItens]);
 
@@ -163,6 +182,7 @@ export default function CozinhaHome() {
         <div>
           <h1>Cozinha</h1>
           <p>Atualiza sozinha quando o garçom lança novos itens.</p>
+          <AvisosPush />
         </div>
         <div className="cozinha-contadores">
           <span className="novos">{novos.length} novos</span>
