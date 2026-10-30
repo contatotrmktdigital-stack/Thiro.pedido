@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { liberarSomNoPrimeiroToque, tocarSom } from "../../lib/som";
 import AvisosPush from "../../components/AvisosPush";
+import { useRadio } from "../../context/RadioContext";
+import { Link } from "react-router-dom";
 
 // "Marcar pronto" já grava direto como "entregue" — o garçom não confirma entrega à parte.
 const PROXIMO_STATUS = {
@@ -82,6 +84,7 @@ function Coluna({ titulo, itens, agora, busyId, onAvancar, vazio, visivel }) {
 }
 
 export default function CozinhaHome() {
+  const radio = useRadio();
   const [itens, setItens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -184,6 +187,15 @@ export default function CozinhaHome() {
           <h1>Cozinha</h1>
           <p>Atualiza sozinha quando o garçom lança novos itens.</p>
           <AvisosPush />
+          {radio.status !== "nao_configurado" && (
+            <label className="radio-cozinha">
+              <input type="checkbox" checked={radio.cozinhaLigada} onChange={(e) => radio.setCozinhaLigada(e.target.checked)} />
+              <span>
+                Rádio da cozinha {radio.cozinhaLigada ? (radio.conectado ? "ligado ✓" : "conectando...") : "desligado"}
+              </span>
+              <Link to="/radio">abrir rádio</Link>
+            </label>
+          )}
         </div>
         <div className="cozinha-contadores">
           <span className="novos">{novos.length} novos</span>

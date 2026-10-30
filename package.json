@@ -13,6 +13,8 @@
     "@supabase/supabase-js": "^2.112.3",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.9",
+    "livekit-client": "^2.23.0",
+    "livekit-server-sdk": "^2.19.2",
     "qrcode": "^1.5.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

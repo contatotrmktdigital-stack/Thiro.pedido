@@ -1160,6 +1160,25 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       `index.html`: título, descrição, `theme-color` e prévia ao compartilhar o link (Open Graph, imagem
       `/logo.png`; se o domínio mudar, trocar a URL do `og:image`). Rotas do app e do QR intactas.
 
+- [x] **Extra F — Rádio Talk (walkie-talkie com LiveKit).** Sem SQL. Nova área **"Rádio"** (`/radio`,
+      `RadioHome.jsx`) no menu do topo. Uma sala por restaurante (`thiro-<restaurant_id>`), todos os acessos do
+      restaurante se ouvem. Botão **"Segure para falar"** (toque/mouse com captura do ponteiro) e **barra de espaço**
+      no computador (ignora quando digitando em campo; solta ao perder o foco). Mostra "Cozinha online ✓/offline",
+      quem está no canal e quem fala; ponto verde no chip "Rádio" quando conectado; `wakeLock` para a tela não
+      apagar; aviso de limitações antes do 1º uso (tela ligada, Bluetooth sem botão de PTT, qualidade de ligação,
+      permissão do microfone). Banner "Toque para ativar o som" quando o navegador bloqueia áudio. **Cozinha sempre
+      conectada** enquanto a tela da Cozinha está aberta, com a chavinha "Rádio da cozinha ligado" (desligar ali
+      desliga o rádio do aparelho todo) — escolha do dono (opção A), ciente de que consome minutos do plano do
+      LiveKit. A conexão mora em `RadioContext.jsx` (dentro do `AppLayout`), então segue ligada ao trocar de
+      área; reconecta sozinha se cair; mic só é pedido na 1ª vez que aperta. `livekit-client` é carregado só
+      quando o rádio conecta. **Servidor:** `api/radio-token.js` (Vercel) confere o login do Supabase, descobre o
+      restaurante da pessoa e gera o token da SALA DELE (sala nunca vem do navegador; área inválida vira "garcom").
+      **Segredos:** `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` só no `.env` e na Vercel
+      (Production/Preview/Development, via CLI); a API Secret nunca vai ao front-end nem ao GitHub. Testado com o
+      servidor real do LiveKit (região Brasil): chaves aceitas, conexão de duas abas (garçom vê "Cozinha online"),
+      toggle e erro de microfone. **Não testado aqui:** captura de microfone e áudio de ponta a ponta (o navegador de
+      teste bloqueia o microfone) — testar em dois aparelhos.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

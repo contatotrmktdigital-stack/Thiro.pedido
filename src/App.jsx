@@ -14,6 +14,7 @@ import SuperAdminDashboard from "./pages/superadmin/SuperAdminDashboard";
 import SuperAdminRestauranteVisual from "./pages/superadmin/SuperAdminRestauranteVisual";
 import GarcomHome from "./pages/garcom/GarcomHome";
 import CozinhaHome from "./pages/cozinha/CozinhaHome";
+import RadioHome from "./pages/radio/RadioHome";
 import CaixaHome from "./pages/caixa/CaixaHome";
 import GestaoHome from "./pages/gestao/GestaoHome";
 import AdministracaoHome from "./pages/gestao/AdministracaoHome";
@@ -91,6 +92,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["garcom", "gestao"]}>
                     <AbrirComandaPorQR />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/radio"
+                element={
+                  <ProtectedRoute allowedRoles={["garcom", "cozinha", "caixa", "gestao"]}>
+                    <RadioHome />
                   </ProtectedRoute>
                 }
               />

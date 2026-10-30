@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { roleLabel } from "./ProtectedRoute";
 import { buildRestaurantThemeVars } from "../lib/theme";
 import SinoChamados from "./SinoChamados";
+import { RadioProvider, useRadio } from "../context/RadioContext";
 
 // O login do restaurante (papel "gestao") entra numa área por vez: Garçom, Cozinha ou Gestão.
 // Os atalhos ficam sempre no topo, pra trocar sem passar pela tela inicial.
@@ -11,11 +12,30 @@ function areaAtual(pathname) {
   if (pathname.startsWith("/garcom")) return "garcom";
   if (pathname.startsWith("/cozinha")) return "cozinha";
   if (pathname.startsWith("/caixa")) return "garcom";
+  if (pathname.startsWith("/radio")) return "radio";
   if (pathname.startsWith("/gestao") && pathname !== "/gestao") return "gestao";
   return null;
 }
 
+function ChipRadio({ ativa }) {
+  const { conectado, falando } = useRadio();
+  return (
+    <NavLink to="/radio" className={`area-chip${ativa ? " ativa" : ""}`}>
+      Rádio
+      {conectado && <span className={`radio-ponto${falando ? " falando" : ""}`} aria-label="rádio ligado" />}
+    </NavLink>
+  );
+}
+
 export default function AppLayout() {
+  return (
+    <RadioProvider>
+      <LayoutInterno />
+    </RadioProvider>
+  );
+}
+
+function LayoutInterno() {
   const { profile, restaurant, signOut } = useAuth();
   const { pathname } = useLocation();
   const telaCheia = pathname === "/gestao/administracao";
@@ -88,6 +108,7 @@ export default function AppLayout() {
           <NavLink to="/gestao/administracao" className={`area-chip${area === "gestao" ? " ativa" : ""}`}>
             Gestão
           </NavLink>
+          <ChipRadio ativa={area === "radio"} />
         </nav>
       )}
 
