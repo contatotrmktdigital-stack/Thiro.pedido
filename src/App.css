@@ -1925,3 +1925,35 @@
   text-align: center;
   cursor: pointer;
 }
+
+/* ---------- Área do garçom no computador: letras e botões maiores ----------
+   A largura toda já vem de .page-content. Aqui só ampliamos (textos, botões e espaços juntos) a
+   partir de 900px de tela; no celular nada muda. Cresce conforme a tela. */
+@media (min-width: 900px) {
+  .page-content--garcom {
+    zoom: 1.25;
+  }
+}
+
+@media (min-width: 1400px) {
+  .page-content--garcom {
+    zoom: 1.4;
+  }
+}
+
+@media (min-width: 1800px) {
+  .page-content--garcom {
+    zoom: 1.6;
+  }
+}
+
+/* com a ampliação, em telas médias a notinha e o pagamento ficam um embaixo do outro */
+@media (min-width: 1000px) and (max-width: 1249px) {
+  .page-content--garcom .fechamento-grade {
+    display: block;
+  }
+
+  .page-content--garcom .fechamento-grade .fechamento-notinha {
+    position: static;
+  }
+}

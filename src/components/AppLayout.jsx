@@ -50,6 +50,9 @@ function LayoutInterno() {
   const { profile, restaurant, signOut } = useAuth();
   const { pathname } = useLocation();
   const telaCheia = pathname === "/gestao/administracao";
+  // Área do garçom: no computador ganha letras maiores (no celular nada muda).
+  const areaGarcom =
+    pathname.startsWith("/garcom") || pathname.startsWith("/gestao/pedidos") || pathname.startsWith("/caixa");
   const area = areaAtual(pathname);
   const loginUnico = profile?.role === "gestao";
 
@@ -125,7 +128,9 @@ function LayoutInterno() {
 
       <AvisoSomRadio />
 
-      <main className={`page-content${telaCheia ? " page-content--cheia" : ""}`}>
+      <main
+        className={`page-content${telaCheia ? " page-content--cheia" : ""}${areaGarcom ? " page-content--garcom" : ""}`}
+      >
         <Outlet />
       </main>
     </div>

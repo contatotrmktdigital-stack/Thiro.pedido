@@ -1193,6 +1193,15 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       QUALQUER tela (`AvisoSomRadio` no `AppLayout`). Testado: Cozinha fala (Space) → servidor mostra trilha
       aberta → a outra aba recebe o áudio e mostra "Cozinha 🎙 falando".
 
+- [x] **Área do garçom: letras maiores no computador (retomada do pendente guardado no stash).** Só CSS +
+      uma classe: `AppLayout` marca `<main>` com `page-content--garcom` em `/garcom*`, `/gestao/pedidos*` e
+      `/caixa*`; a partir de 900px de tela o conteúdo ganha `zoom` 1.25 (≥1400px: 1.4; ≥1800px: 1.6) —
+      textos, botões e espaços crescem juntos; **celular não muda**. A largura toda já vinha de `.page-content`.
+      Entre 1000 e 1249px a notinha do fechamento fica em cima do pagamento (com a ampliação não cabem lado a
+      lado). Modais continuam centralizados. Testado a 1366px com dados simulados. **Fora desta retomada:** o
+      botão "QR da comanda" para o garçom (do stash; o componente `QrComandaModal` não existe mais) — só se o
+      dono pedir de novo, e como link discreto dentro da comanda (regra de telas limpas).
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
