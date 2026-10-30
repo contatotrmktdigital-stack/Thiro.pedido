@@ -8,6 +8,10 @@ import "./Landing.css";
 // Se os dois ficarem vazios, os botões de contato simplesmente não aparecem.
 const CONTATO = { whatsapp: "", email: "" };
 
+// Link do app na Google Play. Enquanto ficar vazio, o botão "Baixe na Google Play" NÃO aparece em lugar nenhum.
+// Quando o app estiver na loja, cole o link aqui (ex: "https://play.google.com/store/apps/details?id=...").
+const GOOGLE_PLAY_URL = "";
+
 const contatoHref = CONTATO.whatsapp
   ? `https://wa.me/${CONTATO.whatsapp}?text=${encodeURIComponent("Olá! Quero conhecer o Thiro.pedido.")}`
   : CONTATO.email
@@ -29,7 +33,28 @@ const ICONES = {
   bolt: "M13 2L4 14h7l-1 8 9-12h-7z",
   device: "M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z M11 18h2",
   check: "M5 12l5 5L20 7",
+  bell: "M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9 M10.3 21a1.94 1.94 0 0 0 3.4 0",
+  heart: "M12 21s-7-4.4-9.3-9A5.4 5.4 0 0 1 12 6.2 5.4 5.4 0 0 1 21.3 12C19 16.6 12 21 12 21z",
+  split: "M16 3h5v5 M4 20L21 3 M21 16v5h-5 M15 15l6 6 M4 4l5 5",
+  cash: "M3 6h18v12H3z M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
+  percent: "M19 5L5 19 M7 7h.01 M17 17h.01",
+  menu: "M4 4a2 2 0 0 1 2-2h13v18H6a2 2 0 0 0-2 2z M4 4v18 M9 7h6 M9 11h6",
+  hand: "M18 11V6a2 2 0 0 0-4 0 M14 10V4a2 2 0 0 0-4 0v2 M10 10.5V6a2 2 0 0 0-4 0v8 M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-5.7-2.4L3.4 16a2 2 0 0 1 3.2-2.4L8 15",
+  play: "M5 3l15 9-15 9z",
 };
+
+function GooglePlay({ className = "" }) {
+  if (!GOOGLE_PLAY_URL) return null;
+  return (
+    <a href={GOOGLE_PLAY_URL} className={`lp-gplay ${className}`} target="_blank" rel="noopener noreferrer">
+      <Icon name="play" size={22} />
+      <span>
+        <small>Baixe na</small>
+        <strong>Google Play</strong>
+      </span>
+    </a>
+  );
+}
 
 function Icon({ name, size = 24 }) {
   return (
@@ -51,22 +76,36 @@ function Icon({ name, size = 24 }) {
 
 const DESTAQUES = [
   { icone: "bolt", titulo: "Tempo real", texto: "O pedido aparece na cozinha no mesmo segundo." },
-  { icone: "pix", titulo: "Pix com QR code", texto: "Valor certo, direto na conta do restaurante." },
+  { icone: "bell", titulo: "Avisos no celular", texto: "Pedido novo e chamado do cliente chegam até com o app fechado." },
+  { icone: "pix", titulo: "Pix e conta dividida", texto: "Pix com QR code, troco e pagamento em várias formas." },
   { icone: "device", titulo: "Em qualquer tela", texto: "Celular, tablet ou computador, sem instalar nada." },
-  { icone: "palette", titulo: "Sua marca", texto: "Logo e cores do seu restaurante dentro do app." },
 ];
 
 const FUNCIONALIDADES = [
   { icone: "receipt", titulo: "Comandas e mesas", texto: "Abra, lance itens e feche a conta direto do celular do garçom." },
   { icone: "qr", titulo: "QR code da comanda", texto: "Aproxime o celular da ficha e a comanda abre sozinha." },
   { icone: "flame", titulo: "Cozinha em tempo real", texto: "Fila de pedidos que atualiza sozinha, com observações em destaque." },
+  { icone: "bell", titulo: "Avisos no celular", texto: "Notificação de pedido novo para a cozinha e de chamados para o salão." },
   { icone: "search", titulo: "Cardápio rápido", texto: "Categorias em menu lateral e busca por nome para achar tudo em segundos." },
+  { icone: "menu", titulo: "Cardápio digital", texto: "O cliente abre o seu cardápio online direto pelo QR da comanda." },
+  { icone: "cash", titulo: "Troco e pagamento dividido", texto: "Calcula o troco e fecha a conta em várias formas de pagamento." },
   { icone: "pix", titulo: "Pagamento Pix", texto: "QR code gerado na hora com o valor exato da conta." },
-  { icone: "file", titulo: "Notinha personalizada", texto: "Conta com o nome e as cores do seu restaurante, em tela cheia." },
+  { icone: "split", titulo: "Dividir itens entre comandas", texto: "Mova unidades ou divida um item igualmente entre várias mesas." },
+  { icone: "percent", titulo: "10% da casa opcional", texto: "Cobrança configurável, calculada depois do desconto." },
+  { icone: "heart", titulo: "Programa de fidelidade", texto: "Cadastro por CPF, desconto na primeira compra, visitas e prêmios." },
+  { icone: "flame", titulo: "Cozinha e Bar", texto: "Relatórios e histórico separados por setor, com subtotais." },
+  { icone: "chart", titulo: "Relatórios em PDF e planilha", texto: "Faturamento, pagamentos e produtos mais vendidos, prontos para baixar." },
   { icone: "box", titulo: "Controle de estoque", texto: "Receita de cada produto e baixa automática dos insumos." },
-  { icone: "chart", titulo: "Relatórios", texto: "Faturamento, formas de pagamento e produtos mais vendidos por período." },
-  { icone: "moto", titulo: "Balcão e delivery", texto: "Atenda retirada e entrega com taxa de entrega somada na conta." },
+  { icone: "file", titulo: "Notinha personalizada", texto: "Conta com o nome e as cores do seu restaurante, em tela cheia." },
+  { icone: "moto", titulo: "Mesa e delivery", texto: "Atenda no salão ou entregue, com taxa de entrega somada na conta." },
   { icone: "palette", titulo: "Identidade visual", texto: "Cada restaurante com sua logo, cor principal e imagem de fundo." },
+];
+
+const CLIENTE = [
+  { icone: "qr", titulo: "Escaneia e acompanha", texto: "Com o QR da comanda o cliente vê o que consumiu, ao vivo, no próprio celular." },
+  { icone: "hand", titulo: "Chama o garçom", texto: "Um toque para chamar o garçom ou pedir a conta, sem levantar o braço." },
+  { icone: "menu", titulo: "Abre o cardápio", texto: "Se o restaurante tem cardápio digital, ele abre direto pela mesma tela." },
+  { icone: "heart", titulo: "Ganha desconto", texto: "Cadastro rápido no programa de fidelidade com desconto na primeira compra." },
 ];
 
 const PASSOS = [
@@ -78,15 +117,15 @@ const PASSOS = [
 const TELAS = [
   {
     titulo: "Garçom",
-    itens: ["Abre comandas e lança pedidos", "Busca o produto pelo nome", "Fecha a conta com notinha e Pix"],
+    itens: ["Abre comandas e lança pedidos", "Divide itens e pagamentos entre mesas", "Fecha a conta com notinha, Pix e troco"],
   },
   {
     titulo: "Cozinha",
-    itens: ["Recebe os pedidos na hora", "Vê observações em destaque", "Marca pronto com um toque"],
+    itens: ["Recebe os pedidos na hora, com aviso", "Vê observações em destaque", "Marca pronto com um toque"],
   },
   {
     titulo: "Gestão",
-    itens: ["Cardápio, estoque e equipe", "Relatórios e 10% da casa", "Identidade visual do restaurante"],
+    itens: ["Cardápio, estoque e fidelidade", "Relatórios em PDF e planilha", "Identidade visual do restaurante"],
   },
 ];
 
@@ -119,7 +158,7 @@ function TelaDoApp() {
           <strong>R$ 8,90</strong>
         </div>
         <div className="lp-phone-total">
-          <span>Total</span>
+          <span>Total a ser pago</span>
           <strong>R$ 97,90</strong>
         </div>
         <div className="lp-phone-btn">Fechar comanda</div>
@@ -163,6 +202,7 @@ export default function Landing() {
 
           <nav className={`lp-nav${menuAberto ? " aberto" : ""}`}>
             <a href="#funcionalidades" onClick={fecharMenu}>Funcionalidades</a>
+            <a href="#cliente" onClick={fecharMenu}>Para o cliente</a>
             <a href="#como-funciona" onClick={fecharMenu}>Como funciona</a>
             <a href="#telas" onClick={fecharMenu}>Telas</a>
             <a href="#contato" onClick={fecharMenu}>Contato</a>
@@ -194,8 +234,8 @@ export default function Landing() {
                 Comanda, cozinha e caixa em <span>um só app.</span>
               </h1>
               <p className="lp-hero-sub">
-                O garçom lança o pedido no celular, a cozinha recebe na hora e o cliente paga com Pix
-                na mesa. Sem papel, sem correria, sem conta errada.
+                O garçom lança o pedido no celular, a cozinha recebe na hora e o cliente acompanha a conta
+                pelo QR e paga com Pix na mesa. Sem papel, sem correria, sem conta errada.
               </p>
               <div className="lp-hero-acoes">
                 <Link to="/login" className="lp-btn lp-btn-primary lp-btn-grande">
@@ -206,6 +246,7 @@ export default function Landing() {
                     Falar com a gente
                   </a>
                 )}
+                <GooglePlay />
               </div>
               <p className="lp-hero-nota">Funciona no celular, tablet e computador. Sem instalar nada.</p>
             </div>
@@ -243,6 +284,24 @@ export default function Landing() {
                   </span>
                   <h3>{f.titulo}</h3>
                   <p>{f.texto}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="cliente" className="lp-secao lp-secao-escura">
+          <div className="lp-container">
+            <p className="lp-eyebrow">Para o seu cliente</p>
+            <h2>Seu cliente atendido sem precisar chamar ninguém</h2>
+            <div className="lp-grade lp-grade-4">
+              {CLIENTE.map((c) => (
+                <article key={c.titulo} className="lp-card">
+                  <span className="lp-card-icone">
+                    <Icon name={c.icone} />
+                  </span>
+                  <h3>{c.titulo}</h3>
+                  <p>{c.texto}</p>
                 </article>
               ))}
             </div>
@@ -333,6 +392,7 @@ export default function Landing() {
               <Link to="/login" className="lp-btn lp-btn-escuro-ghost lp-btn-grande">
                 Já sou cliente: entrar
               </Link>
+              <GooglePlay className="lp-gplay-escuro" />
             </div>
           </div>
         </section>
@@ -345,6 +405,7 @@ export default function Landing() {
             <span>Thiro.pedido</span>
           </a>
           <p>Comandas, cozinha e caixa para restaurantes.</p>
+          <GooglePlay />
           <Link to="/login">Entrar</Link>
         </div>
       </footer>

@@ -1149,6 +1149,17 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       BOM UTF-8 (abre direto no Excel em português). PDF em paisagem, com número de páginas. Mesmos números da
       tela (só comandas fechadas, sem as "fora dos relatórios").
 
+- [x] **Extra E — Site vitrine (página inicial `/`).** Sem SQL. `Landing.jsx` atualizada: destaques e lista de
+      17 funcionalidades com o que existe hoje (avisos no celular, cardápio digital, troco e pagamento dividido,
+      dividir itens, 10% da casa opcional, fidelidade, Cozinha e Bar, relatórios em PDF/planilha, mesa e
+      delivery); nova seção **"Para o seu cliente"** (QR com consumo ao vivo, chamar garçom, cardápio, desconto
+      de fidelidade); textos de Garçom/Cozinha/Gestão corrigidos (sai "balcão" e "equipe"). **Botão "Baixe na
+      Google Play" pronto mas ESCONDIDO**: aparece (hero, chamada final e rodapé) assim que a constante
+      `GOOGLE_PLAY_URL` no topo de `Landing.jsx` receber o link da loja. Botões "Falar com a gente" seguem
+      escondidos até `CONTATO` (WhatsApp e/ou e-mail) ser preenchido — dado público, só com confirmação do dono.
+      `index.html`: título, descrição, `theme-color` e prévia ao compartilhar o link (Open Graph, imagem
+      `/logo.png`; se o domínio mudar, trocar a URL do `og:image`). Rotas do app e do QR intactas.
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

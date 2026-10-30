@@ -740,3 +740,54 @@
     transition: none;
   }
 }
+
+/* ---------- Botão "Baixe na Google Play" (só aparece quando existe o link) ---------- */
+.lp-gplay {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 12px;
+  background: #000;
+  color: #fff;
+  text-decoration: none;
+}
+
+.lp-gplay span {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  text-align: left;
+}
+
+.lp-gplay small {
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.lp-gplay strong {
+  font-size: 1.05rem;
+}
+
+.lp-gplay-escuro {
+  border-color: rgba(0, 0, 0, 0.5);
+}
+
+.lp-grade-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .lp-grade-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .lp-grade-4 {
+    grid-template-columns: 1fr;
+  }
+}
