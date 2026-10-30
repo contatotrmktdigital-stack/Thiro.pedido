@@ -1178,6 +1178,12 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       servidor real do LiveKit (região Brasil): chaves aceitas, conexão de duas abas (garçom vê "Cozinha online"),
       toggle e erro de microfone. **Não testado aqui:** captura de microfone e áudio de ponta a ponta (o navegador de
       teste bloqueia o microfone) — testar em dois aparelhos.
+      **Correção pós-teste (áudio não saía):** `comecar`/`parar` da tela Rádio mudavam a cada atualização do
+      contexto (dependiam de `r`), então o efeito da barra de espaço rodava de novo e SOLTAVA o botão sozinho logo
+      depois de apertar — o microfone abria e fechava em milissegundos. Agora usam `falarRef` (funções estáveis).
+      Verificado com microfone simulado + servidor real do LiveKit: apertar 5 s mantém a trilha de áudio ABERTA,
+      a outra aba recebe o `<audio>` tocando, e soltar deixa a trilha muda. A Cozinha também ganhou o banner
+      "Toque aqui para ativar o som do rádio" (navegador pode bloquear áudio até o 1º toque).
 
 ## Como trabalhar neste projeto
 

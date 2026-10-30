@@ -25,17 +25,25 @@ export default function RadioHome() {
   const [visto, setVisto] = useState(avisoJaVisto);
   const apertado = useRef(false);
 
+  // "falar" muda a cada atualização do rádio; guardamos a versão mais nova numa referência pra que
+  // comecar/parar fiquem SEMPRE iguais. (Se mudassem, o efeito da barra de espaço rodaria de novo e soltaria
+  // o botão sozinho logo depois de apertar, cortando a fala.)
+  const falarRef = useRef(r.falar);
+  useEffect(() => {
+    falarRef.current = r.falar;
+  }, [r.falar]);
+
   const comecar = useCallback(() => {
     if (apertado.current) return;
     apertado.current = true;
-    r.falar(true);
-  }, [r]);
+    falarRef.current(true);
+  }, []);
 
   const parar = useCallback(() => {
     if (!apertado.current) return;
     apertado.current = false;
-    r.falar(false);
-  }, [r]);
+    falarRef.current(false);
+  }, []);
 
   // Barra de espaço (computador): não dispara enquanto a pessoa digita e solta se a janela perder o foco.
   useEffect(() => {

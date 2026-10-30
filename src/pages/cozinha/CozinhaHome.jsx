@@ -187,6 +187,11 @@ export default function CozinhaHome() {
           <h1>Cozinha</h1>
           <p>Atualiza sozinha quando o garçom lança novos itens.</p>
           <AvisosPush />
+          {radio.audioBloqueado && (
+            <button type="button" className="radio-som" onClick={radio.tocarParaAtivarSom}>
+              🔈 Toque aqui para ativar o som do rádio
+            </button>
+          )}
           {radio.status !== "nao_configurado" && (
             <label className="radio-cozinha">
               <input type="checkbox" checked={radio.cozinhaLigada} onChange={(e) => radio.setCozinhaLigada(e.target.checked)} />
