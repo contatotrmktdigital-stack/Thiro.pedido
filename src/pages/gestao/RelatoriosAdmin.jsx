@@ -7,6 +7,8 @@ import VerticalBars from "../../components/charts/VerticalBars";
 import ConfirmButton from "../../components/ConfirmButton";
 import { hojeString, diasAtras, inicioDoMes, toDateInputValue } from "../../lib/dateRanges";
 import { LABEL_SETOR, totaisPorSetor } from "../../lib/setor";
+import { useAuth } from "../../context/AuthContext";
+import { baixarCsv, baixarPdf, montarRelatorio } from "../../lib/relatorioExport";
 
 const COR_PAGAMENTO = { dinheiro: "#2a78d6", debito: "#eb6834", credito: "#1baf7a", pix: "#eda100" };
 const LABEL_PAGAMENTO = { dinheiro: "Dinheiro", debito: "Débito", credito: "Crédito", pix: "Pix" };
@@ -30,6 +32,8 @@ function listaDeDias(inicio, fim) {
 }
 
 function RelatoriosContent() {
+  const { restaurant } = useAuth();
+  const [baixando, setBaixando] = useState("");
   const [dataInicial, setDataInicial] = useState(hojeString());
   const [dataFinal, setDataFinal] = useState(hojeString());
   const [comandas, setComandas] = useState([]);
@@ -45,7 +49,7 @@ function RelatoriosContent() {
     const { data: comandasData, error: comandasError } = await supabase
       .from("comandas")
       .select(
-        "id, tipo, mesa_numero, cliente_nome, forma_pagamento, valor_total, valor_taxa_servico, valor_recebido, troco, fechada_at, comandas_fisicas(numero)"
+        "id, tipo, mesa_numero, cliente_nome, forma_pagamento, valor_total, valor_taxa_servico, valor_desconto, taxa_entrega, valor_recebido, troco, fechada_at, comandas_fisicas(numero)"
       )
       .eq("status", "fechada")
       .eq("fora_dos_relatorios", false)
@@ -186,6 +190,29 @@ function RelatoriosContent() {
   };
   const porSetor = totaisPorSetor(itens);
 
+  const relatorio = () =>
+    montarRelatorio({
+      restaurante: restaurant?.name,
+      dataInicial,
+      dataFinal,
+      comandas,
+      itens,
+      partesPorComanda,
+      porFormaPagamento,
+    });
+
+  const handleBaixar = async (formato) => {
+    setBaixando(formato);
+    setError("");
+    try {
+      if (formato === "csv") baixarCsv(relatorio());
+      else await baixarPdf(relatorio());
+    } catch {
+      setError("Não foi possível gerar o arquivo agora. Tente de novo.");
+    }
+    setBaixando("");
+  };
+
   return (
     <div>
       <p>
@@ -226,6 +253,21 @@ function RelatoriosContent() {
         O faturamento abaixo não inclui o 10% da casa — veja o total dele em{" "}
         <Link to="/gestao/administracao/caixinha">10% da casa</Link>.
       </p>
+
+      <div className="card">
+        <h2>Baixar relatório</h2>
+        <p style={{ color: "var(--color-text-muted)", marginTop: -8, fontSize: "0.85rem" }}>
+          Baixa o período escolhido acima: resumo, vendas, formas de pagamento e produtos (Cozinha e Bar).
+        </p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <button className="btn-primary" disabled={Boolean(baixando)} onClick={() => handleBaixar("pdf")} style={{ width: "auto", padding: "10px 20px" }}>
+            {baixando === "pdf" ? "Gerando PDF..." : "Baixar PDF"}
+          </button>
+          <button className="btn-secondary" disabled={Boolean(baixando)} onClick={() => handleBaixar("csv")} style={{ width: "auto", padding: "10px 20px" }}>
+            {baixando === "csv" ? "Gerando..." : "Baixar planilha (CSV)"}
+          </button>
+        </div>
+      </div>
 
       <div className="role-grid" style={{ marginBottom: 18 }}>
         <div className="role-grid-item">

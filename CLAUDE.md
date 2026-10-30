@@ -1138,6 +1138,17 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       relatórios/histórico (valor conta). A comanda mostra o card "Itens divididos ou transferidos".
       **Rodar a 041 antes do deploy.**
 
+- [x] **Extra D — Relatórios para baixar (PDF + CSV).** Sem SQL e sem chaves: tudo é gerado no navegador
+      (`src/lib/relatorioExport.js`; bibliotecas `jspdf` + `jspdf-autotable`, carregadas só ao clicar). Card
+      **"Baixar relatório"** em Gestão › Relatórios (atrás da senha da Gestão), usando o **período já escolhido**
+      na tela. Conteúdo: resumo (faturamento sem 10% da casa, comandas, ticket médio, 10% da casa, descontos de
+      fidelidade, total recebido, troco), vendas (1 linha por comanda: data, comanda, tipo, pagamento — dividido
+      mostra as partes —, produtos, desconto, 10% da casa, entrega, total, troco), formas de pagamento e produtos
+      vendidos por setor (Cozinha/Bar/Outros, com subtotal; partes de divisão igual não contam como unidades).
+      **CSV simples:** um arquivo só, seções separadas por linha em branco, separador `;`, decimais com vírgula e
+      BOM UTF-8 (abre direto no Excel em português). PDF em paisagem, com número de páginas. Mesmos números da
+      tela (só comandas fechadas, sem as "fora dos relatórios").
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão
