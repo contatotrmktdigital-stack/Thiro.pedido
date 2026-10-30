@@ -4,6 +4,26 @@ import { liberarSomNoPrimeiroToque, tocarSom } from "../../lib/som";
 import AvisosPush from "../../components/AvisosPush";
 import { useRadio } from "../../context/RadioContext";
 import { Link } from "react-router-dom";
+import { usePushToTalk } from "../../lib/usePushToTalk";
+
+// Apertar para falar direto da tela da Cozinha (a cozinha fica o dia todo aqui).
+function FalarDaCozinha() {
+  const { parar, aoApertarBotao, falando, conectado } = usePushToTalk({ ignorarBotoes: true });
+  if (!conectado) return null;
+  return (
+    <button
+      type="button"
+      className={`radio-falar-mini${falando ? " falando" : ""}`}
+      onPointerDown={aoApertarBotao}
+      onPointerUp={parar}
+      onPointerCancel={parar}
+      onLostPointerCapture={parar}
+      onContextMenu={(e) => e.preventDefault()}
+    >
+      {falando ? "🎙 Falando..." : "🎙 Segure para falar"}
+    </button>
+  );
+}
 
 // "Marcar pronto" já grava direto como "entregue" — o garçom não confirma entrega à parte.
 const PROXIMO_STATUS = {
@@ -201,6 +221,7 @@ export default function CozinhaHome() {
               <Link to="/radio">abrir rádio</Link>
             </label>
           )}
+          {radio.status !== "nao_configurado" && <FalarDaCozinha />}
         </div>
         <div className="cozinha-contadores">
           <span className="novos">{novos.length} novos</span>

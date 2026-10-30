@@ -17,6 +17,17 @@ function areaAtual(pathname) {
   return null;
 }
 
+// Se o navegador (principalmente no celular) bloquear o som do rádio, avisa em qualquer tela.
+function AvisoSomRadio() {
+  const { conectado, audioBloqueado, tocarParaAtivarSom } = useRadio();
+  if (!conectado || !audioBloqueado) return null;
+  return (
+    <button type="button" className="radio-som-barra" onClick={tocarParaAtivarSom}>
+      🔈 Toque aqui para ativar o som do rádio
+    </button>
+  );
+}
+
 function ChipRadio({ ativa }) {
   const { conectado, falando } = useRadio();
   return (
@@ -111,6 +122,8 @@ function LayoutInterno() {
           <ChipRadio ativa={area === "radio"} />
         </nav>
       )}
+
+      <AvisoSomRadio />
 
       <main className={`page-content${telaCheia ? " page-content--cheia" : ""}`}>
         <Outlet />

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRadio } from "../../context/RadioContext";
+import { usePushToTalk } from "../../lib/usePushToTalk";
 
 const CHAVE_AVISO = "thiro-radio-aviso-visto";
 const NOME_AREA = { garcom: "Garçom", cozinha: "Cozinha", gestao: "Gestão" };
@@ -23,52 +24,7 @@ const TEXTO_STATUS = {
 export default function RadioHome() {
   const r = useRadio();
   const [visto, setVisto] = useState(avisoJaVisto);
-  const apertado = useRef(false);
-
-  // "falar" muda a cada atualização do rádio; guardamos a versão mais nova numa referência pra que
-  // comecar/parar fiquem SEMPRE iguais. (Se mudassem, o efeito da barra de espaço rodaria de novo e soltaria
-  // o botão sozinho logo depois de apertar, cortando a fala.)
-  const falarRef = useRef(r.falar);
-  useEffect(() => {
-    falarRef.current = r.falar;
-  }, [r.falar]);
-
-  const comecar = useCallback(() => {
-    if (apertado.current) return;
-    apertado.current = true;
-    falarRef.current(true);
-  }, []);
-
-  const parar = useCallback(() => {
-    if (!apertado.current) return;
-    apertado.current = false;
-    falarRef.current(false);
-  }, []);
-
-  // Barra de espaço (computador): não dispara enquanto a pessoa digita e solta se a janela perder o foco.
-  useEffect(() => {
-    if (!r.conectado) return undefined;
-    const digitando = (el) => el && (["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || el.isContentEditable);
-    const aoApertar = (e) => {
-      if (e.code !== "Space" || e.repeat || digitando(e.target)) return;
-      e.preventDefault();
-      comecar();
-    };
-    const aoSoltar = (e) => {
-      if (e.code !== "Space") return;
-      e.preventDefault();
-      parar();
-    };
-    window.addEventListener("keydown", aoApertar);
-    window.addEventListener("keyup", aoSoltar);
-    window.addEventListener("blur", parar);
-    return () => {
-      window.removeEventListener("keydown", aoApertar);
-      window.removeEventListener("keyup", aoSoltar);
-      window.removeEventListener("blur", parar);
-      parar();
-    };
-  }, [r.conectado, comecar, parar]);
+  const { parar, aoApertarBotao } = usePushToTalk();
 
   // Pede ao aparelho para não apagar a tela enquanto o rádio está ligado (quando o navegador permite).
   useEffect(() => {
@@ -157,10 +113,7 @@ export default function RadioHome() {
             type="button"
             className={`radio-falar${r.falando ? " falando" : ""}`}
             disabled={!r.conectado}
-            onPointerDown={(e) => {
-              e.currentTarget.setPointerCapture?.(e.pointerId);
-              comecar();
-            }}
+            onPointerDown={aoApertarBotao}
             onPointerUp={parar}
             onPointerCancel={parar}
             onLostPointerCapture={parar}

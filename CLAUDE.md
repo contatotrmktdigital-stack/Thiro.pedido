@@ -1184,6 +1184,14 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       Verificado com microfone simulado + servidor real do LiveKit: apertar 5 s mantém a trilha de áudio ABERTA,
       a outra aba recebe o `<audio>` tocando, e soltar deixa a trilha muda. A Cozinha também ganhou o banner
       "Toque aqui para ativar o som do rádio" (navegador pode bloquear áudio até o 1º toque).
+      **2ª correção (relato do dono: "do notebook para o celular não saía"):** o notebook estava na tela da
+      **Cozinha, que só ouvia — não tinha botão de falar** (só a tela Rádio tinha). Agora a Cozinha tem
+      "🎙 Segure para falar" (`FalarDaCozinha`, barra de espaço vale na Cozinha quando o foco não está em botão/
+      link/campo) via hook `src/lib/usePushToTalk.js` (também usado em `RadioHome`). No celular o som só libera
+      com toque real: o desbloqueio agora tenta em `click/touchend/pointerup/keydown` até liberar, o
+      `<audio>` recebe `playsinline` e o aviso "Toque aqui para ativar o som do rádio" aparece no topo de
+      QUALQUER tela (`AvisoSomRadio` no `AppLayout`). Testado: Cozinha fala (Space) → servidor mostra trilha
+      aberta → a outra aba recebe o áudio e mostra "Cozinha 🎙 falando".
 
 ## Como trabalhar neste projeto
 

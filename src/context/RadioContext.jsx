@@ -11,6 +11,7 @@ import { useAuth } from "./AuthContext";
 //  - qualquer pessoa pode ligar o rádio na tela "Rádio" e ele fica ligado neste aparelho.
 const RadioContext = createContext(null);
 
+const EVENTOS_DESBLOQUEIO = ["click", "touchend", "pointerup", "keydown"];
 const CHAVE_ATIVO = "thiro-radio-ativo";
 const CHAVE_COZINHA = "thiro-radio-cozinha";
 const CHAVE_AREA = "thiro-radio-area";
@@ -131,6 +132,7 @@ export function RadioProvider({ children }) {
             if (track.kind === Track.Kind.Audio) {
               const el = track.attach();
               el.style.display = "none";
+              el.setAttribute("playsinline", "");
               document.body.appendChild(el);
             }
           })
@@ -157,8 +159,12 @@ export function RadioProvider({ children }) {
         atualizarParticipantes(room);
 
         // O navegador só libera áudio depois de um toque na página.
-        desbloquear = () => room.startAudio().catch(() => {});
-        window.addEventListener("pointerdown", desbloquear, { once: true });
+        // No celular o navegador só libera o som depois de um toque de verdade (soltar o dedo / clicar),
+        // então tentamos a cada toque até o som estar liberado.
+        desbloquear = () => {
+          if (!room.canPlaybackAudio) room.startAudio().catch(() => {});
+        };
+        EVENTOS_DESBLOQUEIO.forEach((ev) => window.addEventListener(ev, desbloquear));
       } catch {
         if (!cancelado) {
           setStatus("erro");
@@ -173,7 +179,7 @@ export function RadioProvider({ children }) {
     return () => {
       cancelado = true;
       if (religar) clearTimeout(religar);
-      if (desbloquear) window.removeEventListener("pointerdown", desbloquear);
+      if (desbloquear) EVENTOS_DESBLOQUEIO.forEach((ev) => window.removeEventListener(ev, desbloquear));
       if (room) {
         room.removeAllListeners();
         room.disconnect();
