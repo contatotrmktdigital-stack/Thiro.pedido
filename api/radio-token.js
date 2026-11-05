@@ -16,8 +16,8 @@ async function supabaseGet(caminho, token) {
   const resposta = await fetch(`${base}${caminho}`, {
     headers: { apikey: process.env.VITE_SUPABASE_ANON_KEY, Authorization: `Bearer ${token}` },
   });
-  if (!resposta.ok) return null;
-  return resposta.json();
+  if (!resposta.ok) return { falha: resposta.status };
+  return { dados: await resposta.json() };
 }
 
 export default async function handler(req, res) {
@@ -39,15 +39,23 @@ export default async function handler(req, res) {
 
   // quem é a pessoa?
   const usuario = await supabaseGet("/auth/v1/user", token);
-  if (!usuario?.id) return res.status(401).json({ erro: "login_invalido" });
+  if (!usuario.dados?.id) {
+    // sem guardar o token: só o motivo, pra dar pra entender pelo log da Vercel
+    console.warn("radio-token: login recusado pelo Supabase, status", usuario.falha ?? "sem_id");
+    return res.status(401).json({ erro: "login_invalido", detalhe: usuario.falha ?? null });
+  }
+  const usuarioId = usuario.dados.id;
 
   // de qual restaurante? (a leitura segue as regras de segurança do banco, com o login da própria pessoa)
-  const perfis = await supabaseGet(`/rest/v1/profiles?select=restaurant_id&id=eq.${usuario.id}`, token);
-  const restaurantId = perfis?.[0]?.restaurant_id;
-  if (!restaurantId) return res.status(403).json({ erro: "sem_restaurante" });
+  const perfis = await supabaseGet(`/rest/v1/profiles?select=restaurant_id&id=eq.${usuarioId}`, token);
+  const restaurantId = perfis.dados?.[0]?.restaurant_id;
+  if (!restaurantId) {
+    console.warn("radio-token: sem restaurante para o usuário, status", perfis.falha ?? "vazio");
+    return res.status(403).json({ erro: "sem_restaurante", detalhe: perfis.falha ?? null });
+  }
 
   const sala = `thiro-${restaurantId}`;
-  const identidade = `${area}-${usuario.id.slice(0, 8)}-${crypto.randomBytes(3).toString("hex")}`;
+  const identidade = `${area}-${usuarioId.slice(0, 8)}-${crypto.randomBytes(3).toString("hex")}`;
 
   const ingresso = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
     identity: identidade,

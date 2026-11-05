@@ -27,6 +27,7 @@ import RelatoriosAdmin from "./pages/gestao/RelatoriosAdmin";
 import IdentidadeVisualAdmin from "./pages/gestao/IdentidadeVisualAdmin";
 import CaixinhaAdmin from "./pages/gestao/CaixinhaAdmin";
 import FidelidadeAdmin from "./pages/gestao/FidelidadeAdmin";
+import ImpressaoAdmin from "./pages/gestao/ImpressaoAdmin";
 import ComandasAbertasAdmin from "./pages/gestao/ComandasAbertasAdmin";
 import PagamentoPixAdmin from "./pages/gestao/PagamentoPixAdmin";
 import HistoricoPedidosAdmin from "./pages/gestao/HistoricoPedidosAdmin";
@@ -263,6 +264,15 @@ export default function App() {
                 element={
                   <ProtectedRoute allowedRoles={["gestao"]}>
                     <FidelidadeAdmin />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="/gestao/administracao/impressao"
+                element={
+                  <ProtectedRoute allowedRoles={["gestao"]}>
+                    <ImpressaoAdmin />
                   </ProtectedRoute>
                 }
               />

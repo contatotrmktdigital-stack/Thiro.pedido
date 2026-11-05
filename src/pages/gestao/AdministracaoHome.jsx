@@ -9,6 +9,7 @@ const ICONES = {
   relatorios: "M4 20V10 M10 20V4 M16 20v-7 M22 20H2",
   caixinha: "M12 2v20 M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6",
   cardapio: "M4 4a2 2 0 0 1 2-2h13v18H6a2 2 0 0 0-2 2z M4 4v18 M9 7h6 M9 11h6",
+  impressao: "M6 9V2h12v7 M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2 M6 14h12v8H6z",
   fidelidade: "M12 21s-7-4.4-9.3-9A5.4 5.4 0 0 1 12 6.2 5.4 5.4 0 0 1 21.3 12C19 16.6 12 21 12 21z",
   link: "M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1 M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1",
   estoque: "M21 8l-9-5-9 5v8l9 5 9-5z M3 8l9 5 9-5 M12 13v8",
@@ -32,6 +33,7 @@ const BLOCOS = [
   { to: "/gestao/administracao/estoque", icone: "estoque", titulo: "Estoque" },
   { to: "/gestao/administracao/comandas-fisicas", icone: "fisicas", titulo: "Comandas físicas" },
   { to: "/gestao/administracao/pix", icone: "pix", titulo: "Pagamento Pix" },
+  { to: "/gestao/administracao/impressao", icone: "impressao", titulo: "Impressão" },
   { to: "/gestao/administracao/identidade-visual", icone: "visual", titulo: "Identidade visual" },
 ];
 

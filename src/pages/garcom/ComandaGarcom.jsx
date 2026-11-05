@@ -12,6 +12,10 @@ import VisitaFidelidade from "../../components/VisitaFidelidade";
 import ValorRecebido from "../../components/ValorRecebido";
 import PagamentoDividido from "../../components/PagamentoDividido";
 import DividirItem from "../../components/DividirItem";
+import BotaoImprimirConta from "../../components/BotaoImprimirConta";
+import { useImpressaoConfig } from "../../lib/impressao/useImpressaoConfig";
+import { montarConta } from "../../lib/impressao/cupom";
+import { imprimirCupom } from "../../lib/impressao/imprimir";
 import { mensagemErroDividido, novaParte, situacaoDinheiro, validarPartes } from "../../lib/dinheiro";
 
 function formatMoeda(valor) {
@@ -29,6 +33,7 @@ export default function ComandaGarcom() {
   const { comandaId } = useParams();
   const { restaurant } = useAuth();
   const { origem, basePedidos } = useOrigem();
+  const { config: cfgImpressao } = useImpressaoConfig();
 
   const [comanda, setComanda] = useState(null);
   const [itens, setItens] = useState([]);
@@ -419,6 +424,17 @@ export default function ComandaGarcom() {
     }
   };
 
+  // Se o restaurante ligou "imprimir a conta sozinha ao fechar", manda pra impressora logo após fechar.
+  const imprimirAoFechar = (pagamentosDaConta) => {
+    if (!cfgImpressao.imprimir_conta || !cfgImpressao.conta_ao_fechar) return;
+    const conta = { ...notinhaComanda, fechada_at: new Date().toISOString() };
+    imprimirCupom(
+      montarConta({ restaurante: restaurant, comanda: conta, itens, pagamentos: pagamentosDaConta, config: cfgImpressao }),
+      cfgImpressao,
+      cfgImpressao.vias_conta
+    );
+  };
+
   const handleFecharComanda = async () => {
     if (dividindo) {
       if (!vp.ok) {
@@ -444,6 +460,7 @@ export default function ComandaGarcom() {
       setPartes([]);
       setConfirmandoPagamento(false);
       await loadTudo();
+      imprimirAoFechar(vp.linhas);
       return;
     }
 
@@ -487,6 +504,7 @@ export default function ComandaGarcom() {
       return;
     }
     await loadTudo();
+    imprimirAoFechar(null);
   };
 
   return (
@@ -777,6 +795,7 @@ export default function ComandaGarcom() {
           >
             Ver em tela cheia
           </button>
+          <BotaoImprimirConta comanda={notinhaComanda} itens={itens} pagamentos={pagamentosNotinha} style={{ margin: "8px auto 0", display: "block" }} />
         </div>
       ) : (
         <>
@@ -1050,6 +1069,7 @@ export default function ComandaGarcom() {
                     >
                       Ver em tela cheia
                     </button>
+                    <BotaoImprimirConta comanda={notinhaComanda} itens={itens} pagamentos={pagamentosNotinha} style={{ margin: "8px auto 0", display: "block" }} />
                   </div>
 
                   <div className="fechamento-pagamento">

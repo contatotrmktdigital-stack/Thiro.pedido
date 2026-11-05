@@ -18,6 +18,7 @@ const TEXTO_STATUS = {
   conectando: "Conectando...",
   online: "Rádio ligado",
   erro: "Sem conexão",
+  sessao: "Acesso ao rádio recusado",
   nao_configurado: "Rádio indisponível",
 };
 

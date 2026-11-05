@@ -1202,6 +1202,39 @@ de terceiros) também poderão usar, cada um com dados 100% isolados dos demais.
       botão "QR da comanda" para o garçom (do stash; o componente `QrComandaModal` não existe mais) — só se o
       dono pedir de novo, e como link discreto dentro da comanda (regra de telas limpas).
 
+- [x] **Rádio "fora do ar" — diagnóstico e reforço (30/10).** Relato do dono: tela Rádio mostrando "Sem conexão —
+      Não foi possível conectar ao rádio". Checagens: função `/api/radio-token` no ar, 3 variáveis LiveKit na
+      Vercel, LiveKit aceita as chaves e conecta em <1 s (região Brasil), Supabase saudável. Os **logs da Vercel**
+      mostraram os aparelhos do dono chamando `/api/radio-token` a cada ~4 s e levando **401** (login recusado)
+      — um laço de reconexão. Causa raiz do 401 ainda não confirmada (token de login do aparelho inválido/velho é
+      a hipótese). Reforço: o cliente agora **renova o login (`refreshSession`) e tenta de novo** ao receber 401;
+      se continuar recusado, mostra "Acesso ao rádio recusado… (código: …)" e **para de insistir** (antes
+      insistia sem fim); outras falhas esperam 8 s, 16 s, 32 s… até 1 min; sem sessão no aparelho avisa para
+      entrar de novo. `api/radio-token.js` devolve `detalhe` (status do Supabase) e registra o motivo no log da
+      Vercel (sem o token). Ver motivo real: `vercel logs https://thiro-pedido.vercel.app --no-follow --since 1h`.
+      Contorno imediato para o dono: Sair e entrar de novo no sistema no aparelho que não conecta.
+
+- [x] **Impressão térmica — etapa 1 (impressão comum pelo navegador).** Pedido do dono (04/11): qualquer
+      impressora térmica, cada restaurante configura a sua em **Gestão › Impressão** (atrás da senha da Gestão),
+      com perfil por modelo e escolha do que imprimir. Impressora do Dil's Burguer: **Epson TM-T20X (M352A)**.
+      SQL `042_impressao_config.sql` (aditivo): tabela `impressao_config` (1 linha por restaurante; RLS: todos
+      do restaurante leem, só `gestao` grava): modelo, `largura_papel_mm`, `area_impressao_mm`, `colunas`,
+      `tamanho_letra`, `codepage`, `metodo` (navegador|direta), cabeçalho/rodapé, `imprimir_conta`,
+      `conta_ao_fechar`, `vias_conta`, `imprimir_cozinha`, `imprimir_bar`, `vias_pedido`. Código em
+      `src/lib/impressao/`: `perfis.js` (Epson TM-T20X: 80 mm, 72 mm úteis, 48 colunas, PC860 = ESC t 3 — fonte:
+      especificação da Epson; Genérica 80/58 mm; Personalizada), `cupom.js` (cupom em BLOCOS neutros: conta do
+      cliente, pedido cozinha/bar, teste com régua de colunas e acentos; mesmos blocos servirão para ESC/POS),
+      `imprimir.js` (HTML no tamanho do rolo, `@page size: Nmm auto; margin: 0`, quadro invisível + `print()`,
+      vias com quebra de página), `useImpressaoConfig.js`. Tela `ImpressaoAdmin.jsx`: modelo, papel, letras
+      por linha, tamanho da letra, o que imprimir, vias, cabeçalho/rodapé, **Imprimir teste** e **prévia** do
+      cupom. Botão **"🖨 Imprimir conta"** (`BotaoImprimirConta.jsx`) no fechamento do garçom, na comanda
+      fechada e no caixa; opção **"imprimir a conta sozinha ao fechar"**. **Ainda NÃO feito (próximas
+      etapas):** pedido sozinho na impressora da cozinha/bar (liga com os interruptores "em breve", por
+      aparelho) e **impressão direta ESC/POS** por USB/Bluetooth/serial (WebUSB/Web Serial; não funciona no
+      iPhone; USB no Windows pode exigir trocar o driver). Impressora de rede só pelo caminho do navegador.
+      Não testado com impressora real (sem hardware aqui) — conferir papel, margens e acentos no teste do dono.
+      **Rodar a 042 antes de usar.**
+
 ## Como trabalhar neste projeto
 
 - O usuário (Thiago) não é técnico — explique passos em português simples, sem jargão

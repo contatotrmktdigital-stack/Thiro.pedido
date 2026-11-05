@@ -216,7 +216,14 @@ export default function CozinhaHome() {
             <label className="radio-cozinha">
               <input type="checkbox" checked={radio.cozinhaLigada} onChange={(e) => radio.setCozinhaLigada(e.target.checked)} />
               <span>
-                Rádio da cozinha {radio.cozinhaLigada ? (radio.conectado ? "ligado ✓" : "conectando...") : "desligado"}
+                Rádio da cozinha{" "}
+                {radio.cozinhaLigada
+                  ? radio.conectado
+                    ? "ligado ✓"
+                    : radio.status === "sessao"
+                      ? "sem acesso (saia e entre de novo)"
+                      : "conectando..."
+                  : "desligado"}
               </span>
               <Link to="/radio">abrir rádio</Link>
             </label>

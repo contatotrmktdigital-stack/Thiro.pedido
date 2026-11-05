@@ -53,6 +53,7 @@ export function RadioProvider({ children }) {
   const [falando, setFalando] = useState(false);
   const [audioBloqueado, setAudioBloqueado] = useState(false);
   const [tentativa, setTentativa] = useState(0); // sobe quando a conexão cai de vez, pra reconectar
+  const falhasRef = useRef(0); // falhas seguidas (a espera entre tentativas cresce, pra não ficar insistindo)
 
   const roomRef = useRef(null);
   const areaRef = useRef(area);
@@ -100,12 +101,37 @@ export function RadioProvider({ children }) {
       setStatus("conectando");
       setMensagem("");
       try {
+        const pedirAcesso = (tk) =>
+          fetch("/api/radio-token", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${tk}` },
+            body: JSON.stringify({ area: areaRef.current }),
+          });
+
         const { data } = await supabase.auth.getSession();
-        const resposta = await fetch("/api/radio-token", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token}` },
-          body: JSON.stringify({ area: areaRef.current }),
-        });
+        if (!data.session?.access_token) {
+          if (!cancelado) {
+            setStatus("sessao");
+            setMensagem("Sua sessão não foi encontrada neste aparelho. Saia e entre de novo para usar o rádio.");
+          }
+          return;
+        }
+        let resposta = await pedirAcesso(data.session.access_token);
+        if (resposta.status === 401) {
+          // login velho: renova e tenta mais uma vez
+          const { data: renovado } = await supabase.auth.refreshSession();
+          if (renovado?.session?.access_token) resposta = await pedirAcesso(renovado.session.access_token);
+        }
+        if (resposta.status === 401 || resposta.status === 403) {
+          const corpo = await resposta.json().catch(() => ({}));
+          if (!cancelado) {
+            setStatus("sessao");
+            setMensagem(
+              `Seu acesso ao rádio foi recusado. Saia e entre de novo no sistema. (código: ${corpo.erro || resposta.status}${corpo.detalhe ? ` ${corpo.detalhe}` : ""})`
+            );
+          }
+          return;
+        }
         if (resposta.status === 503 || resposta.status === 404) {
           if (!cancelado) {
             setStatus("nao_configurado");
@@ -154,6 +180,7 @@ export function RadioProvider({ children }) {
           room.disconnect();
           return;
         }
+        falhasRef.current = 0;
         setStatus("online");
         setAudioBloqueado(!room.canPlaybackAudio);
         atualizarParticipantes(room);
@@ -169,7 +196,10 @@ export function RadioProvider({ children }) {
         if (!cancelado) {
           setStatus("erro");
           setMensagem("Não foi possível conectar ao rádio. Tentando de novo em instantes...");
-          religar = setTimeout(() => setTentativa((n) => n + 1), 8000);
+          // espera 8s, 16s, 32s... até 1 minuto entre tentativas
+          const espera = Math.min(60000, 8000 * 2 ** falhasRef.current);
+          falhasRef.current += 1;
+          religar = setTimeout(() => setTentativa((n) => n + 1), espera);
         }
       }
     };

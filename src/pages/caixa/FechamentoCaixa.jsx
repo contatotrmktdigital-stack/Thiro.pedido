@@ -4,6 +4,10 @@ import { supabase } from "../../lib/supabaseClient";
 import { useAuth } from "../../context/AuthContext";
 import Notinha from "../../components/Notinha";
 import { calcularFechamento } from "../../lib/fechamento";
+import BotaoImprimirConta from "../../components/BotaoImprimirConta";
+import { useImpressaoConfig } from "../../lib/impressao/useImpressaoConfig";
+import { montarConta } from "../../lib/impressao/cupom";
+import { imprimirCupom } from "../../lib/impressao/imprimir";
 import ValorRecebido from "../../components/ValorRecebido";
 import PagamentoDividido from "../../components/PagamentoDividido";
 import { mensagemErroDividido, novaParte, situacaoDinheiro, validarPartes } from "../../lib/dinheiro";
@@ -15,6 +19,7 @@ function formatMoeda(valor) {
 export default function FechamentoCaixa() {
   const { comandaId } = useParams();
   const { restaurant } = useAuth();
+  const { config: cfgImpressao } = useImpressaoConfig();
 
   const [comanda, setComanda] = useState(null);
   const [itens, setItens] = useState([]);
@@ -113,6 +118,26 @@ export default function FechamentoCaixa() {
     }
   };
 
+  // Se o restaurante ligou "imprimir a conta sozinha ao fechar", manda pra impressora logo após fechar.
+  const imprimirAoFechar = (pagamentosDaConta) => {
+    if (!cfgImpressao.imprimir_conta || !cfgImpressao.conta_ao_fechar) return;
+    const conta = {
+      ...comanda,
+      taxa_servico: taxaServico,
+      forma_pagamento: dividindo ? "dividido" : formaPagamento,
+      valor_recebido: dinheiro && !dividindo ? sd.recebido : null,
+      troco: dinheiro && !dividindo ? sd.troco : null,
+      valor_desconto: valorDesconto,
+      valor_total: totalPrevisto,
+      fechada_at: new Date().toISOString(),
+    };
+    imprimirCupom(
+      montarConta({ restaurante: restaurant, comanda: conta, itens, pagamentos: pagamentosDaConta, config: cfgImpressao }),
+      cfgImpressao,
+      cfgImpressao.vias_conta
+    );
+  };
+
   const handleFechar = async () => {
     if (dividindo) {
       if (!vp.ok) {
@@ -134,9 +159,11 @@ export default function FechamentoCaixa() {
         setError(mensagemErroDividido(rpcError.message));
         return;
       }
+      const partesDaConta = vp.linhas;
       setDividindo(false);
       setPartes([]);
       await loadTudo();
+      imprimirAoFechar(partesDaConta);
       return;
     }
 
@@ -173,6 +200,7 @@ export default function FechamentoCaixa() {
       return;
     }
     await loadTudo();
+    imprimirAoFechar(null);
   };
 
   return (
@@ -186,6 +214,7 @@ export default function FechamentoCaixa() {
       {comanda.status === "fechada" ? (
         <div className="card">
           <Notinha restaurantName={restaurant?.name} comanda={comanda} itens={itens} pagamentos={pagamentos} />
+          <BotaoImprimirConta comanda={comanda} itens={itens} pagamentos={pagamentos} style={{ margin: "12px auto 0", display: "block" }} />
         </div>
       ) : (
         <div className="card">

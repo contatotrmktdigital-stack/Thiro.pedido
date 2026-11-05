@@ -1752,6 +1752,7 @@
 }
 
 .radio-status.erro,
+.radio-status.sessao,
 .radio-status.nao_configurado {
   color: #b42318;
 }
@@ -1956,4 +1957,22 @@
   .page-content--garcom .fechamento-grade .fechamento-notinha {
     position: static;
   }
+}
+
+/* ---------- Impressão térmica (prévia do cupom) ---------- */
+.imp-previa {
+  overflow: auto;
+  max-height: 720px;
+  padding: 14px;
+  border-radius: 10px;
+  background: #e5e7eb;
+  text-align: center;
+}
+
+.imp-previa iframe {
+  height: 680px;
+  max-width: 100%;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
 }
